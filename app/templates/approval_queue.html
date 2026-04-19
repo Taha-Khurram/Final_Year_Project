@@ -85,6 +85,129 @@
     border-radius: var(--radius-lg);
     border: none;
   }
+
+  /* View Modal Styles */
+  .view-modal-content {
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .view-modal-content::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .view-modal-content::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+  }
+
+  .view-modal-content::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+
+  .blog-meta-info {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--secondary-color);
+  }
+
+  .meta-item i {
+    color: var(--primary-color);
+  }
+
+  .blog-content-preview {
+    background: #f8fafc;
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    line-height: 1.8;
+  }
+
+  .blog-content-preview h1,
+  .blog-content-preview h2,
+  .blog-content-preview h3 {
+    color: var(--text-primary);
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .blog-content-preview h1:first-child,
+  .blog-content-preview h2:first-child,
+  .blog-content-preview h3:first-child {
+    margin-top: 0;
+  }
+
+  .blog-content-preview p {
+    margin-bottom: 1rem;
+  }
+
+  .blog-content-preview ul, .blog-content-preview ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+  }
+
+  .blog-content-preview code {
+    background: #e2e8f0;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+
+  .blog-content-preview pre {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    margin-bottom: 1rem;
+  }
+
+  .status-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .status-under-review, .status-under_review {
+    background: rgba(59, 130, 246, 0.15);
+    color: #2563eb;
+  }
+
+  .author-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(67, 24, 255, 0.05);
+    border-radius: var(--radius-md);
+    margin-bottom: 1rem;
+  }
+
+  .author-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
 </style>
 {% endblock %}
 
@@ -108,6 +231,12 @@
       </a>
       <a href="{{ url_for('blog.categories_page') }}">
         <i class="bi bi-tags-fill"></i> <span>Categories</span>
+      </a>
+      <a href="{{ url_for('blog.seo_tools_page') }}">
+        <i class="bi bi-graph-up-arrow"></i> <span>SEO Tools</span>
+      </a>
+      <a href="{{ url_for('blog.formatting_tools_page') }}">
+        <i class="bi bi-file-richtext"></i> <span>Formatting</span>
       </a>
 
       {% if session.get('user_role') == 'ADMIN' %}
@@ -176,10 +305,14 @@
               </button>
               <ul class="dropdown-menu dropdown-menu-end shadow-card border-0 rounded-lg p-2">
                 <li>
-                  <a class="dropdown-item rounded-md" href="javascript:void(0);"
-                    onclick="openReviewModal('{{ blog.id }}')">
-                    <i class="bi bi-eye me-2 text-primary"></i> Review & Publish
-                  </a>
+                  <button class="dropdown-item rounded-md" onclick="openViewModal('{{ blog.id }}')">
+                    <i class="bi bi-eye me-2 text-info"></i> View Content
+                  </button>
+                </li>
+                <li>
+                  <button class="dropdown-item rounded-md" onclick="openReviewModal('{{ blog.id }}')">
+                    <i class="bi bi-check2-circle me-2 text-success"></i> Review & Publish
+                  </button>
                 </li>
                 <li>
                   <hr class="dropdown-divider my-1">
@@ -219,12 +352,64 @@
   </main>
 </div>
 
+<!-- View Modal (Read-Only) -->
+<div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content border-0 shadow-card rounded-lg">
+      <div class="modal-header border-bottom p-4">
+        <div>
+          <h5 class="modal-title fw-bold text-dark mb-1" id="view-modal-title">Blog Title</h5>
+          <span class="status-badge status-under-review">UNDER REVIEW</span>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="author-info" id="view-author-info">
+          <div class="author-avatar" id="view-author-avatar">US</div>
+          <div>
+            <div class="fw-bold text-dark" id="view-author-name">Author Name</div>
+            <div class="text-muted small" id="view-submit-date">Submitted on --</div>
+          </div>
+        </div>
+        <div class="blog-meta-info">
+          <div class="meta-item">
+            <i class="bi bi-folder"></i>
+            <span id="view-modal-category">General</span>
+          </div>
+          <div class="meta-item">
+            <i class="bi bi-clock"></i>
+            <span id="view-modal-reading-time">-- min read</span>
+          </div>
+          <div class="meta-item">
+            <i class="bi bi-file-text"></i>
+            <span id="view-modal-word-count">-- words</span>
+          </div>
+        </div>
+        <div class="view-modal-content">
+          <div class="blog-content-preview" id="view-modal-content">
+            Loading content...
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-top bg-light p-3">
+        <button type="button" class="btn btn-light text-secondary fw-bold" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-outline-danger" id="view-reject-btn">
+          <i class="bi bi-x-circle me-2"></i>Reject
+        </button>
+        <button type="button" class="btn btn-success text-white" id="view-approve-btn">
+          <i class="bi bi-check2-circle me-2"></i>Approve & Publish
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Review Modal -->
 <div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content shadow-card">
       <div class="modal-header border-bottom p-4">
-        <h5 class="modal-title fw-bold text-dark">Review Submission</h5>
+        <h5 class="modal-title fw-bold text-dark">Review & Publish</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body p-4">
@@ -232,15 +417,33 @@
           <label class="form-label text-secondary small fw-bold text-uppercase">Title</label>
           <h3 id="viewTitle" class="fw-bold text-info"></h3>
         </div>
+        <div class="blog-meta-info">
+          <div class="meta-item">
+            <i class="bi bi-folder"></i>
+            <span id="review-category">General</span>
+          </div>
+          <div class="meta-item">
+            <i class="bi bi-clock"></i>
+            <span id="review-reading-time">-- min read</span>
+          </div>
+          <div class="meta-item">
+            <i class="bi bi-file-text"></i>
+            <span id="review-word-count">-- words</span>
+          </div>
+        </div>
         <div>
-          <label class="form-label text-secondary small fw-bold text-uppercase">Content</label>
-          <div id="viewContent" class="p-4 bg-light rounded-lg border border-light text-dark"
-            style="white-space: pre-wrap; font-size: 1.05rem; line-height: 1.7;"></div>
+          <label class="form-label text-secondary small fw-bold text-uppercase">Content Preview</label>
+          <div class="view-modal-content">
+            <div class="blog-content-preview" id="viewContent"></div>
+          </div>
         </div>
       </div>
       <div class="modal-footer border-top p-3 bg-light">
         <button type="button" class="btn btn-light text-secondary fw-bold" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-success text-white fw-medium rounded-pill px-4" id="modalApproveBtn">
+        <button type="button" class="btn btn-outline-danger" id="modalRejectBtn">
+          <i class="bi bi-x-circle me-2"></i>Reject to Draft
+        </button>
+        <button type="button" class="btn btn-success text-white fw-medium px-4" id="modalApproveBtn">
           <i class="bi bi-check2-circle me-2"></i>Approve & Publish
         </button>
       </div>
@@ -249,15 +452,108 @@
 </div>
 
 <script>
-  async function openReviewModal(id) {
+  let currentBlogId = null;
+
+  async function openViewModal(id) {
+    currentBlogId = id;
     try {
       const res = await fetch(`/api/get_blog/${id}`);
       const data = await res.json();
 
       if (data.success) {
-        document.getElementById('viewTitle').innerText = data.blog.title.replace(/\*\*/g, '');
-        const contentBody = typeof data.blog.content === 'object' ? data.blog.content.body : data.blog.content;
-        document.getElementById('viewContent').innerText = contentBody;
+        const blog = data.blog;
+
+        // Set title
+        document.getElementById('view-modal-title').innerText = (blog.title || 'Untitled').replace(/\*\*/g, '');
+
+        // Set category
+        document.getElementById('view-modal-category').innerText = blog.category || 'General';
+
+        // Set author info
+        const authorName = blog.author || blog.created_by || 'Unknown Author';
+        document.getElementById('view-author-name').innerText = authorName;
+        document.getElementById('view-author-avatar').innerText = authorName.substring(0, 2).toUpperCase();
+
+        // Set date
+        if (blog.updated_at) {
+          document.getElementById('view-submit-date').innerText = 'Submitted on ' + new Date(blog.updated_at).toLocaleDateString('en-US', {
+            year: 'numeric', month: 'short', day: 'numeric'
+          });
+        }
+
+        // Get content (handle both string and object formats)
+        let contentHtml = '';
+        if (typeof blog.content === 'object') {
+          contentHtml = blog.content.html || blog.content.body || '';
+        } else {
+          contentHtml = blog.content || '';
+        }
+
+        // Set content
+        document.getElementById('view-modal-content').innerHTML = contentHtml || '<p class="text-muted">No content available</p>';
+
+        // Calculate reading time and word count
+        const textContent = contentHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        const wordCount = textContent.split(' ').filter(w => w.length > 0).length;
+        const readingTime = Math.ceil(wordCount / 200);
+
+        document.getElementById('view-modal-reading-time').innerText = readingTime + ' min read';
+        document.getElementById('view-modal-word-count').innerText = wordCount + ' words';
+
+        // Set button actions
+        document.getElementById('view-approve-btn').onclick = function() {
+          bootstrap.Modal.getInstance(document.getElementById('viewModal')).hide();
+          approveBlog(id);
+        };
+
+        document.getElementById('view-reject-btn').onclick = function() {
+          bootstrap.Modal.getInstance(document.getElementById('viewModal')).hide();
+          rejectToDraft(id);
+        };
+
+        // Show modal
+        const viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
+        viewModal.show();
+      } else {
+        alert("Error: " + data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load blog content.");
+    }
+  }
+
+  async function openReviewModal(id) {
+    currentBlogId = id;
+    try {
+      const res = await fetch(`/api/get_blog/${id}`);
+      const data = await res.json();
+
+      if (data.success) {
+        const blog = data.blog;
+
+        document.getElementById('viewTitle').innerText = (blog.title || 'Untitled').replace(/\*\*/g, '');
+
+        // Set category
+        document.getElementById('review-category').innerText = blog.category || 'General';
+
+        // Get content (handle both string and object formats)
+        let contentHtml = '';
+        if (typeof blog.content === 'object') {
+          contentHtml = blog.content.html || blog.content.body || '';
+        } else {
+          contentHtml = blog.content || '';
+        }
+
+        document.getElementById('viewContent').innerHTML = contentHtml || '<p class="text-muted">No content</p>';
+
+        // Calculate reading time and word count
+        const textContent = contentHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        const wordCount = textContent.split(' ').filter(w => w.length > 0).length;
+        const readingTime = Math.ceil(wordCount / 200);
+
+        document.getElementById('review-reading-time').innerText = readingTime + ' min read';
+        document.getElementById('review-word-count').innerText = wordCount + ' words';
 
         const modalApproveBtn = document.getElementById('modalApproveBtn');
         modalApproveBtn.onclick = function () {
@@ -265,6 +561,14 @@
           const modalInstance = bootstrap.Modal.getInstance(modalElem);
           if (modalInstance) modalInstance.hide();
           approveBlog(id);
+        };
+
+        const modalRejectBtn = document.getElementById('modalRejectBtn');
+        modalRejectBtn.onclick = function () {
+          const modalElem = document.getElementById('reviewModal');
+          const modalInstance = bootstrap.Modal.getInstance(modalElem);
+          if (modalInstance) modalInstance.hide();
+          rejectToDraft(id);
         };
 
         const reviewModal = new bootstrap.Modal(document.getElementById('reviewModal'));

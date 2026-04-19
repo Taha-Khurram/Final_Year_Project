@@ -8,6 +8,10 @@ class Config:
     FIREBASE_SERVICE_ACCOUNT = os.getenv('FIREBASE_SERVICE_ACCOUNT')
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 
+    # RapidAPI for SEO Keyword Research (free tier: 500 req/month)
+    # Get your key at: https://rapidapi.com
+    RAPIDAPI_KEY = os.getenv('RAPIDAPI_KEY')
+
     # Reconstruct the JS object for the frontend
     FIREBASE_CONFIG = {
         "apiKey": os.getenv("FB_API_KEY"),

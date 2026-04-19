@@ -173,6 +173,12 @@
       <a href="{{ url_for('blog.categories_page') }}">
         <i class="bi bi-tags-fill"></i> <span>Categories</span>
       </a>
+      <a href="{{ url_for('blog.seo_tools_page') }}">
+        <i class="bi bi-graph-up-arrow"></i> <span>SEO Tools</span>
+      </a>
+      <a href="{{ url_for('blog.formatting_tools_page') }}">
+        <i class="bi bi-file-richtext"></i> <span>Formatting</span>
+      </a>
 
       {% if session.get('user_role') == 'ADMIN' %}
       <div class="mt-4 mb-2 ps-3 text-uppercase text-white-50 admin-label"

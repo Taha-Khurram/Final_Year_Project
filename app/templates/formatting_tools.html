@@ -1,0 +1,825 @@
+{% extends "base.html" %}
+
+{% block title %}Formatting Tools | ScriptlyAI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .format-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 1.5rem;
+    }
+
+    .format-card h3 {
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .format-card h3 i {
+        color: var(--primary-color);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+
+    .stat-box {
+        background: var(--bg-body);
+        border-radius: var(--radius-md);
+        padding: 1.25rem;
+        text-align: center;
+    }
+
+    .stat-box .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .stat-box .stat-label {
+        font-size: 0.85rem;
+        color: var(--secondary-color);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .toc-preview {
+        background: var(--bg-body);
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .toc-preview ul {
+        list-style: none;
+        padding-left: 0;
+        margin: 0;
+    }
+
+    .toc-preview li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .toc-preview li:last-child {
+        border: none;
+    }
+
+    .toc-preview a {
+        color: var(--primary-color);
+        text-decoration: none;
+    }
+
+    .toc-level-1 { font-weight: 600; }
+    .toc-level-2 { padding-left: 1rem; }
+    .toc-level-3 { padding-left: 2rem; font-size: 0.9rem; }
+    .toc-level-4 { padding-left: 3rem; font-size: 0.85rem; }
+
+    .html-preview {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .html-preview article {
+        line-height: 1.8;
+    }
+
+    .html-preview h1, .html-preview h2, .html-preview h3 {
+        color: var(--text-primary);
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .html-preview code {
+        background: #f1f5f9;
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-size: 0.9em;
+    }
+
+    .html-preview pre {
+        background: #1e293b;
+        color: #e2e8f0;
+        padding: 1rem;
+        border-radius: var(--radius-md);
+        overflow-x: auto;
+    }
+
+    .reading-time-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(67, 24, 255, 0.1);
+        color: var(--primary-color);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .feature-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .feature-badge.has {
+        background: rgba(5, 205, 153, 0.15);
+        color: var(--success-color);
+    }
+
+    .feature-badge.no {
+        background: rgba(0,0,0,0.05);
+        color: var(--secondary-color);
+    }
+
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255,255,255,0.9);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .loading-overlay.active {
+        display: flex;
+    }
+
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    #results-section {
+        display: none;
+    }
+
+    .copy-btn {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 0.35rem 0.75rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    /* Draft View Modal Styles */
+    .view-modal-content {
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+
+    .view-modal-content::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .view-modal-content::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 3px;
+    }
+
+    .view-modal-content::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+
+    .blog-meta-info {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--secondary-color);
+    }
+
+    .meta-item i {
+        color: var(--primary-color);
+    }
+
+    .blog-content-preview {
+        background: #f8fafc;
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        line-height: 1.8;
+    }
+
+    .status-badge {
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .status-draft {
+        background: rgba(251, 191, 36, 0.15);
+        color: #d97706;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+
+    <!-- SIDEBAR -->
+    <nav class="dashboard-sidebar">
+        <div class="sidebar-logo" onclick="this.closest('.dashboard-sidebar').classList.toggle('expanded')">
+            <i class="bi bi-robot"></i>
+            <span>ScriptlyAI</span>
+        </div>
+
+        <div class="sidebar-menu">
+            <a href="{{ url_for('blog.home') }}">
+                <i class="bi bi-grid-fill"></i> <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('blog.create_page') }}">
+                <i class="bi bi-plus-square-fill"></i> <span>Create Blog</span>
+            </a>
+            <a href="{{ url_for('blog.drafts_page') }}">
+                <i class="bi bi-file-text-fill"></i> <span>My Drafts</span>
+            </a>
+            <a href="{{ url_for('blog.categories_page') }}">
+                <i class="bi bi-tags-fill"></i> <span>Categories</span>
+            </a>
+            <a href="{{ url_for('blog.seo_tools_page') }}">
+                <i class="bi bi-graph-up-arrow"></i> <span>SEO Tools</span>
+            </a>
+            <a href="{{ url_for('blog.formatting_tools_page') }}" class="active">
+                <i class="bi bi-file-richtext"></i> <span>Formatting</span>
+            </a>
+
+            {% if session.get('user_role') == 'ADMIN' %}
+            <div class="mt-4 mb-2 ps-3 text-uppercase text-white-50 admin-label"
+                style="font-size: 0.75rem; letter-spacing: 1px;">
+                Admin</div>
+
+            <a href="{{ url_for('blog.approval_page') }}">
+                <i class="bi bi-check-circle-fill"></i> <span>Approvals</span>
+            </a>
+            <a href="{{ url_for('user_bp.manage_users') }}">
+                <i class="bi bi-people-fill"></i> <span>Users</span>
+            </a>
+            {% endif %}
+        </div>
+
+        <div class="sidebar-wrapper-footer" onclick="this.closest('.dashboard-sidebar').classList.toggle('expanded')">
+            <div class="footer-avatar">
+                {{ username[:2].upper() }}
+            </div>
+            <div class="footer-user-info">
+                <div class="text-white fw-bold text-truncate" style="font-size: 0.9rem;">
+                    {{username}}
+                </div>
+                <a href="{{url_for('auth_bp.logout')}}" class="text-danger small"
+                    style="font-size: 0.8rem; font-weight: 500;">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="dashboard-main">
+
+        <header class="dashboard-header">
+            <div>
+                <div class="header-welcome-text">Content Enhancement</div>
+                <h1 class="header-title">Formatting Tools</h1>
+            </div>
+        </header>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loading-overlay">
+            <div class="loading-spinner"></div>
+            <p class="text-muted">Processing your content...</p>
+        </div>
+
+        <!-- Input Section -->
+        <div class="format-card animate-fade-up">
+            <h3><i class="bi bi-file-richtext"></i> Format Markdown Content</h3>
+            <p class="text-muted mb-4">Paste your markdown content or load from existing drafts to generate HTML, table of contents, reading time, and statistics.</p>
+
+            <!-- Load from Drafts Dropdown -->
+            <div class="mb-4">
+                <label class="form-label fw-bold">Load from Existing Draft</label>
+                <div class="d-flex gap-2">
+                    <select class="form-select" id="draft-select" onchange="loadDraftContent()">
+                        <option value="">-- Select a draft to load --</option>
+                    </select>
+                    <button class="btn btn-outline-primary" onclick="refreshDrafts()" title="Refresh drafts list">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                    <button class="btn btn-outline-info" onclick="viewSelectedDraft()" title="View selected draft">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">Blog Title (Optional)</label>
+                <input type="text" class="form-control" id="format-title"
+                    placeholder="e.g., My Awesome Blog Post">
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">Markdown Content</label>
+                <textarea class="form-control" id="format-content" rows="12"
+                    placeholder="# Your Blog Title
+
+## Introduction
+Write your introduction here...
+
+## Main Section
+Your content goes here with **bold** and *italic* text.
+
+### Subsection
+- Bullet point 1
+- Bullet point 2
+
+## Conclusion
+Final thoughts..."></textarea>
+            </div>
+
+            <div class="d-flex gap-3">
+                <button class="btn btn-primary" onclick="formatContent()">
+                    <i class="bi bi-magic me-2"></i>Format Content
+                </button>
+                <button class="btn btn-outline-secondary" onclick="clearAll()">
+                    <i class="bi bi-x-lg me-2"></i>Clear
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results-section">
+
+            <!-- Stats & Reading Time -->
+            <div class="format-card animate-fade-up">
+                <h3><i class="bi bi-bar-chart"></i> Content Statistics</h3>
+
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    <span class="reading-time-badge" id="reading-time">
+                        <i class="bi bi-clock"></i> -- min read
+                    </span>
+                    <span class="feature-badge no" id="has-code">
+                        <i class="bi bi-code-slash"></i> Code Blocks
+                    </span>
+                    <span class="feature-badge no" id="has-images">
+                        <i class="bi bi-image"></i> Images
+                    </span>
+                    <span class="feature-badge no" id="has-tables">
+                        <i class="bi bi-table"></i> Tables
+                    </span>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-value" id="stat-words">0</div>
+                        <div class="stat-label">Words</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="stat-sentences">0</div>
+                        <div class="stat-label">Sentences</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="stat-paragraphs">0</div>
+                        <div class="stat-label">Paragraphs</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="stat-characters">0</div>
+                        <div class="stat-label">Characters</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table of Contents -->
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="format-card animate-fade-up h-100">
+                        <h3><i class="bi bi-list-nested"></i> Table of Contents</h3>
+                        <div class="toc-preview" id="toc-preview">
+                            <p class="text-muted">No headings found</p>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary mt-3" onclick="copyTOC()">
+                            <i class="bi bi-clipboard me-1"></i> Copy TOC Markdown
+                        </button>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="format-card animate-fade-up h-100">
+                        <h3><i class="bi bi-code-square"></i> HTML Preview</h3>
+                        <div class="position-relative">
+                            <button class="copy-btn" onclick="copyHTML()">
+                                <i class="bi bi-clipboard me-1"></i> Copy HTML
+                            </button>
+                            <div class="html-preview" id="html-preview">
+                                <p class="text-muted">Formatted content will appear here</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Raw HTML Code -->
+            <div class="format-card animate-fade-up mt-4">
+                <h3><i class="bi bi-file-code"></i> Raw HTML Code</h3>
+                <div class="position-relative">
+                    <button class="copy-btn" onclick="copyRawHTML()">
+                        <i class="bi bi-clipboard me-1"></i> Copy
+                    </button>
+                    <textarea class="form-control font-monospace" id="raw-html" rows="8" readonly
+                        style="background: #1e293b; color: #e2e8f0; font-size: 0.85rem;"></textarea>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+</div>
+
+<!-- View Draft Modal -->
+<div class="modal fade" id="viewDraftModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 shadow-card rounded-lg">
+            <div class="modal-header border-bottom p-4">
+                <div>
+                    <h5 class="modal-title fw-bold text-dark mb-1" id="view-draft-title">Draft Title</h5>
+                    <span class="status-badge status-draft">DRAFT</span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="blog-meta-info">
+                    <div class="meta-item">
+                        <i class="bi bi-folder"></i>
+                        <span id="view-draft-category">General</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="bi bi-clock"></i>
+                        <span id="view-draft-reading-time">-- min read</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="bi bi-file-text"></i>
+                        <span id="view-draft-word-count">-- words</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="bi bi-calendar"></i>
+                        <span id="view-draft-date">--</span>
+                    </div>
+                </div>
+                <div class="view-modal-content">
+                    <div class="blog-content-preview" id="view-draft-content">
+                        Loading content...
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top bg-light p-3">
+                <button type="button" class="btn btn-light text-secondary fw-bold" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary text-white" onclick="useThisDraft()">
+                    <i class="bi bi-file-richtext me-2"></i>Use for Formatting
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let formattedData = null;
+    let draftsData = [];
+    let selectedDraftId = null;
+    let selectedDraftData = null;
+
+    // Load drafts on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDrafts();
+    });
+
+    async function loadDrafts() {
+        try {
+            const response = await fetch('/api/seo/drafts');
+            const data = await response.json();
+
+            if (data.success && data.drafts) {
+                draftsData = data.drafts;
+                const select = document.getElementById('draft-select');
+                select.innerHTML = '<option value="">-- Select a draft to load --</option>';
+
+                data.drafts.forEach(draft => {
+                    const option = document.createElement('option');
+                    option.value = draft.id;
+                    option.textContent = (draft.title || 'Untitled').replace(/\*\*/g, '').substring(0, 60);
+                    if (draft.title && draft.title.length > 60) option.textContent += '...';
+                    select.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading drafts:', error);
+        }
+    }
+
+    function refreshDrafts() {
+        loadDrafts();
+    }
+
+    async function loadDraftContent() {
+        const select = document.getElementById('draft-select');
+        const draftId = select.value;
+
+        if (!draftId) return;
+
+        selectedDraftId = draftId;
+
+        try {
+            const response = await fetch(`/api/get_blog/${draftId}`);
+            const data = await response.json();
+
+            if (data.success && data.blog) {
+                const blog = data.blog;
+                selectedDraftData = blog;
+
+                // Set title
+                document.getElementById('format-title').value = (blog.title || '').replace(/\*\*/g, '');
+
+                // Get content - prefer markdown if available
+                let content = '';
+                if (typeof blog.content === 'object') {
+                    content = blog.content.markdown || blog.content.original_markdown || blog.content.body || '';
+                } else {
+                    content = blog.content || '';
+                }
+
+                // If content looks like HTML, try to use markdown version
+                if (content.startsWith('<') && blog.content && blog.content.markdown) {
+                    content = blog.content.markdown;
+                }
+
+                document.getElementById('format-content').value = content;
+            }
+        } catch (error) {
+            console.error('Error loading draft:', error);
+            alert('Failed to load draft content');
+        }
+    }
+
+    async function viewSelectedDraft() {
+        const select = document.getElementById('draft-select');
+        const draftId = select.value;
+
+        if (!draftId) {
+            alert('Please select a draft first');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/get_blog/${draftId}`);
+            const data = await response.json();
+
+            if (data.success && data.blog) {
+                const blog = data.blog;
+                selectedDraftData = blog;
+                selectedDraftId = draftId;
+
+                // Set title
+                document.getElementById('view-draft-title').innerText = (blog.title || 'Untitled').replace(/\*\*/g, '');
+
+                // Set category
+                document.getElementById('view-draft-category').innerText = blog.category || 'General';
+
+                // Set date
+                if (blog.updated_at) {
+                    document.getElementById('view-draft-date').innerText = new Date(blog.updated_at).toLocaleDateString('en-US', {
+                        year: 'numeric', month: 'short', day: 'numeric'
+                    });
+                }
+
+                // Get content
+                let contentHtml = '';
+                if (typeof blog.content === 'object') {
+                    contentHtml = blog.content.html || blog.content.body || '';
+                } else {
+                    contentHtml = blog.content || '';
+                }
+
+                document.getElementById('view-draft-content').innerHTML = contentHtml || '<p class="text-muted">No content</p>';
+
+                // Calculate stats
+                const textContent = contentHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                const wordCount = textContent.split(' ').filter(w => w.length > 0).length;
+                const readingTime = Math.ceil(wordCount / 200);
+
+                document.getElementById('view-draft-reading-time').innerText = readingTime + ' min read';
+                document.getElementById('view-draft-word-count').innerText = wordCount + ' words';
+
+                // Show modal
+                const viewModal = new bootstrap.Modal(document.getElementById('viewDraftModal'));
+                viewModal.show();
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to load draft');
+        }
+    }
+
+    function useThisDraft() {
+        if (selectedDraftData) {
+            // Set title
+            document.getElementById('format-title').value = (selectedDraftData.title || '').replace(/\*\*/g, '');
+
+            // Get content - prefer markdown
+            let content = '';
+            if (typeof selectedDraftData.content === 'object') {
+                content = selectedDraftData.content.markdown || selectedDraftData.content.original_markdown || selectedDraftData.content.body || '';
+            } else {
+                content = selectedDraftData.content || '';
+            }
+
+            document.getElementById('format-content').value = content;
+
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('viewDraftModal')).hide();
+
+            // Update select to show selected draft
+            document.getElementById('draft-select').value = selectedDraftId;
+        }
+    }
+
+    function showLoading() {
+        document.getElementById('loading-overlay').classList.add('active');
+    }
+
+    function hideLoading() {
+        document.getElementById('loading-overlay').classList.remove('active');
+    }
+
+    async function formatContent() {
+        const title = document.getElementById('format-title').value;
+        const content = document.getElementById('format-content').value;
+
+        if (!content.trim()) {
+            alert('Please enter some content to format');
+            return;
+        }
+
+        showLoading();
+
+        try {
+            const response = await fetch('/api/format', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, content })
+            });
+
+            const data = await response.json();
+            hideLoading();
+
+            if (data.success) {
+                formattedData = data.formatted;
+                displayResults(data.formatted);
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (error) {
+            hideLoading();
+            alert('Network error. Please try again.');
+            console.error(error);
+        }
+    }
+
+    function displayResults(data) {
+        document.getElementById('results-section').style.display = 'block';
+
+        // Reading time
+        document.getElementById('reading-time').innerHTML =
+            `<i class="bi bi-clock"></i> ${data.reading_time}`;
+
+        // Statistics
+        const stats = data.statistics || {};
+        document.getElementById('stat-words').textContent = stats.word_count || 0;
+        document.getElementById('stat-sentences').textContent = stats.sentence_count || 0;
+        document.getElementById('stat-paragraphs').textContent = stats.paragraph_count || 0;
+        document.getElementById('stat-characters').textContent = stats.character_count || 0;
+
+        // Feature badges - we need to check the content for these
+        const content = document.getElementById('format-content').value;
+        updateFeatureBadge('has-code', /```[\s\S]*?```|`[^`]+`/.test(content));
+        updateFeatureBadge('has-images', /!\[.*?\]\(.*?\)/.test(content));
+        updateFeatureBadge('has-tables', /\|.*\|.*\|/.test(content));
+
+        // Table of Contents
+        const tocPreview = document.getElementById('toc-preview');
+        if (data.toc && data.toc.length > 0) {
+            let tocHtml = '<ul>';
+            data.toc.forEach(item => {
+                tocHtml += `<li class="toc-level-${item.level}">
+                    <a href="#${item.slug}">${item.text}</a>
+                </li>`;
+            });
+            tocHtml += '</ul>';
+            tocPreview.innerHTML = tocHtml;
+        } else {
+            tocPreview.innerHTML = '<p class="text-muted">No headings found</p>';
+        }
+
+        // HTML Preview
+        document.getElementById('html-preview').innerHTML = data.html;
+
+        // Raw HTML
+        document.getElementById('raw-html').value = data.html;
+
+        // Scroll to results
+        document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function updateFeatureBadge(id, hasFeature) {
+        const badge = document.getElementById(id);
+        badge.className = 'feature-badge ' + (hasFeature ? 'has' : 'no');
+    }
+
+    function clearAll() {
+        document.getElementById('format-title').value = '';
+        document.getElementById('format-content').value = '';
+        document.getElementById('results-section').style.display = 'none';
+        formattedData = null;
+    }
+
+    function copyTOC() {
+        if (!formattedData || !formattedData.toc) {
+            alert('No TOC available');
+            return;
+        }
+
+        let tocMarkdown = '## Table of Contents\n\n';
+        formattedData.toc.forEach(item => {
+            const indent = '  '.repeat(item.level - 1);
+            tocMarkdown += `${indent}- [${item.text}](#${item.slug})\n`;
+        });
+
+        navigator.clipboard.writeText(tocMarkdown);
+        alert('TOC copied to clipboard!');
+    }
+
+    function copyHTML() {
+        const html = document.getElementById('html-preview').innerHTML;
+        navigator.clipboard.writeText(html);
+        alert('HTML copied to clipboard!');
+    }
+
+    function copyRawHTML() {
+        const rawHtml = document.getElementById('raw-html').value;
+        navigator.clipboard.writeText(rawHtml);
+        alert('Raw HTML copied to clipboard!');
+    }
+</script>
+{% endblock %}

@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, request, jsonify, url_for, session, redirect
 from app.agents.blog_agent import BlogAgent
 from app.agents.category_agent import CategoryAgent
+from app.agents.seo_agent import SEOAgent
+from app.agents.formatting_agent import FormattingAgent
 from app.firebase.firestore_service import FirestoreService
 from datetime import datetime
 import math
@@ -503,6 +505,293 @@ def delete_category(category_id):
         return jsonify({"success": success})
 
     except Exception as e:
-        print("❌ Delete Category Error:", e)
+        print("Delete Category Error:", e)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+# ---------------------------------------------------
+# SEO TOOLS ROUTES
+# ---------------------------------------------------
+
+@blog_bp.route('/seo-tools')
+def seo_tools_page():
+    """SEO Tools Dashboard"""
+    return render_template(
+        'seo_tools.html',
+        username=session.get('user_name', 'User')
+    )
+
+
+@blog_bp.route('/formatting-tools')
+def formatting_tools_page():
+    """Formatting Tools Dashboard"""
+    return render_template(
+        'formatting_tools.html',
+        username=session.get('user_name', 'User')
+    )
+
+
+@blog_bp.route('/api/seo/analyze', methods=['POST'])
+def analyze_seo():
+    """Analyze content for SEO and get keyword suggestions"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+        data = request.get_json()
+        title = data.get('title', '')
+        content = data.get('content', '')
+        region = data.get('region', 'PK')
+
+        if not content:
+            return jsonify({"success": False, "error": "Content is required"}), 400
+
+        seo_agent = SEOAgent()
+        result = seo_agent.optimize_blog(title, content, region)
+
+        return jsonify({
+            "success": True,
+            "seo_analysis": result
+        })
+
+    except Exception as e:
+        print(f"SEO Analysis Error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@blog_bp.route('/api/seo/keywords', methods=['POST'])
+def research_keywords():
+    """Research keywords for a given topic"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+        data = request.get_json()
+        topic = data.get('topic', '')
+        region = data.get('region', 'PK')
+
+        if not topic:
+            return jsonify({"success": False, "error": "Topic is required"}), 400
+
+        seo_agent = SEOAgent()
+
+        # Extract seed keywords
+        seed_keywords = seo_agent._extract_seed_keywords(topic)
+
+        # Get related keywords from Google
+        all_keywords = []
+        for seed in seed_keywords[:3]:  # Limit to 3 seeds to avoid rate limits
+            related = seo_agent._get_google_related_keywords(seed, region)
+            all_keywords.extend(related)
+
+        # Remove duplicates
+        seen = set()
+        unique_keywords = []
+        for kw in all_keywords:
+            if kw['keyword'] not in seen:
+                seen.add(kw['keyword'])
+                unique_keywords.append(kw)
+
+        # Sort by difficulty (easiest first)
+        unique_keywords.sort(key=lambda x: x.get('difficulty_score', 50))
+
+        return jsonify({
+            "success": True,
+            "seed_keywords": seed_keywords,
+            "related_keywords": unique_keywords[:20],  # Top 20
+            "region": region
+        })
+
+    except Exception as e:
+        print(f"Keyword Research Error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@blog_bp.route('/api/seo/optimize-blog/<blog_id>', methods=['POST'])
+def optimize_existing_blog(blog_id):
+    """Apply SEO optimization to an existing blog"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+        data = request.get_json()
+        region = data.get('region', 'PK')
+
+        # Get the blog
+        blog_data = db_service.get_blog_by_id(blog_id)
+        if not blog_data:
+            return jsonify({"success": False, "error": "Blog not found"}), 404
+
+        # Check ownership
+        if blog_data.get('author_id') != user_id and session.get('user_role') != 'ADMIN':
+            return jsonify({"success": False, "error": "Not authorized"}), 403
+
+        # Extract content
+        content = blog_data.get('content', '')
+        if isinstance(content, dict):
+            content = content.get('markdown') or content.get('body') or ''
+
+        title = blog_data.get('title', '')
+
+        # Run SEO optimization
+        seo_agent = SEOAgent()
+        result = seo_agent.optimize_blog(title, content, region)
+
+        if result.get('optimized'):
+            # Update blog with optimized content
+            optimized = result['optimized']
+            new_title = optimized.get('optimized_title', title)
+            new_content = optimized.get('optimized_content', content)
+
+            success = db_service.update_blog_content(blog_id, new_title, new_content)
+
+            if success:
+                # Log activity
+                db_service.log_activity(
+                    user_id=user_id,
+                    user_name=session.get('user_name', 'User'),
+                    type="seo_optimized",
+                    action_text="applied SEO optimization to",
+                    blog_title=new_title
+                )
+
+            return jsonify({
+                "success": success,
+                "seo_score": optimized.get('seo_score', 0),
+                "seo_grade": optimized.get('seo_grade', 'N/A'),
+                "primary_keyword": result.get('keyword_research', {}).get('primary_keyword', {}),
+                "new_title": new_title,
+                "comparison": result.get('comparison', {}),
+                "changes_made": result.get('changes_made', []),
+                "original_score": result.get('original_analysis', {}).get('seo_score', {}).get('total', 0),
+                "score_improvement": result.get('score_improvement', 0)
+            })
+
+        return jsonify({
+            "success": False,
+            "error": "SEO optimization could not be applied"
+        }), 400
+
+    except Exception as e:
+        print(f"Blog SEO Optimization Error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+# ---------------------------------------------------
+# FORMATTING API ROUTES
+# ---------------------------------------------------
+
+@blog_bp.route('/api/format', methods=['POST'])
+def format_content():
+    """Format markdown content and return HTML with metadata"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+        data = request.get_json()
+        content = data.get('content', '')
+        title = data.get('title', '')
+
+        if not content:
+            return jsonify({"success": False, "error": "Content is required"}), 400
+
+        formatter = FormattingAgent()
+        result = formatter.format_blog(content, title)
+
+        return jsonify({
+            "success": True,
+            "formatted": {
+                "html": result['html'],
+                "toc": result['toc'],
+                "toc_html": result['toc_html'],
+                "reading_time": result['reading_time_text'],
+                "statistics": result['statistics']
+            }
+        })
+
+    except Exception as e:
+        print(f"Formatting Error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@blog_bp.route('/api/seo/drafts')
+def get_drafts_for_seo():
+    """Get user's drafts for SEO analysis"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+        # Get all drafts for this user
+        drafts = db_service.get_blogs_by_status("DRAFT", user_id=user_id)
+
+        # Format for dropdown
+        draft_list = []
+        for draft in drafts:
+            content = draft.get('content', '')
+            if isinstance(content, dict):
+                content = content.get('markdown') or content.get('body') or ''
+
+            draft_list.append({
+                "id": draft.get('id'),
+                "title": draft.get('title', 'Untitled'),
+                "preview": content[:100] + "..." if len(content) > 100 else content,
+                "updated_at": draft.get('updated_at').strftime('%Y-%m-%d') if draft.get('updated_at') else None
+            })
+
+        return jsonify({
+            "success": True,
+            "drafts": draft_list
+        })
+
+    except Exception as e:
+        print(f"Get Drafts Error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@blog_bp.route('/api/seo/analyze-draft/<blog_id>', methods=['POST'])
+def analyze_draft_seo(blog_id):
+    """Analyze a specific draft for SEO without modifying it"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+        data = request.get_json() or {}
+        region = data.get('region', 'PK')
+
+        # Get the blog
+        blog_data = db_service.get_blog_by_id(blog_id)
+        if not blog_data:
+            return jsonify({"success": False, "error": "Blog not found"}), 404
+
+        # Check ownership
+        if blog_data.get('author_id') != user_id and session.get('user_role') != 'ADMIN':
+            return jsonify({"success": False, "error": "Not authorized"}), 403
+
+        # Extract content
+        content = blog_data.get('content', '')
+        if isinstance(content, dict):
+            content = content.get('markdown') or content.get('body') or ''
+
+        title = blog_data.get('title', '')
+
+        # Run SEO analysis only (without applying changes) - Step 1
+        seo_agent = SEOAgent()
+        result = seo_agent.analyze_only(title, content)
+
+        return jsonify({
+            "success": True,
+            "blog_id": blog_id,
+            "blog_title": title,
+            "original_analysis": result
+        })
+
+    except Exception as e:
+        print(f"Draft SEO Analysis Error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 

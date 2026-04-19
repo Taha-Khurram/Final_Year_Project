@@ -81,6 +81,116 @@
     border: 1px solid rgba(0, 0, 0, 0.1) !important;
     border-radius: var(--radius-md) !important;
   }
+
+  /* View Modal Styles */
+  .view-modal-content {
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .view-modal-content::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .view-modal-content::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+  }
+
+  .view-modal-content::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+
+  .blog-meta-info {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--secondary-color);
+  }
+
+  .meta-item i {
+    color: var(--primary-color);
+  }
+
+  .blog-content-preview {
+    background: #f8fafc;
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    line-height: 1.8;
+  }
+
+  .blog-content-preview h1,
+  .blog-content-preview h2,
+  .blog-content-preview h3 {
+    color: var(--text-primary);
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .blog-content-preview h1:first-child,
+  .blog-content-preview h2:first-child,
+  .blog-content-preview h3:first-child {
+    margin-top: 0;
+  }
+
+  .blog-content-preview p {
+    margin-bottom: 1rem;
+  }
+
+  .blog-content-preview ul, .blog-content-preview ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+  }
+
+  .blog-content-preview code {
+    background: #e2e8f0;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+
+  .blog-content-preview pre {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    margin-bottom: 1rem;
+  }
+
+  .status-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .status-draft {
+    background: rgba(251, 191, 36, 0.15);
+    color: #d97706;
+  }
+
+  .status-review {
+    background: rgba(59, 130, 246, 0.15);
+    color: #2563eb;
+  }
+
+  .status-published {
+    background: rgba(5, 205, 153, 0.15);
+    color: var(--success-color);
+  }
 </style>
 {% endblock %}
 
@@ -104,6 +214,12 @@
       </a>
       <a href="{{ url_for('blog.categories_page') }}">
         <i class="bi bi-tags-fill"></i> <span>Categories</span>
+      </a>
+      <a href="{{ url_for('blog.seo_tools_page') }}">
+        <i class="bi bi-graph-up-arrow"></i> <span>SEO Tools</span>
+      </a>
+      <a href="{{ url_for('blog.formatting_tools_page') }}">
+        <i class="bi bi-file-richtext"></i> <span>Formatting</span>
       </a>
 
       {% if session.get('user_role') == 'ADMIN' %}
@@ -177,6 +293,11 @@
               </button>
               <ul class="dropdown-menu dropdown-menu-end shadow-card border-0 rounded-lg p-2">
                 <li>
+                  <button class="dropdown-item rounded-md" onclick="openViewModal('{{ draft.id }}')">
+                    <i class="bi bi-eye me-2 text-info"></i> View Draft
+                  </button>
+                </li>
+                <li>
                   <button class="dropdown-item rounded-md" onclick="openEditModal('{{ draft.id }}')">
                     <i class="bi bi-pencil-square me-2 text-primary"></i> Edit Draft
                   </button>
@@ -232,9 +353,59 @@
   </div>
 </div>
 
+<!-- View Modal -->
+<div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content border-0 shadow-card rounded-lg">
+      <div class="modal-header border-bottom p-4">
+        <div>
+          <h5 class="modal-title fw-bold text-dark mb-1" id="view-modal-title">Blog Title</h5>
+          <span class="status-badge status-draft" id="view-modal-status">DRAFT</span>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="blog-meta-info">
+          <div class="meta-item">
+            <i class="bi bi-folder"></i>
+            <span id="view-modal-category">General</span>
+          </div>
+          <div class="meta-item">
+            <i class="bi bi-clock"></i>
+            <span id="view-modal-reading-time">-- min read</span>
+          </div>
+          <div class="meta-item">
+            <i class="bi bi-file-text"></i>
+            <span id="view-modal-word-count">-- words</span>
+          </div>
+          <div class="meta-item">
+            <i class="bi bi-calendar"></i>
+            <span id="view-modal-date">--</span>
+          </div>
+        </div>
+        <div class="view-modal-content">
+          <div class="blog-content-preview" id="view-modal-content">
+            Loading content...
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-top bg-light p-3">
+        <button type="button" class="btn btn-light text-secondary fw-bold" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-outline-primary" id="view-edit-btn">
+          <i class="bi bi-pencil-square me-2"></i>Edit Draft
+        </button>
+        <button type="button" class="btn btn-success text-white" id="view-submit-btn">
+          <i class="bi bi-send-check me-2"></i>Submit for Approval
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
   let currentEditingId = null;
+  let currentViewingId = null;
 
   const initEditor = (initialContent) => {
     if (tinymce.get('editor-canvas')) {
@@ -256,6 +427,76 @@
     });
   };
 
+  async function openViewModal(id) {
+    currentViewingId = id;
+    try {
+      const res = await fetch(`/api/get_blog/${id}`);
+      const data = await res.json();
+
+      if (data.success) {
+        const blog = data.blog;
+
+        // Set title
+        document.getElementById('view-modal-title').innerText = (blog.title || 'Untitled').replace(/\*\*/g, '');
+
+        // Set status badge
+        const statusBadge = document.getElementById('view-modal-status');
+        const status = blog.status || 'DRAFT';
+        statusBadge.innerText = status;
+        statusBadge.className = 'status-badge status-' + status.toLowerCase().replace('_', '-');
+
+        // Set category
+        document.getElementById('view-modal-category').innerText = blog.category || 'General';
+
+        // Set date
+        if (blog.updated_at) {
+          document.getElementById('view-modal-date').innerText = new Date(blog.updated_at).toLocaleDateString('en-US', {
+            year: 'numeric', month: 'short', day: 'numeric'
+          });
+        }
+
+        // Get content (handle both string and object formats)
+        let contentHtml = '';
+        if (typeof blog.content === 'object') {
+          contentHtml = blog.content.html || blog.content.body || '';
+        } else {
+          contentHtml = blog.content || '';
+        }
+
+        // Set content
+        document.getElementById('view-modal-content').innerHTML = contentHtml || '<p class="text-muted">No content available</p>';
+
+        // Calculate reading time and word count from content
+        const textContent = contentHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        const wordCount = textContent.split(' ').filter(w => w.length > 0).length;
+        const readingTime = Math.ceil(wordCount / 200);
+
+        document.getElementById('view-modal-reading-time').innerText = readingTime + ' min read';
+        document.getElementById('view-modal-word-count').innerText = wordCount + ' words';
+
+        // Set button actions
+        document.getElementById('view-edit-btn').onclick = function() {
+          bootstrap.Modal.getInstance(document.getElementById('viewModal')).hide();
+          openEditModal(id);
+        };
+
+        document.getElementById('view-submit-btn').onclick = function() {
+          bootstrap.Modal.getInstance(document.getElementById('viewModal')).hide();
+          submitForReview(id);
+        };
+
+        // Show modal
+        const viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
+        viewModal.show();
+      } else {
+        alert("Failed to load: " + data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Connection error.");
+    }
+  }
+
   async function openEditModal(id) {
     currentEditingId = id;
     try {
@@ -266,7 +507,15 @@
         const modalElement = document.getElementById('editModal');
         const editModal = new bootstrap.Modal(modalElement);
         editModal.show();
-        initEditor(data.blog.content);
+
+        // Get content (handle both string and object formats)
+        let content = '';
+        if (typeof data.blog.content === 'object') {
+          content = data.blog.content.html || data.blog.content.body || '';
+        } else {
+          content = data.blog.content || '';
+        }
+        initEditor(content);
       } else {
         alert("Failed to load: " + data.message);
       }
