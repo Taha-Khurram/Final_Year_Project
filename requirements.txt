@@ -1,0 +1,9 @@
+flask
+python-dotenv
+firebase-admin
+google-generativeai
+requests
+gunicorn
+waitress
+whitenoise
+flask-compress

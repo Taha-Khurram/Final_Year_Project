@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}Drafts | ScriptlyAI{% endblock %}
+
+{% block extra_css %}
+<!-- Dashboard CSS included in base.html -->
+<style>
+  /* Local overrides for Drafts List */
+  .drafts-container {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    overflow: visible;
+  }
+
+  .drafts-header {
+    display: flex;
+    padding: 1.25rem 2rem;
+    background: transparent;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
+  }
+
+  .draft-row {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem 2rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    transition: var(--transition-base);
+  }
+
+  .draft-row:hover {
+    background: var(--bg-body);
+  }
+
+  .draft-row:last-child {
+    border-bottom: none;
+    border-bottom-left-radius: var(--radius-lg);
+    border-bottom-right-radius: var(--radius-lg);
+  }
+
+  .col-title {
+    flex: 3;
+    font-weight: 600;
+    color: var(--info-color);
+  }
+
+  .col-tags {
+    flex: 1.5;
+  }
+
+  .col-status {
+    flex: 1.5;
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+  }
+
+  .col-actions {
+    flex: 0 0 80px;
+    text-align: right;
+  }
+
+  /* Badge styling */
+  .badge-tag {
+    background: rgba(67, 24, 255, 0.1);
+    color: var(--primary-color);
+    padding: 0.35rem 1rem;
+    border-radius: 30px;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  /* Modal Tweaks */
+  .tox-tinymce {
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    border-radius: var(--radius-md) !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+
+  <nav class="dashboard-sidebar">
+    <div class="sidebar-logo" onclick="this.closest('.dashboard-sidebar').classList.toggle('expanded')">
+      <i class="bi bi-robot"></i>
+      <span>ScriptlyAI</span>
+    </div>
+    <div class="sidebar-menu">
+      <a href="{{ url_for('blog.home') }}">
+        <i class="bi bi-grid-fill"></i> <span>Dashboard</span>
+      </a>
+      <a href="{{ url_for('blog.create_page') }}">
+        <i class="bi bi-plus-square-fill"></i> <span>Create Blog</span>
+      </a>
+      <a href="{{ url_for('blog.drafts_page') }}" class="active">
+        <i class="bi bi-file-text-fill"></i> <span>My Drafts</span>
+      </a>
+      <a href="{{ url_for('blog.categories_page') }}">
+        <i class="bi bi-tags-fill"></i> <span>Categories</span>
+      </a>
+
+      {% if session.get('user_role') == 'ADMIN' %}
+      <div class="mt-4 mb-2 ps-3 text-uppercase text-white-50 admin-label"
+        style="font-size: 0.75rem; letter-spacing: 1px;">Admin
+      </div>
+
+      <a href="{{ url_for('blog.approval_page') }}">
+        <i class="bi bi-check-circle-fill"></i> <span>Approvals</span>
+      </a>
+      <a href="{{ url_for('user_bp.manage_users') }}">
+        <i class="bi bi-people-fill"></i> <span>Users</span>
+      </a>
+      {% endif %}
+    </div>
+
+    <div class="sidebar-wrapper-footer" onclick="this.closest('.dashboard-sidebar').classList.toggle('expanded')">
+      <div class="footer-avatar">
+        {{ (session.get('user_name', 'US')[:2]).upper() }}
+      </div>
+      <div class="footer-user-info">
+        <div class="text-white fw-bold text-truncate" style="font-size: 0.9rem;">
+          {{ session.get('user_name', 'User').split('@')[0] }}
+        </div>
+        <a href="{{url_for('auth_bp.logout')}}" class="text-danger small"
+          style="font-size: 0.8rem; font-weight: 500;">Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="dashboard-main">
+    <header class="dashboard-header">
+      <div>
+        <div class="header-welcome-text">Manage Content</div>
+        <h1 class="header-title">My Drafts</h1>
+      </div>
+      <div>
+        <a href="{{ url_for('blog.create_page') }}" class="btn btn-primary d-flex align-items-center gap-2 text-white">
+          <i class="bi bi-plus-lg"></i> New Draft
+        </a>
+      </div>
+    </header>
+
+    <div class="dashboard-content-wrapper animate-fade-up">
+      <div class="drafts-container">
+        <div class="drafts-header">
+          <div class="col-title">Title</div>
+          <div class="col-tags">Category</div>
+          <div class="col-status">Last Updated</div>
+          <div class="col-actions"></div>
+        </div>
+
+        {% for draft in drafts %}
+        <div class="draft-row" id="row-{{ draft.id }}">
+          <div class="col-title title text-truncate pe-3">
+            {{ draft.title.replace('**', '') if draft.title else 'Untitled' }}
+          </div>
+          <div class="col-tags">
+            <span class="badge-tag">{{ draft.category or 'General' }}</span>
+          </div>
+          <div class="col-status">
+            {{ draft.updated_at.strftime('%Y-%m-%d %H:%M') }}
+          </div>
+
+          <div class="col-actions">
+            <div class="dropdown">
+              <button
+                class="btn btn-sm btn-light border-0 rounded-circle w-8 h-8 d-flex align-items-center justify-content-center"
+                type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 32px; height: 32px;">
+                <i class="bi bi-three-dots-vertical text-muted"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-card border-0 rounded-lg p-2">
+                <li>
+                  <button class="dropdown-item rounded-md" onclick="openEditModal('{{ draft.id }}')">
+                    <i class="bi bi-pencil-square me-2 text-primary"></i> Edit Draft
+                  </button>
+                </li>
+                <li>
+                  <button class="dropdown-item rounded-md" onclick="submitForReview('{{ draft.id }}')">
+                    <i class="bi bi-send-check me-2 text-success"></i> Submit for Approval
+                  </button>
+                </li>
+                <li>
+                  <hr class="dropdown-divider my-1">
+                </li>
+                <li>
+                  <button class="dropdown-item rounded-md text-danger" onclick="deleteDraft('{{ draft.id }}')">
+                    <i class="bi bi-trash me-2"></i> Delete
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+          <div class="mb-3 text-muted opacity-50"><i class="bi bi-file-earmark-text fs-1"></i></div>
+          <p class="text-secondary fw-bold">No drafts found.</p>
+          <a href="{{ url_for('blog.create_page') }}"
+            class="btn btn-sm btn-outline-primary mt-2 rounded-pill px-4">Create New</a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content border-0 shadow-card rounded-lg">
+      <div class="modal-header border-bottom p-4">
+        <h5 class="modal-title fw-bold text-dark">Edit Draft</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <input type="text" id="modal-title" class="form-control mb-4 fs-5 fw-bold border-light shadow-sm rounded-md p-3"
+          placeholder="Blog Title">
+        <textarea id="editor-canvas"></textarea>
+      </div>
+      <div class="modal-footer border-top bg-light p-3">
+        <button type="button" class="btn btn-light text-secondary fw-bold" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary text-white" onclick="saveModalChanges()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+  let currentEditingId = null;
+
+  const initEditor = (initialContent) => {
+    if (tinymce.get('editor-canvas')) {
+      tinymce.remove('#editor-canvas');
+    }
+
+    tinymce.init({
+      selector: '#editor-canvas',
+      plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
+      toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
+      height: 500,
+      menubar: false,
+      statusbar: false,
+      setup: function (editor) {
+        editor.on('init', function () {
+          editor.setContent(initialContent || '');
+        });
+      }
+    });
+  };
+
+  async function openEditModal(id) {
+    currentEditingId = id;
+    try {
+      const res = await fetch(`/api/get_blog/${id}`);
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById('modal-title').value = data.blog.title;
+        const modalElement = document.getElementById('editModal');
+        const editModal = new bootstrap.Modal(modalElement);
+        editModal.show();
+        initEditor(data.blog.content);
+      } else {
+        alert("Failed to load: " + data.message);
+      }
+    } catch (err) {
+      alert("Connection error.");
+    }
+  }
+
+  async function saveModalChanges() {
+    const updatedTitle = document.getElementById('modal-title').value;
+    const editor = tinymce.get('editor-canvas');
+    if (!editor) return;
+    const updatedContent = editor.getContent();
+
+    try {
+      const res = await fetch(`/api/update_blog/${currentEditingId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: updatedTitle, content: updatedContent })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        const row = document.querySelector(`#row-${currentEditingId} .title`);
+        if (row) row.innerText = updatedTitle;
+        bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+      }
+    } catch (err) {
+      alert("Error saving.");
+    }
+  }
+
+  async function submitForReview(id) {
+    if (!confirm("Send for approval?")) return;
+    try {
+      const res = await fetch(`/api/update_status/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: "UNDER_REVIEW" })
+      });
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById(`row-${id}`).remove();
+      } else {
+        alert(data.error || "Failed");
+      }
+    } catch (e) { alert("Error"); }
+  }
+
+  async function deleteDraft(id) {
+    if (!confirm("Delete permanently?")) return;
+    try {
+      const res = await fetch(`/api/delete_blog/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) document.getElementById(`row-${id}`).remove();
+    } catch (e) { alert("Error"); }
+  }
+</script>
+{% endblock %}

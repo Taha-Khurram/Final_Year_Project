@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+
+{% block title %}Approvals | ScriptlyAI{% endblock %}
+
+{% block extra_css %}
+<!-- Dashboard CSS included in base.html -->
+<style>
+  /* Local overrides for Approval List */
+  .approvals-container {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    overflow: visible;
+  }
+
+  .drafts-header {
+    display: flex;
+    padding: 1.25rem 2rem;
+    background: transparent;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
+  }
+
+  .draft-row {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem 2rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    transition: var(--transition-base);
+  }
+
+  .draft-row:hover {
+    background: var(--bg-body);
+  }
+
+  .draft-row:last-child {
+    border-bottom: none;
+    border-bottom-left-radius: var(--radius-lg);
+    border-bottom-right-radius: var(--radius-lg);
+  }
+
+  .col-title {
+    flex: 3;
+    font-weight: 600;
+    color: var(--info-color);
+  }
+
+  .col-tags {
+    flex: 1.5;
+  }
+
+  .col-status {
+    flex: 1.5;
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+  }
+
+  .col-actions {
+    flex: 0 0 80px;
+    text-align: right;
+  }
+
+  /* Badge styling */
+  .badge-tag {
+    background: rgba(67, 24, 255, 0.1);
+    color: var(--primary-color);
+    padding: 0.35rem 1rem;
+    border-radius: 30px;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  /* Modal fixes */
+  #reviewModal {
+    z-index: 1060 !important;
+  }
+
+  .modal-content {
+    border-radius: var(--radius-lg);
+    border: none;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+
+  <nav class="dashboard-sidebar">
+    <div class="sidebar-logo" onclick="this.closest('.dashboard-sidebar').classList.toggle('expanded')">
+      <i class="bi bi-robot"></i>
+      <span>ScriptlyAI</span>
+    </div>
+    <div class="sidebar-menu">
+      <a href="{{ url_for('blog.home') }}">
+        <i class="bi bi-grid-fill"></i> <span>Dashboard</span>
+      </a>
+      <a href="{{ url_for('blog.create_page') }}">
+        <i class="bi bi-plus-square-fill"></i> <span>Create Blog</span>
+      </a>
+      <a href="{{ url_for('blog.drafts_page') }}">
+        <i class="bi bi-file-text-fill"></i> <span>My Drafts</span>
+      </a>
+      <a href="{{ url_for('blog.categories_page') }}">
+        <i class="bi bi-tags-fill"></i> <span>Categories</span>
+      </a>
+
+      {% if session.get('user_role') == 'ADMIN' %}
+      <div class="mt-4 mb-2 ps-3 text-uppercase text-white-50 admin-label"
+        style="font-size: 0.75rem; letter-spacing: 1px;">Admin
+      </div>
+
+      <a href="{{ url_for('blog.approval_page') }}" class="active">
+        <i class="bi bi-check-circle-fill"></i> <span>Approvals</span>
+      </a>
+      <a href="{{ url_for('user_bp.manage_users') }}">
+        <i class="bi bi-people-fill"></i> <span>Users</span>
+      </a>
+      {% endif %}
+    </div>
+
+    <div class="sidebar-wrapper-footer" onclick="this.closest('.dashboard-sidebar').classList.toggle('expanded')">
+      <div class="footer-avatar">
+        {{ (session.get('user_name', 'US')[:2]).upper() }}
+      </div>
+      <div class="footer-user-info">
+        <div class="text-white fw-bold text-truncate" style="font-size: 0.9rem;">
+          {{ session.get('user_name', 'User').split('@')[0] }}
+        </div>
+        <a href="{{url_for('auth_bp.logout')}}" class="text-danger small"
+          style="font-size: 0.8rem; font-weight: 500;">Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="dashboard-main">
+    <header class="dashboard-header">
+      <div>
+        <div class="header-welcome-text">Administration</div>
+        <h1 class="header-title">Pending Approvals</h1>
+      </div>
+    </header>
+
+    <div class="dashboard-content-wrapper animate-fade-up">
+      <div class="approvals-container">
+        <div class="drafts-header">
+          <div class="col-title">Title</div>
+          <div class="col-tags">Category</div>
+          <div class="col-status">Submitted On</div>
+          <div class="col-actions"></div>
+        </div>
+
+        {% for blog in pending_blogs %}
+        <div class="draft-row" id="row-{{ blog.id }}">
+          <div class="col-title title text-truncate pe-3">
+            {{ blog.title.replace('**', '') if blog.title else 'Untitled' }}
+          </div>
+          <div class="col-tags">
+            <span class="badge-tag">{{ blog.category or 'General' }}</span>
+          </div>
+          <div class="col-status">
+            {{ blog.updated_at.strftime('%Y-%m-%d %H:%M') if blog.updated_at }}
+          </div>
+
+          <div class="col-actions">
+            <div class="dropdown">
+              <button
+                class="btn btn-sm btn-light border-0 rounded-circle w-8 h-8 d-flex align-items-center justify-content-center"
+                type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 32px; height: 32px;">
+                <i class="bi bi-three-dots-vertical text-muted"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-card border-0 rounded-lg p-2">
+                <li>
+                  <a class="dropdown-item rounded-md" href="javascript:void(0);"
+                    onclick="openReviewModal('{{ blog.id }}')">
+                    <i class="bi bi-eye me-2 text-primary"></i> Review & Publish
+                  </a>
+                </li>
+                <li>
+                  <hr class="dropdown-divider my-1">
+                </li>
+                <li>
+                  <button class="dropdown-item rounded-md text-danger" onclick="rejectToDraft('{{ blog.id }}')">
+                    <i class="bi bi-x-circle me-2"></i> Reject to Draft
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+          <div class="mb-3 text-muted opacity-50"><i class="bi bi-check-all fs-1"></i></div>
+          <p class="text-secondary fw-bold">All caught up! No pending approvals.</p>
+        </div>
+        {% endfor %}
+
+        {% if total_pages > 1 %}
+        <div class="p-4 border-top d-flex justify-content-center gap-2">
+          {% if has_prev %}
+          <a href="{{ url_for('blog.approval_page', page=current_page-1) }}"
+            class="btn btn-sm btn-light px-3 fw-bold text-secondary">Previous</a>
+          {% endif %}
+          <span class="text-secondary align-self-center small fw-bold">Page {{ current_page }} of {{ total_pages
+            }}</span>
+          {% if has_next %}
+          <a href="{{ url_for('blog.approval_page', page=current_page+1) }}"
+            class="btn btn-sm btn-light px-3 fw-bold text-secondary">Next</a>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Review Modal -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content shadow-card">
+      <div class="modal-header border-bottom p-4">
+        <h5 class="modal-title fw-bold text-dark">Review Submission</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-4">
+          <label class="form-label text-secondary small fw-bold text-uppercase">Title</label>
+          <h3 id="viewTitle" class="fw-bold text-info"></h3>
+        </div>
+        <div>
+          <label class="form-label text-secondary small fw-bold text-uppercase">Content</label>
+          <div id="viewContent" class="p-4 bg-light rounded-lg border border-light text-dark"
+            style="white-space: pre-wrap; font-size: 1.05rem; line-height: 1.7;"></div>
+        </div>
+      </div>
+      <div class="modal-footer border-top p-3 bg-light">
+        <button type="button" class="btn btn-light text-secondary fw-bold" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-success text-white fw-medium rounded-pill px-4" id="modalApproveBtn">
+          <i class="bi bi-check2-circle me-2"></i>Approve & Publish
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function openReviewModal(id) {
+    try {
+      const res = await fetch(`/api/get_blog/${id}`);
+      const data = await res.json();
+
+      if (data.success) {
+        document.getElementById('viewTitle').innerText = data.blog.title.replace(/\*\*/g, '');
+        const contentBody = typeof data.blog.content === 'object' ? data.blog.content.body : data.blog.content;
+        document.getElementById('viewContent').innerText = contentBody;
+
+        const modalApproveBtn = document.getElementById('modalApproveBtn');
+        modalApproveBtn.onclick = function () {
+          const modalElem = document.getElementById('reviewModal');
+          const modalInstance = bootstrap.Modal.getInstance(modalElem);
+          if (modalInstance) modalInstance.hide();
+          approveBlog(id);
+        };
+
+        const reviewModal = new bootstrap.Modal(document.getElementById('reviewModal'));
+        reviewModal.show();
+      } else {
+        alert("Error: " + data.message);
+      }
+    } catch (err) {
+      alert("Failed to load blog content.");
+    }
+  }
+
+  async function approveBlog(id) {
+    if (!confirm("Approve and publish this blog?")) return;
+    try {
+      const res = await fetch(`/api/update_status/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'PUBLISHED' })
+      });
+      const data = await res.json();
+      if (data.success) {
+        const row = document.getElementById(`row-${id}`);
+        if (row) row.remove();
+      }
+    } catch (err) {
+      alert("Error approving blog.");
+    }
+  }
+
+  async function rejectToDraft(id) {
+    if (!confirm("Reject this blog back to drafts?")) return;
+    try {
+      const res = await fetch(`/api/update_status/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'DRAFT' })
+      });
+      const data = await res.json();
+      if (data.success) {
+        const row = document.getElementById(`row-${id}`);
+        if (row) row.remove();
+      }
+    } catch (err) {
+      alert("Error rejecting blog.");
+    }
+  }
+</script>
+{% endblock %}

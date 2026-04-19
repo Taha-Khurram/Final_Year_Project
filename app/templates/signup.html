@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Signup | ScriptlyAI{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <!-- Left Side: Branding -->
+    <div class="auth-left">
+        <div class="auth-left-content">
+            <h1>Join the Future</h1>
+            <p>Unlock the power of AI to create, automate, and elevate your content strategy.</p>
+        </div>
+    </div>
+
+    <!-- Right Side: Signup Form -->
+    <div class="auth-right">
+        <div class="auth-card">
+            <h2 class="mb-1">Create Account</h2>
+            <p class="auth-subtitle">Fill in your details to get started.</p>
+
+            <form>
+                <div class="input-group">
+                    <label>Full Name</label>
+                    <div class="input-wrapper">
+                        <input type="text" name="username" placeholder="Your Full Name" required autofocus>
+                        <i class="bi bi-person input-icon"></i>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <div class="input-wrapper">
+                        <input type="email" name="email" placeholder="mail@example.com" required>
+                        <i class="bi bi-envelope input-icon"></i>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" name="password" placeholder="Min. 8 characters" required>
+                        <i class="bi bi-lock input-icon"></i>
+                    </div>
+                </div>
+
+                <button type="submit" class="primary-btn">Sign Up</button>
+            </form>
+
+            <div class="divider">Or Join With</div>
+
+            <button id="googleSignUp" class="google-outline-btn">
+                <i class="bi bi-google"></i>
+                Google
+            </button>
+
+            <p class="auth-footer">
+                Already have an account?
+                <a href="{{ url_for('auth_bp.login') }}">Login Here</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+<script id="firebase-config" type="application/json">
+    {{ firebase_config | tojson }}
+</script>
+<script src="{{ url_for('static', filename='js/firebase_google.js') }}"></script>
+{% endblock %}

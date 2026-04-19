@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block title %}Users | ScriptlyAI{% endblock %}
+
+{% block extra_css %}
+<!-- Dashboard CSS included in base.html -->
+<style>
+  /* Local Overrides for User List */
+  .users-container {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    overflow: visible;
+  }
+
+  .users-header {
+    display: flex;
+    padding: 1.25rem 2rem;
+    background: transparent;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
+  }
+
+  .user-row {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem 2rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    transition: var(--transition-base);
+  }
+
+  .user-row:hover {
+    background: var(--bg-body);
+  }
+
+  .user-row:last-child {
+    border-bottom: none;
+    border-bottom-left-radius: var(--radius-lg);
+    border-bottom-right-radius: var(--radius-lg);
+  }
+
+  .col-username {
+    flex: 2;
+    font-weight: 600;
+    color: var(--info-color);
+  }
+
+  .col-email {
+    flex: 3;
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+  }
+
+  .col-role {
+    flex: 1;
+  }
+
+  .col-actions {
+    flex: 0 0 100px;
+    text-align: right;
+  }
+
+  /* Sort Icons */
+  .sort-icons {
+    display: inline-flex;
+    flex-direction: column;
+    margin-left: 5px;
+    font-size: 0.6rem;
+    opacity: 0.5;
+    cursor: pointer;
+  }
+
+  .sort-icons:hover {
+    opacity: 1;
+  }
+
+  /* Badge styling */
+  .badge-role {
+    padding: 0.35rem 1rem;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .badge-admin {
+    background: rgba(67, 24, 255, 0.1);
+    color: var(--primary-color);
+  }
+
+  .badge-editor {
+    background: rgba(5, 205, 153, 0.1);
+    color: var(--success-color);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+
+  <!-- SIDEBAR -->
+  <nav class="dashboard-sidebar">
+    <div class="sidebar-logo" onclick="this.closest('.dashboard-sidebar').classList.toggle('expanded')">
+      <i class="bi bi-robot"></i>
+      <span>ScriptlyAI</span>
+    </div>
+
+    <div class="sidebar-menu">
+      <a href="{{ url_for('blog.home') }}">
+        <i class="bi bi-grid-fill"></i> <span>Dashboard</span>
+      </a>
+      <a href="{{ url_for('blog.create_page') }}">
+        <i class="bi bi-plus-square-fill"></i> <span>Create Blog</span>
+      </a>
+      <a href="{{ url_for('blog.drafts_page') }}">
+        <i class="bi bi-file-text-fill"></i> <span>My Drafts</span>
+      </a>
+      <a href="{{ url_for('blog.categories_page') }}">
+        <i class="bi bi-tags-fill"></i> <span>Categories</span>
+      </a>
+
+      {% if session.get('user_role') == 'ADMIN' %}
+      <div class="mt-4 mb-2 ps-3 text-uppercase text-white-50 admin-label"
+        style="font-size: 0.75rem; letter-spacing: 1px;">Admin
+      </div>
+
+      <a href="{{ url_for('blog.approval_page') }}">
+        <i class="bi bi-check-circle-fill"></i> <span>Approvals</span>
+      </a>
+      <a href="{{ url_for('user_bp.manage_users') }}" class="active">
+        <i class="bi bi-people-fill"></i> <span>Users</span>
+      </a>
+      {% endif %}
+    </div>
+
+    <div class="sidebar-wrapper-footer" onclick="this.closest('.dashboard-sidebar').classList.toggle('expanded')">
+      <div class="footer-avatar">
+        {{ (session.get('user_name', 'US')[:2]).upper() }}
+      </div>
+      <div class="footer-user-info">
+        <div class="text-white fw-bold text-truncate" style="font-size: 0.9rem;">
+          {{ session.get('user_name', 'User').split('@')[0] }}
+        </div>
+        <a href="{{url_for('auth_bp.logout')}}" class="text-danger small"
+          style="font-size: 0.8rem; font-weight: 500;">Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="dashboard-main">
+    <header class="dashboard-header">
+      <div>
+        <div class="header-welcome-text">Administration</div>
+        <h1 class="header-title">User Management</h1>
+      </div>
+      <div>
+        <button class="btn btn-primary d-flex align-items-center gap-2 text-white shadow-sm" data-bs-toggle="modal"
+          data-bs-target="#addUserModal">
+          <i class="bi bi-person-plus-fill"></i> Add User
+        </button>
+      </div>
+    </header>
+
+    <div class="dashboard-content-wrapper animate-fade-up">
+
+      <div class="users-container shadow-card">
+        <div class="users-header">
+          <div class="col-username">Username</div>
+          <div class="col-email">Email Address</div>
+          <div class="col-role">Role</div>
+          <div class="col-actions">Actions</div>
+        </div>
+
+        <div id="usersList">
+          <div class="text-center py-5">
+            <div class="spinner-border text-primary opacity-50 mb-3" role="status"></div>
+            <p class="text-secondary fw-medium">Initializing sync engine...</p>
+          </div>
+        </div>
+
+        <div id="noUsers" class="text-center py-5 d-none">
+          <div class="mb-3 text-muted opacity-50"><i class="bi bi-people fs-1"></i></div>
+          <p class="text-secondary fw-bold">No users registered yet.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add User Modal -->
+<div id="addUserModal" class="modal fade" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-card">
+      <div class="modal-header border-bottom p-4">
+        <h5 class="modal-title fw-bold text-dark">Create New User</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="createUserForm" class="no-loader">
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-bold text-uppercase">Username</label>
+            <input type="text" id="username" name="username" class="form-control rounded-pill px-3" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-bold text-uppercase">Email</label>
+            <input type="email" id="email" name="email" class="form-control rounded-pill px-3" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-bold text-uppercase">Password</label>
+            <input type="password" id="password" name="password" class="form-control rounded-pill px-3" required
+              minlength="6">
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-bold text-uppercase">Role</label>
+            <select id="role" name="role" class="form-select rounded-pill px-3" required>
+              <option value="editor">Editor</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer border-top p-3 bg-light">
+          <button type="button" class="btn btn-light text-secondary fw-bold" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary text-white">Create User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Role Modal -->
+<div id="editRoleModal" class="modal fade" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-card">
+      <div class="modal-header border-bottom p-4">
+        <h5 class="modal-title fw-bold text-dark">Edit User Role</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="editRoleForm" class="no-loader">
+        <div class="modal-body p-4">
+          <input type="hidden" id="editUserId" name="userId">
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-bold text-uppercase">Username</label>
+            <input type="text" id="editUsername" name="username"
+              class="form-control bg-light border-0 rounded-pill px-3" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-bold text-uppercase">Role</label>
+            <select id="editRole" name="role" class="form-select rounded-pill px-3" required>
+              <option value="editor">Editor</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer border-top p-3 bg-light">
+          <button type="button" class="btn btn-light text-secondary fw-bold" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary text-white">Update Role</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Use specific JS for users functionality -->
+<script src="{{ url_for('static', filename='js/users.js') }}"></script>
+{% endblock %}

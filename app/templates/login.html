@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Login | ScriptlyAI{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <!-- Left Side: Branding & Image Overlay -->
+  <div class="auth-left">
+    <div class="auth-left-content">
+      <h1>Welcome Back!</h1>
+      <p>Log in to access your AI-powered writing tools and continue creating amazing content.</p>
+    </div>
+  </div>
+
+  <!-- Right Side: Login Form -->
+  <div class="auth-right">
+    <div class="auth-card">
+      <h2 class="mb-1">Sign In</h2>
+      <p class="auth-subtitle">Please enter your details to continue.</p>
+
+      <form class="no-loader">
+        <div class="input-group">
+          <label>Email Address</label>
+          <div class="input-wrapper">
+            <input type="email" name="email" placeholder="mail@example.com" required autofocus>
+            <i class="bi bi-envelope input-icon"></i>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>Password</label>
+          <div class="input-wrapper">
+            <input type="password" name="password" placeholder="Min. 8 characters" required>
+            <i class="bi bi-lock input-icon"></i>
+          </div>
+        </div>
+
+        <button type="submit" class="primary-btn">Sign In</button>
+      </form>
+
+      <div class="divider">Or Continue With</div>
+
+      <button id="googleSignIn" class="google-outline-btn">
+        <i class="bi bi-google"></i>
+        Google
+      </button>
+
+      <p class="auth-footer">
+        Not registered yet? <a href="{{ url_for('auth_bp.signup') }}">Create an Account</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+<script id="firebase-config" type="application/json">
+  {{ firebase_config | tojson }}
+</script>
+<script src="{{ url_for('static', filename='js/firebase_google.js') }}"></script>
+{% endblock %}

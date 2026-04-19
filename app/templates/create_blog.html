@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+
+{% block title %}Generate Blog | ScriptlyAI{% endblock %}
+
+{% block extra_css %}
+<!-- Dashboard CSS included in base.html -->
+<style>
+  /* Local Styles for Create Page */
+  .blog-center-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 75vh;
+    position: relative;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  /* Floating Gradient */
+  .floating-gradient-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(67, 24, 255, 0.1) 0%, rgba(255, 153, 172, 0.05) 50%, transparent 70%);
+    border-radius: 50%;
+    z-index: 0;
+    pointer-events: none;
+    animation: pulse-glow 8s ease-in-out infinite alternate;
+  }
+
+  @keyframes pulse-glow {
+    0% {
+      transform: translate(-50%, -50%) scale(0.9);
+      opacity: 0.8;
+    }
+
+    100% {
+      transform: translate(-50%, -50%) scale(1.1);
+      opacity: 1;
+    }
+  }
+
+  /* Content Overlay */
+  .welcome-user {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 1.5rem;
+  }
+
+  .welcome-text {
+    display: block;
+    font-size: 1.1rem;
+    color: var(--secondary-color);
+    margin-bottom: 0.25rem;
+  }
+
+  .welcome-name {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--info-color);
+  }
+
+  .blog-thought-heading {
+    position: relative;
+    z-index: 1;
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 3rem;
+    letter-spacing: -0.03em;
+    color: var(--info-color);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, var(--primary-color), #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Search/Prompt Box */
+  .prompt-box {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 720px;
+    background: white;
+    padding: 0.75rem 0.75rem 0.75rem 1.5rem;
+    border-radius: 999px;
+    box-shadow: 0 10px 40px -10px rgba(112, 144, 176, 0.2);
+    border: 1px solid rgba(112, 144, 176, 0.1);
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+  }
+
+  .prompt-box:focus-within {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px -10px rgba(67, 24, 255, 0.15);
+    border-color: var(--primary-color);
+  }
+
+  .prompt-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 1.1rem;
+    color: var(--info-color);
+    resize: none;
+    max-height: 200px;
+    padding: 0.5rem 0;
+    background: transparent;
+  }
+
+  .prompt-input::placeholder {
+    color: var(--secondary-color);
+    font-weight: 400;
+  }
+
+  .prompt-submit {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-left: 0.75rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(67, 24, 255, 0.3);
+  }
+
+  .prompt-submit:hover:not(:disabled) {
+    background: #3311db;
+    transform: scale(1.05);
+  }
+
+  .prompt-submit:disabled {
+    background: var(--secondary-color);
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+
+  <!-- SIDEBAR (Standardized) -->
+
+  <nav class="dashboard-sidebar">
+    <div class="sidebar-logo" onclick="this.closest('.dashboard-sidebar').classList.toggle('expanded')">
+      <i class="bi bi-robot"></i>
+      <span>ScriptlyAI</span>
+    </div>
+    <div class="sidebar-menu">
+      <a href="{{ url_for('blog.home') }}">
+        <i class="bi bi-grid-fill"></i> <span>Dashboard</span>
+      </a>
+      <a href="{{ url_for('blog.create_page') }}" class="active">
+        <i class="bi bi-plus-square-fill"></i> <span>Create Blog</span>
+      </a>
+      <a href="{{ url_for('blog.drafts_page') }}">
+        <i class="bi bi-file-text-fill"></i> <span>My Drafts</span>
+      </a>
+      <a href="{{ url_for('blog.categories_page') }}">
+        <i class="bi bi-tags-fill"></i> <span>Categories</span>
+      </a>
+
+      {% if session.get('user_role') == 'ADMIN' %}
+      <div class="mt-4 mb-2 ps-3 text-uppercase text-white-50 admin-label"
+        style="font-size: 0.75rem; letter-spacing: 1px;">Admin
+      </div>
+
+      <a href="{{ url_for('blog.approval_page') }}">
+        <i class="bi bi-check-circle-fill"></i> <span>Approvals</span>
+      </a>
+      <a href="{{ url_for('user_bp.manage_users') }}">
+        <i class="bi bi-people-fill"></i> <span>Users</span>
+      </a>
+      {% endif %}
+    </div>
+
+    <div class="sidebar-wrapper-footer" onclick="this.closest('.dashboard-sidebar').classList.toggle('expanded')">
+      <div class="footer-avatar">
+        {{ (session.get('user_name', 'US')[:2]).upper() }}
+      </div>
+      <div class="footer-user-info">
+        <div class="text-white fw-bold text-truncate" style="font-size: 0.9rem;">
+          {{ session.get('user_name', 'User').split('@')[0] }}
+        </div>
+        <a href="{{url_for('auth_bp.logout')}}" class="text-danger small"
+          style="font-size: 0.8rem; font-weight: 500;">Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="dashboard-main d-flex flex-column">
+    <!-- Center Content -->
+    <div class="blog-center-wrapper flex-grow-1 animate-fade-up">
+
+      <div class="floating-gradient-circle"></div>
+
+      <div class="welcome-user">
+        <span class="welcome-text">Ready to create,</span>
+        <span class="welcome-name">{{ username }}?</span>
+      </div>
+
+      <div class="blog-thought-heading">
+        <span class="d-block">What's on your</span>
+        <span class="text-gradient">mind today?</span>
+      </div>
+
+      <div class="prompt-box">
+        <textarea id="prompt" class="prompt-input" placeholder="Describe your blog topic in detail..." rows="1"
+          oninput="autoResize(this)" onkeydown="handleKeyPress(event)" autofocus></textarea>
+
+        <button onclick="handleGeneration()" id="genBtn" class="prompt-submit" type="button">
+          <i class="bi bi-arrow-up fs-5"></i>
+        </button>
+      </div>
+
+      <div id="loader" class="mt-4 d-none">
+        <div class="d-flex align-items-center gap-3 bg-white px-4 py-3 rounded-pill shadow-card border border-light">
+          <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+          <span class="text-secondary small fw-bold">AI is generating your content...</span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+  function autoResize(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+  }
+
+  function handleKeyPress(event) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      handleGeneration();
+    }
+  }
+
+  async function handleGeneration() {
+    const promptInput = document.getElementById('prompt');
+    const promptText = promptInput.value.trim();
+    const loader = document.getElementById('loader');
+    const genBtn = document.getElementById('genBtn');
+
+    if (!promptText) return;
+
+    loader.classList.remove('d-none');
+    genBtn.disabled = true;
+    promptInput.disabled = true;
+
+    try {
+      // Don't clear immediately, let it persist until success
+      const response = await fetch('/api/generate_blog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: promptText })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        window.location.href = data.redirect_url || "{{ url_for('blog.drafts_page') }}";
+      } else {
+        alert(data.error || "Generation failed. Please try again.");
+        genBtn.disabled = false;
+        promptInput.disabled = false;
+        loader.classList.add('d-none');
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      alert("Something went wrong. Check your connection.");
+      genBtn.disabled = false;
+      promptInput.disabled = false;
+      loader.classList.add('d-none');
+    }
+  }
+</script>
+{% endblock %}

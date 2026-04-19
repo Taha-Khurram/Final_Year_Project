@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | ScriptlyAI{% endblock %}
+
+{% block extra_css %}
+<!-- Dashboard CSS included in base.html -->
+<style>
+    /* Home Specific Overrides */
+    .welcome-banner {
+        background: linear-gradient(135deg, #868CFF 0%, #4318FF 100%);
+        border-radius: var(--radius-lg);
+        padding: 2.5rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(67, 24, 255, 0.3);
+    }
+
+    .welcome-banner h2 {
+        color: white;
+        margin-bottom: 0.5rem;
+        font-size: 1.8rem;
+    }
+
+    .welcome-banner p {
+        opacity: 0.9;
+        font-size: 1.1rem;
+    }
+
+    .welcome-banner::after {
+        content: '';
+        position: absolute;
+        right: -50px;
+        bottom: -50px;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    /* Grid Layout */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 2rem;
+    }
+
+    .col-span-8 {
+        grid-column: span 8;
+    }
+
+    .col-span-4 {
+        grid-column: span 4;
+    }
+
+    .col-span-3 {
+        grid-column: span 3;
+    }
+
+    .col-span-6 {
+        grid-column: span 6;
+    }
+
+    @media (max-width: 1024px) {
+        .dashboard-grid {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .col-span-8,
+        .col-span-4,
+        .col-span-3,
+        .col-span-6 {
+            width: 100%;
+        }
+    }
+
+    /* Stats Cards */
+    .stat-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition-base);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-hover);
+    }
+
+    .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .icon-purple {
+        background: rgba(67, 24, 255, 0.1);
+        color: var(--primary-color);
+    }
+
+    .icon-green {
+        background: rgba(5, 205, 153, 0.1);
+        color: var(--success-color);
+    }
+
+    .icon-orange {
+        background: rgba(255, 181, 71, 0.1);
+        color: var(--warning-color);
+    }
+
+    /* Recent Activity List */
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .activity-item:last-child {
+        border: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+
+    <!-- SIDEBAR (Standardized) -->
+    <nav class="dashboard-sidebar">
+        <div class="sidebar-logo" onclick="this.closest('.dashboard-sidebar').classList.toggle('expanded')">
+            <i class="bi bi-robot"></i>
+            <span>ScriptlyAI</span>
+        </div>
+
+        <div class="sidebar-menu">
+            <a href="{{ url_for('blog.home') }}" class="active">
+                <i class="bi bi-grid-fill"></i> <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('blog.create_page') }}">
+                <i class="bi bi-plus-square-fill"></i> <span>Create Blog</span>
+            </a>
+            <a href="{{ url_for('blog.drafts_page') }}">
+                <i class="bi bi-file-text-fill"></i> <span>My Drafts</span>
+            </a>
+            <a href="{{ url_for('blog.categories_page') }}">
+                <i class="bi bi-tags-fill"></i> <span>Categories</span>
+            </a>
+
+            {% if session.get('user_role') == 'ADMIN' %}
+            <div class="mt-4 mb-2 ps-3 text-uppercase text-white-50 admin-label"
+                style="font-size: 0.75rem; letter-spacing: 1px;">
+                Admin</div>
+
+            <a href="{{ url_for('blog.approval_page') }}">
+                <i class="bi bi-check-circle-fill"></i> <span>Approvals</span>
+            </a>
+            <a href="{{ url_for('user_bp.manage_users') }}">
+                <i class="bi bi-people-fill"></i> <span>Users</span>
+            </a>
+            {% endif %}
+        </div>
+
+        <div class="sidebar-wrapper-footer" onclick="this.closest('.dashboard-sidebar').classList.toggle('expanded')">
+            <div class="footer-avatar">
+                {{ username[:2].upper() }}
+            </div>
+            <div class="footer-user-info">
+                <div class="text-white fw-bold text-truncate" style="font-size: 0.9rem;">
+                    {{username}}
+                </div>
+                <a href="{{url_for('auth_bp.logout')}}" class="text-danger small"
+                    style="font-size: 0.8rem; font-weight: 500;">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="dashboard-main">
+
+        <header class="dashboard-header">
+            <div>
+                <div class="header-welcome-text">{{ greeting }}, {{ username}}
+                </div>
+                <h1 class="header-title">Welcome Back!</h1>
+            </div>
+            <!-- <div class="d-flex gap-3">
+                <button class="btn btn-primary d-flex align-items-center gap-2">
+                    <i class="bi bi-plus-lg"></i> New Project
+                </button>
+            </div> -->
+        </header>
+
+        <!-- Welcome Banner -->
+        <div class="welcome-banner animate-fade-up">
+            <h2>Your creative studio is ready.</h2>
+            <p>Start writing your next viral blog post or manage your existing content.</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="dashboard-grid mb-5 animate-fade-up" style="animation-delay: 0.1s;">
+            <div class="col-span-4 stat-card">
+                <div class="stat-icon icon-purple"><i class="bi bi-file-post"></i></div>
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase">Total Blogs</div>
+                    <div class="fs-2 fw-bold text-dark">{{ total_blogs | int }}</div>
+                </div>
+            </div>
+            <div class="col-span-4 stat-card">
+                <div class="stat-icon icon-orange"><i class="bi bi-hourglass-split"></i></div>
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase">Pending Review</div>
+                    <div class="fs-2 fw-bold text-dark">{{ pending_count | int }}</div>
+                </div>
+            </div>
+            <div class="col-span-4 stat-card">
+                <div class="stat-icon icon-green"><i class="bi bi-check2-circle"></i></div>
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase">Published</div>
+                    <div class="fs-2 fw-bold text-dark">{{ published_count | int}}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Grid -->
+        <div class="dashboard-grid animate-fade-up" style="animation-delay: 0.2s;">
+
+            <!-- Recent Blogs (Colorful Widget Style) -->
+            <div class="col-span-8 card-glass p-0 overflow-hidden">
+                <div class="d-flex justify-content-between align-items-center p-4 border-bottom">
+                    <h4 class="mb-0">Recent Activity</h4>
+                    <a href="#" class="btn btn-sm btn-light rounded-pill px-3 text-primary">View All</a>
+                </div>
+                <div class="p-0">
+                    {% if recent_activities %}
+                    {% for activity in recent_activities %}
+                    <div class="activity-item px-4 py-3 hover-bg-light">
+                        <div class="rounded-circle bg-light p-2 text-primary">
+                            <i class="bi bi-pencil-fill"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark">{{ activity.description }}</div>
+                            <div class="text-muted small">{{ activity.timestamp }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="p-5 text-center text-muted">No recent activity</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Actions / Drafts (Vertical Card) -->
+            <!-- <div class="col-span-4 d-flex flex-column gap-4">
+                <div class="widget-card widget-purple">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="opacity-75 mb-1">Drafts</div>
+                            <h3 class="text-white mb-0">{{ drafts_count }}</h3>
+                        </div>
+                        <div class="widget-icon-box"><i class="bi bi-file-earmark-text"></i></div>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{{ url_for('blog.drafts_page') }}"
+                            class="text-white text-decoration-none small opacity-75 hover-opacity-100">View Drafts
+                            &rarr;</a>
+                    </div>
+                </div>
+
+            </div> -->
+
+        </div>
+
+    </main>
+</div>
+{% endblock %}
