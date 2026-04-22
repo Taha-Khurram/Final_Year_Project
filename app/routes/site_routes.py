@@ -17,8 +17,9 @@ def site_home(user_id):
         # Get site settings
         settings = db_service.get_site_settings(user_id)
 
-        # Get published blogs
-        published_blogs = db_service.get_published_blogs(user_id, limit=20)
+        # Get published blogs using dynamic posts_per_page setting
+        posts_limit = settings.get('posts_per_page', 10)
+        published_blogs = db_service.get_published_blogs(user_id, limit=posts_limit)
 
         # Get categories for filtering
         categories = db_service.get_all_categories(user_id=user_id)
@@ -122,8 +123,9 @@ def site_category(user_id, category_name):
         # Get site settings
         settings = db_service.get_site_settings(user_id)
 
-        # Get published blogs
-        all_published = db_service.get_published_blogs(user_id, limit=50)
+        # Get published blogs using dynamic posts_per_page setting
+        posts_limit = settings.get('posts_per_page', 10)
+        all_published = db_service.get_published_blogs(user_id, limit=posts_limit)
 
         # Filter by category
         filtered_blogs = [
