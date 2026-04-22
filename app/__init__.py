@@ -27,10 +27,12 @@ def create_app(config_class=Config):
     from app.routes.blog_routes import blog_bp
     from app.routes.auth import auth_bp
     from app.routes.user_mgmt import user_bp
+    from app.routes.site_routes import site_bp
 
     app.register_blueprint(blog_bp)
     app.register_blueprint(auth_bp)
-    
+    app.register_blueprint(site_bp)
+
     # FIX: Register with url_prefix to match your JS calls (/users/list, etc.)
     app.register_blueprint(user_bp, url_prefix='/users')
         

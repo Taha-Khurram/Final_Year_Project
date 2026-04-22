@@ -630,3 +630,97 @@ class FirestoreService:
                 "categories": [],
                 "recent_activity": [],
             }
+
+    # ---------------- SITE SETTINGS METHODS ----------------
+
+    def get_site_settings(self, user_id):
+        """
+        Retrieves site settings for a user.
+        Returns default settings if none exist.
+        """
+        try:
+            doc = self.db.collection("site_settings").document(user_id).get()
+            if doc.exists:
+                data = doc.to_dict()
+                data['id'] = doc.id
+                return data
+            # Return default settings
+            return {
+                "id": user_id,
+                "site_name": "My Blog",
+                "site_description": "Welcome to my blog",
+                "niche": "General",
+                "owner_id": user_id
+            }
+        except Exception as e:
+            print(f"❌ Error fetching site settings: {e}")
+            return None
+
+    def update_site_settings(self, user_id, settings):
+        """
+        Updates or creates site settings for a user.
+        """
+        try:
+            doc_ref = self.db.collection("site_settings").document(user_id)
+            settings['owner_id'] = user_id
+            settings['updated_at'] = datetime.utcnow()
+            doc_ref.set(settings, merge=True)
+            return True
+        except Exception as e:
+            print(f"❌ Error updating site settings: {e}")
+            return False
+
+    def get_published_blogs(self, user_id, limit=20):
+        """
+        Fetches published blogs for the public site.
+        Returns blogs ordered by updated_at descending.
+        """
+        try:
+            query = self.db.collection(self.collection_name)\
+                .where(filter=FieldFilter('author_id', '==', user_id))\
+                .where(filter=FieldFilter('status', '==', 'PUBLISHED'))\
+                .order_by('updated_at', direction=firestore.Query.DESCENDING)
+
+            if limit:
+                query = query.limit(limit)
+
+            blogs = []
+            for doc in query.stream():
+                data = doc.to_dict()
+                data['id'] = doc.id
+                # Process content for display
+                raw_content = data.get('content', '')
+                if isinstance(raw_content, dict):
+                    data['content'] = raw_content
+                else:
+                    data['content'] = {'body': str(raw_content) if raw_content else ''}
+                blogs.append(data)
+            return blogs
+        except Exception as e:
+            print(f"❌ Error fetching published blogs: {e}")
+            return []
+
+    def get_published_blog_by_id(self, blog_id):
+        """
+        Fetches a single published blog by ID.
+        Returns None if blog doesn't exist or is not published.
+        """
+        try:
+            doc = self.db.collection(self.collection_name).document(blog_id).get()
+            if doc.exists:
+                data = doc.to_dict()
+                # Only return if published
+                if data.get('status') != 'PUBLISHED':
+                    return None
+                data['id'] = doc.id
+                # Process content for display
+                raw_content = data.get('content', '')
+                if isinstance(raw_content, dict):
+                    data['content'] = raw_content
+                else:
+                    data['content'] = {'body': str(raw_content) if raw_content else ''}
+                return data
+            return None
+        except Exception as e:
+            print(f"❌ Error fetching published blog {blog_id}: {e}")
+            return None

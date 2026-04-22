@@ -24,6 +24,9 @@
         <a href="{{ url_for('blog.formatting_tools_page') }}" class="nav-link" data-page="formatting">
             <i class="bi bi-file-richtext"></i> <span>Formatting</span>
         </a>
+        <a href="{{ url_for('blog.site_settings_page') }}" class="nav-link" data-page="site-settings">
+            <i class="bi bi-globe"></i> <span>Site Settings</span>
+        </a>
 
         {% if session.get('user_role') == 'ADMIN' %}
         <div class="mt-4 mb-2 ps-3 text-uppercase text-white-50 admin-label"

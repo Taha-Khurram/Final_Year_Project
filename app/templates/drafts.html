@@ -615,11 +615,21 @@
         const viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
         viewModal.show();
       } else {
-        alert("Failed to load: " + data.message);
+        showToast({
+          type: 'error',
+          title: 'Error',
+          message: data.message || 'Failed to load draft.',
+          duration: 5000
+        });
       }
     } catch (err) {
       console.error(err);
-      alert("Connection error.");
+      showToast({
+        type: 'error',
+        title: 'Connection Error',
+        message: 'Could not connect to server.',
+        duration: 5000
+      });
     }
   }
 
@@ -644,10 +654,20 @@
         }
         initEditor(content);
       } else {
-        alert("Failed to load: " + data.message);
+        showToast({
+          type: 'error',
+          title: 'Error',
+          message: data.message || 'Failed to load draft.',
+          duration: 5000
+        });
       }
     } catch (err) {
-      alert("Connection error.");
+      showToast({
+        type: 'error',
+        title: 'Connection Error',
+        message: 'Could not connect to server.',
+        duration: 5000
+      });
     }
   }
 
@@ -669,14 +689,31 @@
         const row = document.querySelector(`#row-${currentEditingId} .title`);
         if (row) row.innerText = updatedTitle;
         bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+        showToast({
+          type: 'success',
+          title: 'Changes Saved',
+          message: 'Your draft has been updated successfully.',
+          duration: 4000
+        });
+      } else {
+        showToast({
+          type: 'error',
+          title: 'Save Failed',
+          message: data.error || 'Could not save changes.',
+          duration: 5000
+        });
       }
     } catch (err) {
-      alert("Error saving.");
+      showToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to save changes.',
+        duration: 5000
+      });
     }
   }
 
   async function submitForReview(id) {
-    if (!confirm("Send for approval?")) return;
     try {
       const res = await fetch(`/api/update_status/${id}`, {
         method: 'POST',
@@ -685,20 +722,71 @@
       });
       const data = await res.json();
       if (data.success) {
-        document.getElementById(`row-${id}`).remove();
+        showToast({
+          type: 'success',
+          title: 'Submitted for Review',
+          message: 'Your draft has been sent for approval.',
+          duration: 4000
+        });
+        const row = document.getElementById(`row-${id}`);
+        if (row) {
+          row.style.transition = 'all 0.3s ease';
+          row.style.opacity = '0';
+          row.style.transform = 'translateX(20px)';
+          setTimeout(() => row.remove(), 300);
+        }
       } else {
-        alert(data.error || "Failed");
+        showToast({
+          type: 'error',
+          title: 'Submission Failed',
+          message: data.error || 'Could not submit for review.',
+          duration: 5000
+        });
       }
-    } catch (e) { alert("Error"); }
+    } catch (e) {
+      showToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to submit draft.',
+        duration: 5000
+      });
+    }
   }
 
   async function deleteDraft(id) {
-    if (!confirm("Delete permanently?")) return;
     try {
       const res = await fetch(`/api/delete_blog/${id}`, { method: 'DELETE' });
       const data = await res.json();
-      if (data.success) document.getElementById(`row-${id}`).remove();
-    } catch (e) { alert("Error"); }
+      if (data.success) {
+        showToast({
+          type: 'warning',
+          title: 'Draft Deleted',
+          message: 'The draft has been permanently removed.',
+          duration: 4000
+        });
+        const row = document.getElementById(`row-${id}`);
+        if (row) {
+          row.style.transition = 'all 0.3s ease';
+          row.style.opacity = '0';
+          row.style.transform = 'translateX(20px)';
+          setTimeout(() => row.remove(), 300);
+        }
+      } else {
+        showToast({
+          type: 'error',
+          title: 'Delete Failed',
+          message: data.error || 'Could not delete draft.',
+          duration: 5000
+        });
+      }
+    } catch (e) {
+      showToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to delete draft.',
+        duration: 5000
+      });
+    }
   }
 </script>
 {% endblock %}

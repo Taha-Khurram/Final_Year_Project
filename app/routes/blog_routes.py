@@ -868,3 +868,112 @@ def analyze_draft_seo(blog_id):
         print(f"Draft SEO Analysis Error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
+
+# ---------------------------------------------------
+# SITE SETTINGS ROUTES
+# ---------------------------------------------------
+
+@blog_bp.route('/site-settings')
+def site_settings_page():
+    """Site Settings Dashboard"""
+    user_id = session.get('user_id')
+
+    # Get current settings
+    settings = db_service.get_site_settings(user_id)
+
+    # Get published blogs for management
+    published_blogs = db_service.get_blogs_by_status("PUBLISHED", user_id=user_id)
+
+    # Get stats for the settings page
+    categories = db_service.get_all_categories(user_id=user_id)
+    pending = db_service.get_blogs_by_status("UNDER_REVIEW", user_id=user_id)
+
+    return render_template(
+        'site_settings.html',
+        settings=settings,
+        published_blogs=published_blogs,
+        published_count=len(published_blogs),
+        categories_count=len(categories),
+        pending_count=len(pending),
+        username=session.get('user_name', 'User')
+    )
+
+
+@blog_bp.route('/api/site-settings', methods=['POST'])
+def update_site_settings():
+    """Update site settings"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+        data = request.get_json()
+
+        settings = {
+            'site_name': data.get('site_name', '').strip(),
+            'site_description': data.get('site_description', '').strip(),
+            'niche': data.get('niche', '').strip()
+        }
+
+        if not settings['site_name']:
+            return jsonify({"success": False, "error": "Site name is required"}), 400
+
+        success = db_service.update_site_settings(user_id, settings)
+
+        if success:
+            db_service.log_activity(
+                user_id=user_id,
+                user_name=session.get('user_name', 'User'),
+                type="settings",
+                action_text="updated site settings",
+                blog_title=""
+            )
+
+        return jsonify({"success": success})
+
+    except Exception as e:
+        print(f"Site Settings Error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@blog_bp.route('/api/unpublish/<blog_id>', methods=['POST'])
+def unpublish_blog(blog_id):
+    """Unpublish a blog - moves it back to approval queue (UNDER_REVIEW)"""
+    try:
+        user_id = session.get('user_id')
+        user_role = session.get('user_role', 'USER')
+
+        if not user_id:
+            return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+        # Get the blog
+        blog_data = db_service.get_blog_by_id(blog_id)
+        if not blog_data:
+            return jsonify({"success": False, "error": "Blog not found"}), 404
+
+        # Only owner or admin can unpublish
+        if blog_data.get('author_id') != user_id and user_role != 'ADMIN':
+            return jsonify({"success": False, "error": "Not authorized"}), 403
+
+        # Check if blog is currently published
+        if blog_data.get('status') != 'PUBLISHED':
+            return jsonify({"success": False, "error": "Blog is not published"}), 400
+
+        # Change status to UNDER_REVIEW
+        success = db_service.update_blog_status(blog_id, 'UNDER_REVIEW')
+
+        if success:
+            db_service.log_activity(
+                user_id=user_id,
+                user_name=session.get('user_name', 'User'),
+                type="status_change",
+                action_text="unpublished and moved to review",
+                blog_title=blog_data.get('title', 'Untitled')
+            )
+
+        return jsonify({"success": success})
+
+    except Exception as e:
+        print(f"Unpublish Error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+

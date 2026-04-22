@@ -227,16 +227,34 @@
       const data = await response.json();
 
       if (data.success) {
-        window.location.href = data.redirect || "{{ url_for('blog.drafts_page') }}";
+        showToast({
+          type: 'success',
+          title: 'Blog Generated!',
+          message: 'Your blog has been created and saved as a draft.',
+          duration: 3000
+        });
+        setTimeout(() => {
+          window.location.href = data.redirect || "{{ url_for('blog.drafts_page') }}";
+        }, 1000);
       } else {
-        alert(data.error || "Generation failed. Please try again.");
+        showToast({
+          type: 'error',
+          title: 'Generation Failed',
+          message: data.error || 'Please try again.',
+          duration: 5000
+        });
         genBtn.disabled = false;
         promptInput.disabled = false;
         loader.classList.add('d-none');
       }
     } catch (err) {
       console.error("Error:", err);
-      alert("Something went wrong. Check your connection.");
+      showToast({
+        type: 'error',
+        title: 'Connection Error',
+        message: 'Something went wrong. Check your connection.',
+        duration: 5000
+      });
       genBtn.disabled = false;
       promptInput.disabled = false;
       loader.classList.add('d-none');

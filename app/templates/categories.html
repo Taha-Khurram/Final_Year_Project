@@ -246,7 +246,7 @@
         <h5 class="modal-title fw-bold text-dark">Add New Category</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <form id="addCategoryForm">
+      <form id="addCategoryForm" class="ajax-form">
         <div class="modal-body p-4">
           <div class="mb-3">
             <label class="form-label text-secondary small fw-bold text-uppercase">Category Name</label>
@@ -272,7 +272,7 @@
         <h5 class="modal-title fw-bold text-dark">Edit Category</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <form id="editCategoryForm">
+      <form id="editCategoryForm" class="ajax-form">
         <input type="hidden" id="editCategoryId" name="id">
         <div class="modal-body p-4">
           <div class="mb-3">
@@ -305,13 +305,29 @@
       });
       const data = await res.json();
       if (data.success) {
-        location.reload();
+        showToast({
+          type: 'success',
+          title: 'Category Created',
+          message: `"${name}" has been added successfully.`,
+          duration: 3000
+        });
+        setTimeout(() => location.reload(), 1000);
       } else {
-        alert("Error: " + data.error);
+        showToast({
+          type: 'error',
+          title: 'Error',
+          message: data.error || 'Failed to create category.',
+          duration: 5000
+        });
       }
     } catch (err) {
       console.error(err);
-      alert('Error adding category');
+      showToast({
+        type: 'error',
+        title: 'Connection Error',
+        message: 'Failed to add category.',
+        duration: 5000
+      });
     }
   });
 
@@ -337,32 +353,63 @@
       });
       const data = await res.json();
       if (data.success) {
-        location.reload();
+        showToast({
+          type: 'success',
+          title: 'Category Updated',
+          message: `Category renamed to "${name}".`,
+          duration: 3000
+        });
+        setTimeout(() => location.reload(), 1000);
       } else {
-        alert("Error: " + data.error);
+        showToast({
+          type: 'error',
+          title: 'Update Failed',
+          message: data.error || 'Could not update category.',
+          duration: 5000
+        });
       }
     } catch (err) {
       console.error(err);
-      alert('Error updating category');
+      showToast({
+        type: 'error',
+        title: 'Connection Error',
+        message: 'Failed to update category.',
+        duration: 5000
+      });
     }
   });
 
   // Delete Category
   async function deleteCategory(id) {
-    if (!confirm('Are you sure you want to delete this category? Any articles linked to it might remain, please reassign them first.')) return;
     try {
       const res = await fetch(`/api/delete_category/${id}`, {
         method: 'DELETE'
       });
       const data = await res.json();
       if (data.success) {
-        location.reload();
+        showToast({
+          type: 'warning',
+          title: 'Category Deleted',
+          message: 'The category has been removed.',
+          duration: 3000
+        });
+        setTimeout(() => location.reload(), 1000);
       } else {
-        alert("Error: " + data.error);
+        showToast({
+          type: 'error',
+          title: 'Delete Failed',
+          message: data.error || 'Could not delete category.',
+          duration: 5000
+        });
       }
     } catch (err) {
       console.error(err);
-      alert('Error deleting category');
+      showToast({
+        type: 'error',
+        title: 'Connection Error',
+        message: 'Failed to delete category.',
+        duration: 5000
+      });
     }
   }
 

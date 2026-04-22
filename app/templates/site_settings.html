@@ -1,0 +1,531 @@
+{% extends "base.html" %}
+
+{% block title %}Site Settings | ScriptlyAI{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Form Field Styles */
+    .form-label {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        color: #334155;
+        background-color: #fafbfc;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:hover, .form-select:hover {
+        border-color: #cbd5e1;
+        background-color: white;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        background-color: white;
+        box-shadow: 0 0 0 4px rgba(67, 24, 255, 0.1);
+        outline: none;
+    }
+
+    .form-control::placeholder {
+        color: #94a3b8;
+        font-weight: 400;
+    }
+
+    textarea.form-control {
+        min-height: 120px;
+        line-height: 1.6;
+    }
+
+    /* Settings Card */
+    .settings-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+
+    .settings-card h3 {
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+
+    .settings-card h3 i {
+        color: var(--primary-color);
+        font-size: 1.1rem;
+        padding: 0.5rem;
+        background: rgba(67, 24, 255, 0.1);
+        border-radius: 8px;
+    }
+
+    .settings-card > p.text-muted {
+        margin-bottom: 1.5rem;
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    /* Button Styles */
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 14px rgba(67, 24, 255, 0.25);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(67, 24, 255, 0.35);
+    }
+
+    .btn-outline-primary {
+        border: 2px solid var(--primary-color);
+        color: var(--primary-color);
+        padding: 0.7rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        background: transparent;
+        transition: all 0.2s ease;
+    }
+
+    .btn-outline-primary:hover {
+        background: var(--primary-color);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Site Preview Card */
+    .site-preview {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        border: 2px dashed #e2e8f0;
+    }
+
+    .site-preview-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .site-preview-header i {
+        font-size: 1.5rem;
+        color: var(--primary-color);
+    }
+
+    .site-url {
+        font-family: 'Fira Code', monospace;
+        font-size: 0.9rem;
+        color: #64748b;
+        background: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .site-url a {
+        color: var(--primary-color);
+        text-decoration: none;
+    }
+
+    .site-url a:hover {
+        text-decoration: underline;
+    }
+
+    /* Form Group */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-hint {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        margin-top: 0.5rem;
+    }
+
+    /* Published Blogs List */
+    .published-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .published-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+    }
+
+    .published-item:last-child {
+        border-bottom: none;
+    }
+
+    .published-item:hover {
+        background: #f8fafc;
+    }
+
+    .published-item-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .published-item-title {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .published-item-meta {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .published-item-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .btn-unpublish {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .btn-unpublish:hover {
+        background: #ef4444;
+        color: white;
+    }
+
+    .empty-published {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #94a3b8;
+    }
+
+    .empty-published i {
+        font-size: 2.5rem;
+        opacity: 0.3;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+
+    {% include 'partials/sidebar.html' %}
+
+    <main class="dashboard-main">
+        <header class="dashboard-header">
+            <div>
+                <div class="header-welcome-text">Configuration</div>
+                <h1 class="header-title">Site Settings</h1>
+            </div>
+            <div>
+                <a href="{{ url_for('site_bp.site_home', user_id=session.get('user_id')) }}" target="_blank"
+                   class="btn btn-outline-primary d-flex align-items-center gap-2">
+                    <i class="bi bi-box-arrow-up-right"></i> Visit Your Site
+                </a>
+            </div>
+        </header>
+
+        <!-- Site Preview -->
+        <div class="settings-card animate-fade-up">
+            <div class="site-preview">
+                <div class="site-preview-header">
+                    <i class="bi bi-globe"></i>
+                    <div>
+                        <h4 class="mb-1" id="preview-name">{{ settings.site_name }}</h4>
+                        <p class="text-muted mb-0 small" id="preview-desc">{{ settings.site_description }}</p>
+                    </div>
+                </div>
+                <div class="site-url">
+                    <i class="bi bi-link-45deg"></i>
+                    <a href="{{ url_for('site_bp.site_home', user_id=session.get('user_id')) }}" target="_blank">
+                        {{ request.host }}/site/{{ session.get('user_id') }}
+                    </a>
+                    <button class="btn btn-sm btn-light border-0" onclick="copyUrl()" title="Copy URL">
+                        <i class="bi bi-clipboard"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Form -->
+        <div class="settings-card animate-fade-up">
+            <h3><i class="bi bi-gear"></i> General Settings</h3>
+            <p class="text-muted">Configure your public blog site appearance and information.</p>
+
+            <form id="settings-form" class="ajax-form">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Site Name</label>
+                            <input type="text" class="form-control" id="site_name" name="site_name"
+                                   value="{{ settings.site_name }}" placeholder="e.g., My Awesome Blog" required>
+                            <p class="form-hint">This will appear as your site title</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Niche / Category</label>
+                            <input type="text" class="form-control" id="niche" name="niche"
+                                   value="{{ settings.niche }}" placeholder="e.g., Technology, Lifestyle, Business">
+                            <p class="form-hint">The main focus area of your blog</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Site Description</label>
+                    <textarea class="form-control" id="site_description" name="site_description" rows="4"
+                              placeholder="Write a brief description of your blog...">{{ settings.site_description }}</textarea>
+                    <p class="form-hint">A short description that appears on your site's homepage</p>
+                </div>
+
+                <div class="d-flex gap-3 mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-2"></i>Save Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Published Blogs Management -->
+        <div class="settings-card animate-fade-up">
+            <h3><i class="bi bi-journal-check"></i> Published Blogs</h3>
+            <p class="text-muted">Manage your live blog posts. Unpublishing moves them back to approval queue.</p>
+
+            <div class="published-list">
+                {% if published_blogs %}
+                {% for blog in published_blogs %}
+                <div class="published-item" id="published-{{ blog.id }}">
+                    <div class="published-item-info">
+                        <div class="published-item-title">{{ blog.title.replace('**', '') if blog.title else 'Untitled' }}</div>
+                        <div class="published-item-meta">
+                            <span><i class="bi bi-folder2"></i> {{ blog.category or 'General' }}</span>
+                            <span><i class="bi bi-calendar3"></i> {{ blog.updated_at.strftime('%b %d, %Y') if blog.updated_at else 'Recently' }}</span>
+                        </div>
+                    </div>
+                    <button class="btn-unpublish" onclick="unpublishBlog('{{ blog.id }}')">
+                        <i class="bi bi-arrow-counterclockwise"></i> Unpublish
+                    </button>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty-published">
+                    <i class="bi bi-journal-x d-block"></i>
+                    <p class="mb-0 fw-bold">No published blogs yet</p>
+                    <p class="small mb-0">Approved blogs will appear here</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Site Statistics -->
+        <div class="settings-card animate-fade-up">
+            <h3><i class="bi bi-bar-chart"></i> Site Statistics</h3>
+            <p class="text-muted">Overview of your published content.</p>
+
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="text-center p-3 rounded" style="background: rgba(67, 24, 255, 0.05);">
+                        <h2 class="mb-1" style="color: var(--primary-color);">{{ published_count }}</h2>
+                        <p class="text-muted mb-0 small">Published Blogs</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center p-3 rounded" style="background: rgba(5, 205, 153, 0.05);">
+                        <h2 class="mb-1" style="color: var(--success-color);">{{ categories_count }}</h2>
+                        <p class="text-muted mb-0 small">Categories</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center p-3 rounded" style="background: rgba(255, 181, 71, 0.05);">
+                        <h2 class="mb-1" style="color: var(--warning-color);">{{ pending_count }}</h2>
+                        <p class="text-muted mb-0 small">Pending Review</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    document.getElementById('settings-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const formData = {
+            site_name: document.getElementById('site_name').value,
+            site_description: document.getElementById('site_description').value,
+            niche: document.getElementById('niche').value
+        };
+
+        try {
+            const response = await fetch('/api/site-settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showToast({
+                    type: 'success',
+                    title: 'Settings Saved',
+                    message: 'Your site settings have been updated.',
+                    duration: 4000
+                });
+
+                // Update preview
+                document.getElementById('preview-name').textContent = formData.site_name;
+                document.getElementById('preview-desc').textContent = formData.site_description;
+            } else {
+                showToast({
+                    type: 'error',
+                    title: 'Save Failed',
+                    message: data.error || 'Could not save settings.',
+                    duration: 5000
+                });
+            }
+        } catch (err) {
+            console.error(err);
+            showToast({
+                type: 'error',
+                title: 'Connection Error',
+                message: 'Failed to save settings.',
+                duration: 5000
+            });
+        }
+    });
+
+    function copyUrl() {
+        const url = window.location.origin + '/site/{{ session.get("user_id") }}';
+        navigator.clipboard.writeText(url);
+        showToast({
+            type: 'success',
+            title: 'URL Copied',
+            message: 'Site URL copied to clipboard.',
+            duration: 3000
+        });
+    }
+
+    async function unpublishBlog(blogId) {
+        if (!confirm('Are you sure you want to unpublish this blog? It will be moved back to the approval queue.')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/unpublish/${blogId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Remove the item from the list with animation
+                const item = document.getElementById(`published-${blogId}`);
+                if (item) {
+                    item.style.transition = 'all 0.3s ease';
+                    item.style.opacity = '0';
+                    item.style.transform = 'translateX(20px)';
+                    setTimeout(() => {
+                        item.remove();
+                        // Check if list is now empty
+                        const list = document.querySelector('.published-list');
+                        if (list && !list.querySelector('.published-item')) {
+                            list.innerHTML = `
+                                <div class="empty-published">
+                                    <i class="bi bi-journal-x d-block"></i>
+                                    <p class="mb-0 fw-bold">No published blogs yet</p>
+                                    <p class="small mb-0">Approved blogs will appear here</p>
+                                </div>
+                            `;
+                        }
+                        // Update stats count
+                        const publishedStat = document.querySelector('[style*="rgba(67, 24, 255"] h2');
+                        const pendingStat = document.querySelector('[style*="rgba(255, 181, 71"] h2');
+                        if (publishedStat) {
+                            const current = parseInt(publishedStat.textContent) || 0;
+                            publishedStat.textContent = Math.max(0, current - 1);
+                        }
+                        if (pendingStat) {
+                            const current = parseInt(pendingStat.textContent) || 0;
+                            pendingStat.textContent = current + 1;
+                        }
+                    }, 300);
+                }
+
+                showToast({
+                    type: 'success',
+                    title: 'Blog Unpublished',
+                    message: 'The blog has been moved to the approval queue.',
+                    duration: 4000
+                });
+            } else {
+                showToast({
+                    type: 'error',
+                    title: 'Unpublish Failed',
+                    message: data.error || 'Could not unpublish the blog.',
+                    duration: 5000
+                });
+            }
+        } catch (err) {
+            console.error(err);
+            showToast({
+                type: 'error',
+                title: 'Connection Error',
+                message: 'Failed to unpublish blog.',
+                duration: 5000
+            });
+        }
+    }
+</script>
+{% endblock %}
