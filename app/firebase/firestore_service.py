@@ -2,6 +2,7 @@ from datetime import datetime
 from app.firebase.firebase_admin import FirebaseLoader
 from firebase_admin import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
+from app.utils.cache import cache
 
 class FirestoreService:
     def __init__(self):
@@ -296,17 +297,25 @@ class FirestoreService:
     #         return []
     
     
-    def get_all_categories(self, user_id=None, limit=None):
+    def get_all_categories(self, user_id=None, limit=None, use_cache=True):
         """
         Fetch all categories with id, name, and count.
         Optional limit to prevent timeouts.
+        Caches results for 5 minutes by default.
         """
+        # Try cache first
+        if use_cache and user_id:
+            cache_key = f"categories:{user_id}:{limit}"
+            cached_result = cache.get(cache_key)
+            if cached_result is not None:
+                return cached_result
+
         try:
             query = self.db.collection("categories")
             if user_id:
-                query = query.where("created_by", "==", user_id)
+                query = query.where(filter=FieldFilter("created_by", "==", user_id))
             if limit:
-                query = query.limit(limit)  # <-- limit is now supported
+                query = query.limit(limit)
             docs = query.stream()
             categories = []
             for doc in docs:
@@ -316,6 +325,11 @@ class FirestoreService:
                     "name": data.get("name"),
                     "count": data.get("count", 0)
                 })
+
+            # Cache the result for 5 minutes
+            if use_cache and user_id:
+                cache.set(cache_key, categories, ttl=300)
+
             return categories
         except Exception as e:
             print(f"❌ FirestoreService.get_all_categories Error: {e}")
@@ -326,17 +340,20 @@ class FirestoreService:
             cat_query = self.db.collection("categories")\
                 .where(filter=FieldFilter("name", "==", category_name))\
                 .where(filter=FieldFilter("created_by", "==", user_id)).limit(1).get()
-            
+
             if cat_query:
                 cat_ref = cat_query[0].reference
                 cat_ref.update({"count": firestore.Increment(increment_by)})
             else:
+                # Create new category
                 self.db.collection("categories").add({
                     "name": category_name,
                     "count": 1 if increment_by > 0 else 0,
                     "created_by": user_id,
                     "created_at": firestore.SERVER_TIMESTAMP
                 })
+                # Invalidate category cache since we created a new one
+                cache.clear_prefix(f"categories:{user_id}")
         except Exception as e:
             print(f"❌ Error updating category count: {e}")
 
@@ -353,6 +370,10 @@ class FirestoreService:
             if doc.to_dict().get("created_by") != user_id:
                 return False
             doc_ref.delete()
+
+            # Invalidate category cache for this user
+            cache.clear_prefix(f"categories:{user_id}")
+
             return True
         except Exception as e:
             print(f"❌ Error deleting category: {e}")
@@ -437,7 +458,20 @@ class FirestoreService:
         except Exception as e:
             print(f"❌ Error saving user: {e}")
             return None
-        
+
+    def get_user_by_id(self, user_id):
+        """Gets a user document by their ID."""
+        try:
+            if not user_id:
+                return None
+            doc = self.db.collection(self.user_collection).document(user_id).get()
+            if doc.exists:
+                return doc.to_dict()
+            return None
+        except Exception as e:
+            print(f"❌ Error getting user: {e}")
+            return None
+
     def get_my_sub_users(self, admin_id):
         try:
             docs = self.db.collection(self.user_collection)\
@@ -521,6 +555,10 @@ class FirestoreService:
             if data.get("created_by") != user_id:
                 return False  # unauthorized
             doc_ref.update({"name": new_name})
+
+            # Invalidate category cache for this user
+            cache.clear_prefix(f"categories:{user_id}")
+
             return True
         except Exception as e:
             print(f"❌ Error updating category name: {e}")
@@ -532,7 +570,7 @@ class FirestoreService:
             existing = self.db.collection("categories")\
                 .where(filter=FieldFilter("name", "==", name))\
                 .where(filter=FieldFilter("created_by", "==", user_id)).limit(1).get()
-            
+
             if len(existing) > 0:
                 return False, "Category already exists"
 
@@ -542,7 +580,53 @@ class FirestoreService:
                 "created_by": user_id,
                 "created_at": firestore.SERVER_TIMESTAMP
             })
+
+            # Invalidate category cache for this user
+            cache.clear_prefix(f"categories:{user_id}")
+
             return True, doc_ref[1].id
         except Exception as e:
             print(f"❌ Error creating category: {e}")
             return False, str(e)
+
+    # ---------------- OPTIMIZED BATCH METHODS ----------------
+
+    def get_dashboard_data(self, user_id):
+        """
+        Fetch all dashboard data in parallel for better performance.
+        Returns dict with all dashboard metrics.
+        """
+        from app.utils.parallel import run_parallel_simple
+
+        try:
+            # Define all queries to run in parallel
+            queries = [
+                (self.get_published_count, (user_id,)),
+                (self.get_blogs_by_status, ("DRAFT", user_id)),
+                (self.get_blogs_by_status, ("UNDER_REVIEW", user_id)),
+                (self.get_total_blogs_count, (user_id,)),
+                (self.get_all_categories, (user_id,)),
+                (self.get_recent_activity, (user_id, 10)),
+            ]
+
+            # Run all queries in parallel
+            results = run_parallel_simple(queries, max_workers=6)
+
+            return {
+                "published_count": results[0] or 0,
+                "drafts": results[1] or [],
+                "pending": results[2] or [],
+                "total_blogs": results[3] or 0,
+                "categories": results[4] or [],
+                "recent_activity": results[5] or [],
+            }
+        except Exception as e:
+            print(f"❌ Error fetching dashboard data: {e}")
+            return {
+                "published_count": 0,
+                "drafts": [],
+                "pending": [],
+                "total_blogs": 0,
+                "categories": [],
+                "recent_activity": [],
+            }

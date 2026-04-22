@@ -136,54 +136,7 @@
 {% block content %}
 <div class="dashboard-layout">
 
-    <!-- SIDEBAR (Standardized) -->
-    <nav class="dashboard-sidebar">
-        <div class="sidebar-logo" onclick="this.closest('.dashboard-sidebar').classList.toggle('expanded')">
-            <i class="bi bi-robot"></i>
-            <span>ScriptlyAI</span>
-        </div>
-
-        <div class="sidebar-menu">
-            <a href="{{ url_for('blog.home') }}" class="active">
-                <i class="bi bi-grid-fill"></i> <span>Dashboard</span>
-            </a>
-            <a href="{{ url_for('blog.create_page') }}">
-                <i class="bi bi-plus-square-fill"></i> <span>Create Blog</span>
-            </a>
-            <a href="{{ url_for('blog.drafts_page') }}">
-                <i class="bi bi-file-text-fill"></i> <span>My Drafts</span>
-            </a>
-            <a href="{{ url_for('blog.categories_page') }}">
-                <i class="bi bi-tags-fill"></i> <span>Categories</span>
-            </a>
-
-            {% if session.get('user_role') == 'ADMIN' %}
-            <div class="mt-4 mb-2 ps-3 text-uppercase text-white-50 admin-label"
-                style="font-size: 0.75rem; letter-spacing: 1px;">
-                Admin</div>
-
-            <a href="{{ url_for('blog.approval_page') }}">
-                <i class="bi bi-check-circle-fill"></i> <span>Approvals</span>
-            </a>
-            <a href="{{ url_for('user_bp.manage_users') }}">
-                <i class="bi bi-people-fill"></i> <span>Users</span>
-            </a>
-            {% endif %}
-        </div>
-
-        <div class="sidebar-wrapper-footer" onclick="this.closest('.dashboard-sidebar').classList.toggle('expanded')">
-            <div class="footer-avatar">
-                {{ username[:2].upper() }}
-            </div>
-            <div class="footer-user-info">
-                <div class="text-white fw-bold text-truncate" style="font-size: 0.9rem;">
-                    {{username}}
-                </div>
-                <a href="{{url_for('auth_bp.logout')}}" class="text-danger small"
-                    style="font-size: 0.8rem; font-weight: 500;">Logout</a>
-            </div>
-        </div>
-    </nav>
+    {% include 'partials/sidebar.html' %}
 
     <!-- MAIN CONTENT -->
     <main class="dashboard-main">

@@ -22,29 +22,33 @@
             <h2 class="mb-1">Create Account</h2>
             <p class="auth-subtitle">Fill in your details to get started.</p>
 
-            <form>
+            <form id="signupForm">
                 <div class="input-group">
                     <label>Full Name</label>
                     <div class="input-wrapper">
-                        <input type="text" name="username" placeholder="Your Full Name" required autofocus>
+                        <input type="text" name="username" id="username" placeholder="Your Full Name" required autofocus>
                         <i class="bi bi-person input-icon"></i>
                     </div>
+                    <span class="error-message" id="usernameError"></span>
                 </div>
 
                 <div class="input-group">
                     <label>Email Address</label>
                     <div class="input-wrapper">
-                        <input type="email" name="email" placeholder="mail@example.com" required>
+                        <input type="email" name="email" id="email" placeholder="mail@example.com" required>
                         <i class="bi bi-envelope input-icon"></i>
                     </div>
+                    <span class="error-message" id="emailError"></span>
                 </div>
 
                 <div class="input-group">
                     <label>Password</label>
                     <div class="input-wrapper">
-                        <input type="password" name="password" placeholder="Min. 8 characters" required>
+                        <input type="password" name="password" id="password" placeholder="Min. 8 characters" required>
                         <i class="bi bi-lock input-icon"></i>
                     </div>
+                    <span class="error-message" id="passwordError"></span>
+                    <small class="password-hint">Must contain: 8+ chars, 1 uppercase, 1 special character, no spaces</small>
                 </div>
 
                 <button type="submit" class="primary-btn">Sign Up</button>

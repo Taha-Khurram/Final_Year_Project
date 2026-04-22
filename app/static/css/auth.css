@@ -268,6 +268,39 @@ body {
     text-decoration: underline;
 }
 
+/* Validation Styles */
+.error-message {
+    color: #E53E3E;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-top: 0.25rem;
+    margin-left: 0.25rem;
+    display: none;
+}
+
+.error-message.show {
+    display: block;
+}
+
+.input-wrapper.error input {
+    border-color: #E53E3E;
+}
+
+.input-wrapper.error input:focus {
+    box-shadow: 0 0 0 4px rgba(229, 62, 62, 0.1);
+}
+
+.input-wrapper.success input {
+    border-color: #38A169;
+}
+
+.password-hint {
+    font-size: 0.75rem;
+    color: #A3AED0;
+    margin-top: 0.25rem;
+    margin-left: 0.25rem;
+}
+
 /* RESPONSIVE */
 @media (max-width: 900px) {
     .auth-wrapper {
