@@ -1,6 +1,7 @@
-from flask import Blueprint, render_template, abort
+from flask import Blueprint, render_template, abort, request, redirect, url_for, jsonify
 from app.firebase.firestore_service import FirestoreService
 import markdown
+import math
 
 site_bp = Blueprint('site_bp', __name__, url_prefix='/site')
 db_service = FirestoreService()
@@ -24,11 +25,17 @@ def site_home(user_id):
         # Get categories for filtering
         categories = db_service.get_all_categories(user_id=user_id)
 
+        # Get featured post if set
+        featured_post = None
+        if settings.get('featured_post_id'):
+            featured_post = db_service.get_published_blog_by_id(settings['featured_post_id'])
+
         return render_template(
             'site/site_home.html',
             settings=settings,
             blogs=published_blogs,
             categories=categories,
+            featured_post=featured_post,
             user_id=user_id
         )
 
@@ -148,3 +155,101 @@ def site_category(user_id, category_name):
     except Exception as e:
         print(f"Site Category Error: {e}")
         abort(404)
+
+
+@site_bp.route('/<user_id>/blog')
+def site_blog(user_id):
+    """Dedicated blog listing page with pagination"""
+    try:
+        # Get site settings
+        settings = db_service.get_site_settings(user_id)
+
+        # Pagination parameters
+        page = request.args.get('page', 1, type=int)
+        per_page = settings.get('posts_per_page', 12)
+        category = request.args.get('category', None)
+
+        # Get all published blogs
+        all_blogs = db_service.get_published_blogs(user_id, limit=100)
+
+        # Filter by category if provided
+        if category:
+            all_blogs = [
+                b for b in all_blogs
+                if b.get('category', '').lower() == category.lower()
+            ]
+
+        # Calculate pagination
+        total_posts = len(all_blogs)
+        total_pages = math.ceil(total_posts / per_page) if total_posts > 0 else 1
+        start = (page - 1) * per_page
+        paginated_blogs = all_blogs[start:start + per_page]
+
+        # Get categories for sidebar
+        categories = db_service.get_all_categories(user_id=user_id)
+
+        return render_template(
+            'site/site_blog.html',
+            settings=settings,
+            blogs=paginated_blogs,
+            categories=categories,
+            current_category=category,
+            current_page=page,
+            total_pages=total_pages,
+            total_posts=total_posts,
+            user_id=user_id
+        )
+
+    except Exception as e:
+        print(f"Site Blog Error: {e}")
+        abort(404)
+
+
+@site_bp.route('/<user_id>/contact')
+def site_contact(user_id):
+    """Contact page"""
+    try:
+        # Get site settings
+        settings = db_service.get_site_settings(user_id)
+
+        return render_template(
+            'site/site_contact.html',
+            settings=settings,
+            user_id=user_id
+        )
+
+    except Exception as e:
+        print(f"Site Contact Error: {e}")
+        abort(404)
+
+
+@site_bp.route('/<user_id>/contact', methods=['POST'])
+def site_contact_submit(user_id):
+    """Handle contact form submission"""
+    try:
+        data = request.form
+        db_service.save_contact_submission(user_id, {
+            'name': data.get('name'),
+            'email': data.get('email'),
+            'subject': data.get('subject'),
+            'message': data.get('message')
+        })
+        # Redirect back with success message
+        return redirect(url_for('site_bp.site_contact', user_id=user_id, success=1))
+    except Exception as e:
+        print(f"Contact Submit Error: {e}")
+        return redirect(url_for('site_bp.site_contact', user_id=user_id, error=1))
+
+
+@site_bp.route('/<user_id>/subscribe', methods=['POST'])
+def site_subscribe(user_id):
+    """Handle newsletter subscription"""
+    try:
+        email = request.form.get('email', '').strip()
+        if email and '@' in email:
+            db_service.save_newsletter_subscriber(user_id, email)
+            return jsonify({'success': True, 'message': 'Subscribed successfully!'})
+        return jsonify({'success': False, 'message': 'Invalid email'}), 400
+    except Exception as e:
+        print(f"Subscribe Error: {e}")
+        return jsonify({'success': False, 'message': 'Subscription failed'}), 500
