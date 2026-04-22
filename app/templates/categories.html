@@ -62,7 +62,7 @@
   }
 
   .col-actions {
-    flex: 0 0 100px;
+    flex: 0 0 80px;
     text-align: right;
   }
 
@@ -78,6 +78,71 @@
   .badge-active {
     background: rgba(5, 205, 153, 0.1);
     color: var(--success-color);
+  }
+
+  /* Custom Dropdown Styles */
+  .btn-dropdown-trigger {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-dropdown-trigger:hover {
+    background: #f1f5f9;
+    color: #64748b;
+  }
+
+  .dropdown-menu {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    padding: 0.5rem;
+    min-width: 180px;
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #334155;
+    transition: all 0.15s ease;
+  }
+
+  .dropdown-item:hover {
+    background: #f8fafc;
+    color: #1e293b;
+  }
+
+  .dropdown-item i {
+    font-size: 1rem;
+    width: 20px;
+    text-align: center;
+  }
+
+  .dropdown-item.text-danger {
+    color: #ef4444;
+  }
+
+  .dropdown-item.text-danger:hover {
+    background: #fef2f2;
+    color: #dc2626;
+  }
+
+  .dropdown-divider {
+    margin: 0.35rem 0;
+    border-color: #f1f5f9;
   }
 
   /* Modal Tweaks */
@@ -138,17 +203,23 @@
             </div>
             <div class="col-actions">
               <div class="dropdown">
-                <button
-                  class="btn btn-sm btn-light border-0 rounded-circle w-8 h-8 d-flex align-items-center justify-content-center"
-                  data-bs-toggle="dropdown">
-                  <i class="bi bi-three-dots text-muted"></i>
+                <button class="btn-dropdown-trigger" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="bi bi-three-dots-vertical"></i>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow-card border-0 p-2 rounded-lg">
-                  <li><button class="dropdown-item rounded-md"
-                      onclick="openEditModal('{{ cat.id }}', '{{ cat.name }}')"><i
-                        class="bi bi-pencil me-2 text-primary"></i> Edit</button></li>
-                  <li><button class="dropdown-item rounded-md text-danger" onclick="deleteCategory('{{ cat.id }}')"><i
-                        class="bi bi-trash me-2"></i> Delete</button></li>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <button class="dropdown-item" onclick="openEditModal('{{ cat.id }}', '{{ cat.name }}')">
+                      <i class="bi bi-pencil-square" style="color: var(--primary-color);"></i> Edit Category
+                    </button>
+                  </li>
+                  <li>
+                    <hr class="dropdown-divider">
+                  </li>
+                  <li>
+                    <button class="dropdown-item text-danger" onclick="deleteCategory('{{ cat.id }}')">
+                      <i class="bi bi-trash3"></i> Delete
+                    </button>
+                  </li>
                 </ul>
               </div>
             </div>
