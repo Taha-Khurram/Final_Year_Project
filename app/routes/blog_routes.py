@@ -6,6 +6,7 @@ from app.agents.formatting_agent import FormattingAgent
 from app.firebase.firestore_service import FirestoreService
 from datetime import datetime
 import math
+import markdown
 
 blog_bp = Blueprint('blog', __name__)
 db_service = FirestoreService()
@@ -75,18 +76,12 @@ def home():
         user_role = session.get('user_role', 'USER')
         username = session.get('user_name', 'User')
 
-        published_count = db_service.get_published_count(user_id)
-        drafts = db_service.get_blogs_by_status("DRAFT", user_id=user_id)
-        pending = db_service.get_blogs_by_status("UNDER_REVIEW", user_id=user_id)
-
-        total_blogs = db_service.get_total_blogs_count(user_id=user_id)
-        categories = db_service.get_all_categories(user_id=user_id)
-        recent_activity_raw = db_service.get_recent_activity(user_id=user_id, limit=10)
+        # Optimized: Fetch all dashboard data in parallel
+        dashboard_data = db_service.get_dashboard_data(user_id)
 
         # Process activities for the template
         recent_activities = []
-        for act in recent_activity_raw:
-            # Combine action and title for a clean description
+        for act in dashboard_data['recent_activity']:
             title = act.get('blog_title', '')
             action = act.get('action_text', 'performed an action')
             act['description'] = f"{action} \"{title}\"" if title else action
@@ -96,11 +91,11 @@ def home():
             'home.html',
             greeting=greeting,
             username=username,
-            total_blogs=total_blogs, # Matches home.html
-            published_count=published_count,
-            drafts_count=len(drafts),
-            pending_count=len(pending),
-            recent_activities=recent_activities # Matches home.html
+            total_blogs=dashboard_data['total_blogs'],
+            published_count=dashboard_data['published_count'],
+            drafts_count=len(dashboard_data['drafts']),
+            pending_count=len(dashboard_data['pending']),
+            recent_activities=recent_activities
         )
 
     except Exception as e:
@@ -186,10 +181,78 @@ def get_blog(blog_id):
             return jsonify({"success": False, "message": "Blog not found"}), 404
 
         content = blog_data.get('content', '')
-        if isinstance(content, dict):
-            content = content.get('body') or content.get('text') or content.get('markdown', '')
 
-        blog_data['content'] = str(content)
+        # Helper to check if content looks like markdown (not HTML)
+        def is_markdown(text):
+            if not text:
+                return False
+            # Check for markdown patterns: ##, **, ---, *, ```
+            markdown_patterns = ['## ', '** ', '---', '* ', '```', '# ']
+            return any(pattern in text for pattern in markdown_patterns)
+
+        # Helper to convert markdown to HTML
+        def convert_to_html(markdown_text, title=''):
+            try:
+                formatter = FormattingAgent()
+                result = formatter.format_blog(markdown_text, title)
+                return {
+                    'html': result.get('html', markdown_text),
+                    'toc': result.get('toc', []),
+                    'toc_html': result.get('toc_html', '')
+                }
+            except Exception as e:
+                print(f"Markdown conversion error: {e}")
+                # Fallback: basic conversion using markdown library
+                html = markdown.markdown(markdown_text, extensions=['extra', 'tables', 'toc'])
+                return {'html': html, 'toc': [], 'toc_html': ''}
+
+        if isinstance(content, dict):
+            html_content = content.get('html', '')
+            body_content = content.get('body') or content.get('text') or content.get('markdown', '')
+
+            # If HTML is empty or looks like markdown, convert it
+            if not html_content or is_markdown(html_content):
+                converted = convert_to_html(body_content, blog_data.get('title', ''))
+                blog_data['content'] = {
+                    'html': converted['html'],
+                    'body': body_content,
+                    'toc': converted['toc'] or content.get('toc', []),
+                    'toc_html': converted['toc_html'] or content.get('toc_html', '')
+                }
+            else:
+                blog_data['content'] = {
+                    'html': html_content,
+                    'body': body_content,
+                    'toc': content.get('toc', []),
+                    'toc_html': content.get('toc_html', '')
+                }
+        else:
+            # Plain string content - convert to HTML
+            text_content = str(content)
+            if is_markdown(text_content):
+                converted = convert_to_html(text_content, blog_data.get('title', ''))
+                blog_data['content'] = {
+                    'html': converted['html'],
+                    'body': text_content,
+                    'toc': converted['toc'],
+                    'toc_html': converted['toc_html']
+                }
+            else:
+                blog_data['content'] = {
+                    'html': text_content,
+                    'body': text_content,
+                    'toc': [],
+                    'toc_html': ''
+                }
+
+        # Look up author name if not stored
+        if not blog_data.get('author'):
+            author_id = blog_data.get('author_id')
+            if author_id:
+                user = db_service.get_user_by_id(author_id)
+                if user:
+                    blog_data['author'] = user.get('username') or user.get('displayName') or user.get('email', '').split('@')[0]
+
         return jsonify({"success": True, "blog": blog_data})
 
     except Exception as e:
@@ -233,12 +296,14 @@ def generate_and_submit():
         prompt = data.get('prompt')
         auto_submit = data.get('auto_submit', False)
 
+        # Run optimized pipeline (SEO disabled by default for speed)
         blog_ai = BlogAgent()
-        generated_data = blog_ai.run_pipeline(prompt)
+        generated_data = blog_ai.run_pipeline(prompt, enable_seo=False)
 
-        # Extract content safely
+        # Extract content safely while preserving full structure
         content_text = ""
         content_obj = generated_data.get('content', {})
+        formatting_obj = generated_data.get('formatting', {})
 
         if isinstance(content_obj, dict):
             content_text = (
@@ -246,34 +311,41 @@ def generate_and_submit():
                 or content_obj.get('body')
                 or content_obj.get('text', '')
             )
+            # Preserve the full content structure with HTML and TOC
+            generated_data['content'] = {
+                'body': content_text,
+                'html': content_obj.get('html', ''),
+                'markdown': content_obj.get('markdown', content_text),
+                'toc': formatting_obj.get('toc', []),
+                'toc_html': formatting_obj.get('toc_html', '')
+            }
         elif isinstance(content_obj, str):
             content_text = content_obj
-
-        if not content_text:
-            for value in generated_data.values():
-                if isinstance(value, str) and len(value) > len(content_text):
-                    content_text = value
-
-        if not content_text:
+            generated_data['content'] = {
+                'body': content_text,
+                'html': content_text,
+                'markdown': content_text,
+                'toc': [],
+                'toc_html': ''
+            }
+        else:
             content_text = "AI generation completed but content could not be parsed."
+            generated_data['content'] = {
+                'body': content_text,
+                'html': content_text,
+                'markdown': content_text,
+                'toc': [],
+                'toc_html': ''
+            }
 
-        generated_data['content'] = str(content_text)
-
-        # cat_agent = CategoryAgent()
-        # generated_data['category'] = cat_agent.categorize_blog(
-        #     generated_data.get('title'),
-        #     content_text
-        # )
-        
-        # --- CATEGORY ASSIGNMENT (optimized to prevent 504) ---
+        # Category assignment with cached categories
         cat_agent = CategoryAgent()
-        categories = db_service.get_all_categories(user_id,limit=50)
+        categories = db_service.get_all_categories(user_id, limit=50, use_cache=True)
         generated_data['category'] = cat_agent.categorize_blog(
-        generated_data.get('title'),
-        content_text,
-        categories=categories
+            generated_data.get('title'),
+            content_text,
+            categories=categories
         )
-       
 
         status = (
             "PUBLISHED"
@@ -285,6 +357,7 @@ def generate_and_submit():
 
         generated_data['status'] = status
         generated_data['author_id'] = user_id
+        generated_data['author'] = user_name
 
         db_service.create_draft(generated_data, user_id)
 

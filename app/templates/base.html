@@ -33,7 +33,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: opacity 0.4s ease, visibility 0.4s ease;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
 
         .loader-spinner {
@@ -66,10 +66,61 @@
             visibility: hidden;
             pointer-events: none;
         }
+
+        /* Page transition animations */
+        .page-transition {
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Smooth content fade */
+        .dashboard-main {
+            animation: contentFade 0.3s ease-out;
+        }
+
+        @keyframes contentFade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Progress bar at top */
+        #nav-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #4318FF, #ec4899);
+            z-index: 10000;
+            transition: width 0.2s ease;
+            width: 0%;
+        }
+
+        #nav-progress.loading {
+            animation: progressPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes progressPulse {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 90%; }
+        }
     </style>
 </head>
 
 <body class="bg-body">
+    <!-- Navigation Progress Bar -->
+    <div id="nav-progress"></div>
+
     <!-- Loader -->
     <div id="page-loader">
         <div class="loader-spinner"></div>
@@ -89,40 +140,78 @@
     <!-- Global Loader Script -->
     <script>
         const pageLoader = document.getElementById("page-loader");
-        const showLoader = () => pageLoader.classList.remove("hidden");
-        const hideLoader = () => pageLoader.classList.add("hidden");
+        const navProgress = document.getElementById("nav-progress");
+
+        const showLoader = () => {
+            pageLoader.classList.remove("hidden");
+            navProgress.classList.add("loading");
+        };
+
+        const hideLoader = () => {
+            pageLoader.classList.add("hidden");
+            navProgress.classList.remove("loading");
+            navProgress.style.width = "100%";
+            setTimeout(() => { navProgress.style.width = "0%"; }, 300);
+        };
 
         // Expose globally
         window.showLoader = showLoader;
         window.hideLoader = hideLoader;
 
         // Hide on load
-        window.addEventListener("load", () => setTimeout(hideLoader, 300));
+        window.addEventListener("load", () => setTimeout(hideLoader, 200));
 
-        // Safety fallback: Force hide after 3 seconds if load event fails
-        setTimeout(hideLoader, 3000);
+        // Safety fallback: Force hide after 2.5 seconds if load event fails
+        setTimeout(hideLoader, 2500);
 
-        // Show on link click
+        // Show on internal link click
         document.addEventListener("click", (e) => {
             const link = e.target.closest("a");
             if (link && link.href &&
                 !link.href.includes("#") &&
                 !link.href.startsWith("javascript:") &&
+                !link.href.startsWith("mailto:") &&
                 link.target !== "_blank" &&
-                !e.ctrlKey && !e.metaKey && !link.hasAttribute('data-bs-toggle') &&
-                !link.hasAttribute('download')) {
+                !e.ctrlKey && !e.metaKey &&
+                !link.hasAttribute('data-bs-toggle') &&
+                !link.hasAttribute('download') &&
+                !link.classList.contains('logout') &&
+                !link.classList.contains('no-loader')) {
+
+                // Only show loader for internal navigation
+                const currentHost = window.location.host;
+                const linkHost = new URL(link.href).host;
+
+                if (currentHost === linkHost) {
+                    showLoader();
+                }
+            }
+        });
+
+        // Show on form submit (except AJAX forms)
+        document.addEventListener("submit", (e) => {
+            if (!e.target.classList.contains('no-loader') &&
+                !e.target.classList.contains('ajax-form')) {
                 showLoader();
             }
         });
 
-        // Show on form submit
-        document.addEventListener("submit", (e) => {
-            if (!e.target.classList.contains('no-loader')) showLoader();
-        });
-
-        // Hide on back/forward
+        // Hide on back/forward navigation
         window.addEventListener("pageshow", (event) => {
             if (event.persisted) hideLoader();
+        });
+
+        // Handle active state in sidebar
+        document.addEventListener("DOMContentLoaded", () => {
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('.sidebar-menu a, .nav-link').forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPath) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
         });
     </script>
 

@@ -2,6 +2,7 @@ from app.agents.outline_agent import OutlineAgent
 from app.agents.content_agent import ContentAgent
 from app.agents.formatting_agent import FormattingAgent
 from app.agents.seo_agent import SEOAgent
+from app.utils.parallel import run_parallel_simple, TimedExecution
 
 
 class BlogAgent:
@@ -11,72 +12,64 @@ class BlogAgent:
         self.formatting_agent = FormattingAgent()
         self.seo_agent = SEOAgent()
 
-    def run_pipeline(self, user_prompt, enable_seo=True, region="PK"):
+    def run_pipeline(self, user_prompt, enable_seo=False, region="PK"):
         """
-        Full AI blog generation pipeline
+        Optimized AI blog generation pipeline.
+        SEO is disabled by default during generation for speed.
+        Use run_seo_analysis() separately for full SEO optimization.
 
         Args:
             user_prompt: Topic/prompt for the blog
-            enable_seo: Whether to run SEO optimization (default True)
+            enable_seo: Whether to run full SEO optimization (slower, default False)
             region: Target region for SEO keywords (default Pakistan)
         """
-        print(f"--- Starting Full AI Pipeline ---")
+        print(f"--- Starting Optimized AI Pipeline ---")
 
         try:
-            # Step 1: Generate Outline
-            print("Step 1: Generating Outline...")
-            outline = self.outline_agent.generate_outline(user_prompt)
+            # Step 1: Generate Outline (required first)
+            with TimedExecution("Outline Generation"):
+                outline = self.outline_agent.generate_outline(user_prompt)
 
             if not outline or not isinstance(outline, list):
                 raise ValueError("Outline generation failed or returned empty data.")
 
-            # Step 2: Generate Full Content
-            print("Step 2: Expanding into Full Blog...")
-            content_data = self.content_agent.generate_full_blog(outline)
+            # Step 2: Generate Full Content (depends on outline)
+            with TimedExecution("Content Generation"):
+                content_data = self.content_agent.generate_full_blog(outline)
 
             if not content_data or 'markdown' not in content_data:
                 raise KeyError("Content agent failed to return 'markdown' data.")
 
             markdown_text = content_data['markdown']
+            final_title = user_prompt.title()
 
-            # Step 3: Format Content
-            print("Step 3: Formatting content...")
-            formatted_data = self.formatting_agent.format_blog(
-                content=markdown_text,
-                title=user_prompt.title()
-            )
+            # Step 3: Format Content (run immediately, no SEO delay)
+            with TimedExecution("Formatting"):
+                formatted_data = self.formatting_agent.format_blog(
+                    content=markdown_text,
+                    title=final_title
+                )
 
-            # Step 4: SEO Optimization (optional)
+            # Step 4: Quick SEO analysis (optional, lightweight)
             seo_data = None
             if enable_seo:
-                print("Step 4: Optimizing for SEO...")
-                try:
-                    seo_data = self.seo_agent.optimize_blog(
-                        title=user_prompt.title(),
-                        content=markdown_text,
-                        region=region
-                    )
-
-                    # Use SEO-optimized content if available
-                    if seo_data and seo_data.get('optimized'):
-                        optimized = seo_data['optimized']
-                        if optimized.get('optimized_content'):
-                            markdown_text = optimized['optimized_content']
-                            # Re-format with optimized content
-                            formatted_data = self.formatting_agent.format_blog(
-                                content=markdown_text,
-                                title=optimized.get('optimized_title', user_prompt.title())
-                            )
-                except Exception as seo_error:
-                    print(f"SEO optimization skipped: {seo_error}")
-                    seo_data = {"error": str(seo_error), "skipped": True}
+                with TimedExecution("SEO Analysis"):
+                    try:
+                        # Use analyze_only for speed - no content rewriting
+                        seo_data = self.seo_agent.analyze_only(
+                            title=final_title,
+                            content=markdown_text
+                        )
+                        seo_data['enabled'] = True
+                    except Exception as seo_error:
+                        print(f"SEO analysis skipped: {seo_error}")
+                        seo_data = {"error": str(seo_error), "skipped": True}
 
             # Step 5: Package for Firestore
-            print("Step 5: Packaging data...")
             word_count = formatted_data['statistics']['word_count']
 
             return {
-                "title": seo_data['optimized']['optimized_title'] if seo_data and seo_data.get('optimized') else user_prompt.title(),
+                "title": final_title,
                 "outline": outline,
                 "content": {
                     "markdown": markdown_text,

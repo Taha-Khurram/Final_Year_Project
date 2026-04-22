@@ -12,6 +12,7 @@ Features:
 - Meta description optimization
 - Content length recommendations
 - Internal/external link detection
+- Response caching for keyword lookups
 """
 
 import google.generativeai as genai
@@ -21,6 +22,7 @@ import re
 import math
 from typing import Dict, List, Optional
 from collections import Counter
+from app.utils.cache import cache
 
 
 class SEOAgent:
@@ -654,12 +656,20 @@ class SEOAgent:
         return self._extract_seed_keywords(topic, content)
 
     def get_keyword_data(self, keywords: List[str], region: str = "PK") -> List[Dict]:
-        """Fetch keyword metrics using real data sources"""
+        """Fetch keyword metrics using real data sources with caching"""
+        # Try cache first (15-minute TTL)
+        cache_key = f"keywords:{region}:{':'.join(sorted(keywords[:5]))}"
+        cached_result = cache.get(cache_key)
+        if cached_result is not None:
+            print("Using cached keyword data")
+            return cached_result
+
         # Method 1: Try Google Search API (RapidAPI)
         if self.rapidapi_key:
             result = self._fetch_from_google_search_api(keywords, region)
             if result:
                 print("Using Google Search API data")
+                cache.set(cache_key, result, ttl=900)  # 15 minutes
                 return result
 
         # Method 2: Try PyTrends as backup
@@ -667,6 +677,7 @@ class SEOAgent:
             result = self._fetch_from_pytrends(keywords, region)
             if result:
                 print("Using PyTrends (Google Trends) data")
+                cache.set(cache_key, result, ttl=900)  # 15 minutes
                 return result
 
         print("ERROR: No real keyword data available.")

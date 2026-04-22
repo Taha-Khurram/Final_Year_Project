@@ -76,196 +76,284 @@
     font-weight: 700;
   }
 
-  /* Modal fixes */
-  #reviewModal {
-    z-index: 1060 !important;
-  }
-
-  .modal-content {
-    border-radius: var(--radius-lg);
+  /* Custom Dropdown Styles */
+  .btn-dropdown-trigger {
+    width: 32px;
+    height: 32px;
     border: none;
-  }
-
-  /* View Modal Styles */
-  .view-modal-content {
-    max-height: 60vh;
-    overflow-y: auto;
-  }
-
-  .view-modal-content::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .view-modal-content::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 3px;
-  }
-
-  .view-modal-content::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 3px;
-  }
-
-  .blog-meta-info {
-    display: flex;
-    gap: 1.5rem;
-    flex-wrap: wrap;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #e2e8f0;
-  }
-
-  .meta-item {
+    background: transparent;
+    border-radius: 50%;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 0.85rem;
-    color: var(--secondary-color);
+    justify-content: center;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.15s ease;
   }
 
-  .meta-item i {
-    color: var(--primary-color);
+  .btn-dropdown-trigger:hover {
+    background: #f1f5f9;
+    color: #64748b;
   }
 
-  .blog-content-preview {
+  .dropdown-menu {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    padding: 0.5rem;
+    min-width: 200px;
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #334155;
+    transition: all 0.15s ease;
+  }
+
+  .dropdown-item:hover {
     background: #f8fafc;
-    border-radius: var(--radius-md);
-    padding: 1.5rem;
-    line-height: 1.8;
+    color: #1e293b;
   }
 
-  .blog-content-preview h1,
-  .blog-content-preview h2,
-  .blog-content-preview h3 {
-    color: var(--text-primary);
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
+  .dropdown-item i {
+    font-size: 1rem;
+    width: 20px;
+    text-align: center;
   }
 
-  .blog-content-preview h1:first-child,
-  .blog-content-preview h2:first-child,
-  .blog-content-preview h3:first-child {
-    margin-top: 0;
+  .dropdown-item.text-danger {
+    color: #ef4444;
   }
 
-  .blog-content-preview p {
-    margin-bottom: 1rem;
+  .dropdown-item.text-danger:hover {
+    background: #fef2f2;
+    color: #dc2626;
   }
 
-  .blog-content-preview ul, .blog-content-preview ol {
-    margin-bottom: 1rem;
-    padding-left: 1.5rem;
+  .dropdown-divider {
+    margin: 0.35rem 0;
+    border-color: #f1f5f9;
   }
 
-  .blog-content-preview code {
-    background: #e2e8f0;
-    padding: 0.2rem 0.4rem;
-    border-radius: 4px;
-    font-size: 0.9em;
+  /* Custom Modal Styles */
+  .modal-content {
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
   }
 
-  .blog-content-preview pre {
-    background: #1e293b;
-    color: #e2e8f0;
-    padding: 1rem;
-    border-radius: var(--radius-md);
-    overflow-x: auto;
-    margin-bottom: 1rem;
+  .custom-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #f1f5f9;
+    background: white;
   }
 
+  .custom-modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+  }
+
+  .custom-modal-title i { color: var(--primary-color); }
+
+  .custom-modal-body {
+    padding: 1.5rem 2rem;
+    background: white;
+  }
+
+  .custom-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    border-top: 1px solid #f1f5f9;
+    background: #fafbfc;
+  }
+
+  /* Status Badge */
   .status-badge {
-    padding: 0.35rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 50px;
+    font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
   }
 
-  .status-under-review, .status-under_review {
-    background: rgba(59, 130, 246, 0.15);
-    color: #2563eb;
+  .status-under-review, .status-under_review { background: rgba(59, 130, 246, 0.15); color: #2563eb; }
+  .status-published { background: rgba(16, 185, 129, 0.15); color: #059669; }
+
+  /* Blog Title in Modal */
+  .blog-title-display {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 1rem;
+    line-height: 1.4;
   }
 
-  .author-info {
+  /* Author Card */
+  .author-card {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    background: rgba(67, 24, 255, 0.05);
+    gap: 1rem;
+    padding: 1rem;
+    margin: 1rem 0;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
     border-radius: var(--radius-md);
-    margin-bottom: 1rem;
   }
 
   .author-avatar {
     width: 40px;
     height: 40px;
-    border-radius: 50%;
+    border-radius: 8px;
     background: var(--primary-color);
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
   }
+
+  .author-name { font-weight: 600; color: #1e293b; font-size: 0.9rem; }
+  .author-meta { font-size: 0.8rem; color: #64748b; display: flex; align-items: center; gap: 0.5rem; }
+  .author-meta i { color: var(--primary-color); font-size: 0.75rem; }
+
+  /* Meta Info Bar */
+  .meta-info-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    padding: 1rem 0;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .meta-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: #64748b;
+  }
+
+  .meta-chip i { color: var(--primary-color); font-size: 0.9rem; }
+
+  /* TOC */
+  .toc-container {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .toc-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-transform: uppercase;
+  }
+
+  .toc-container ul { list-style: none; padding: 0; margin: 0; }
+  .toc-container li { padding: 0.35rem 0; }
+  .toc-container a { color: #64748b; text-decoration: none; font-size: 0.875rem; }
+  .toc-container a:hover { color: var(--primary-color); }
+  .toc-level-1 { font-weight: 600; }
+  .toc-level-2 { padding-left: 1rem; }
+  .toc-level-3 { padding-left: 2rem; font-size: 0.8rem; }
+
+  /* Content Preview */
+  .content-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .content-label i { color: var(--primary-color); }
+
+  .blog-content-preview {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    max-height: 50vh;
+    overflow-y: auto;
+    line-height: 1.8;
+    color: #334155;
+  }
+
+  .blog-content-preview::-webkit-scrollbar { width: 5px; }
+  .blog-content-preview::-webkit-scrollbar-track { background: #f1f5f9; }
+  .blog-content-preview::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+  .blog-content-preview h1, .blog-content-preview h2, .blog-content-preview h3 {
+    color: #1e293b;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+  }
+  .blog-content-preview h1:first-child, .blog-content-preview h2:first-child { margin-top: 0; }
+  .blog-content-preview p { margin-bottom: 1rem; }
+  .blog-content-preview ul, .blog-content-preview ol { margin-bottom: 1rem; padding-left: 1.5rem; }
+  .blog-content-preview code { background: #e2e8f0; padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.9em; }
+  .blog-content-preview pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1rem; }
+
+  /* Buttons */
+  .btn-modal {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+    border: none;
+  }
+
+  .btn-modal-secondary { background: white; color: #64748b; border: 1px solid #e2e8f0; }
+  .btn-modal-secondary:hover { background: #f8fafc; color: #475569; }
+
+  .btn-modal-success { background: var(--success-color); color: white; }
+  .btn-modal-success:hover { opacity: 0.9; }
+
+  .btn-modal-danger { background: white; color: #ef4444; border: 1px solid #fecaca; }
+  .btn-modal-danger:hover { background: #fef2f2; }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="dashboard-layout">
 
-  <nav class="dashboard-sidebar">
-    <div class="sidebar-logo" onclick="this.closest('.dashboard-sidebar').classList.toggle('expanded')">
-      <i class="bi bi-robot"></i>
-      <span>ScriptlyAI</span>
-    </div>
-    <div class="sidebar-menu">
-      <a href="{{ url_for('blog.home') }}">
-        <i class="bi bi-grid-fill"></i> <span>Dashboard</span>
-      </a>
-      <a href="{{ url_for('blog.create_page') }}">
-        <i class="bi bi-plus-square-fill"></i> <span>Create Blog</span>
-      </a>
-      <a href="{{ url_for('blog.drafts_page') }}">
-        <i class="bi bi-file-text-fill"></i> <span>My Drafts</span>
-      </a>
-      <a href="{{ url_for('blog.categories_page') }}">
-        <i class="bi bi-tags-fill"></i> <span>Categories</span>
-      </a>
-      <a href="{{ url_for('blog.seo_tools_page') }}">
-        <i class="bi bi-graph-up-arrow"></i> <span>SEO Tools</span>
-      </a>
-      <a href="{{ url_for('blog.formatting_tools_page') }}">
-        <i class="bi bi-file-richtext"></i> <span>Formatting</span>
-      </a>
-
-      {% if session.get('user_role') == 'ADMIN' %}
-      <div class="mt-4 mb-2 ps-3 text-uppercase text-white-50 admin-label"
-        style="font-size: 0.75rem; letter-spacing: 1px;">Admin
-      </div>
-
-      <a href="{{ url_for('blog.approval_page') }}" class="active">
-        <i class="bi bi-check-circle-fill"></i> <span>Approvals</span>
-      </a>
-      <a href="{{ url_for('user_bp.manage_users') }}">
-        <i class="bi bi-people-fill"></i> <span>Users</span>
-      </a>
-      {% endif %}
-    </div>
-
-    <div class="sidebar-wrapper-footer" onclick="this.closest('.dashboard-sidebar').classList.toggle('expanded')">
-      <div class="footer-avatar">
-        {{ (session.get('user_name', 'US')[:2]).upper() }}
-      </div>
-      <div class="footer-user-info">
-        <div class="text-white fw-bold text-truncate" style="font-size: 0.9rem;">
-          {{ session.get('user_name', 'User').split('@')[0] }}
-        </div>
-        <a href="{{url_for('auth_bp.logout')}}" class="text-danger small"
-          style="font-size: 0.8rem; font-weight: 500;">Logout</a>
-      </div>
-    </div>
-  </nav>
+  {% include 'partials/sidebar.html' %}
 
   <main class="dashboard-main">
     <header class="dashboard-header">
@@ -298,28 +386,26 @@
 
           <div class="col-actions">
             <div class="dropdown">
-              <button
-                class="btn btn-sm btn-light border-0 rounded-circle w-8 h-8 d-flex align-items-center justify-content-center"
-                type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 32px; height: 32px;">
-                <i class="bi bi-three-dots-vertical text-muted"></i>
+              <button class="btn-dropdown-trigger" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-three-dots-vertical"></i>
               </button>
-              <ul class="dropdown-menu dropdown-menu-end shadow-card border-0 rounded-lg p-2">
+              <ul class="dropdown-menu dropdown-menu-end">
                 <li>
-                  <button class="dropdown-item rounded-md" onclick="openViewModal('{{ blog.id }}')">
-                    <i class="bi bi-eye me-2 text-info"></i> View Content
+                  <button class="dropdown-item" onclick="openViewModal('{{ blog.id }}')">
+                    <i class="bi bi-eye" style="color: #06b6d4;"></i> View Content
                   </button>
                 </li>
                 <li>
-                  <button class="dropdown-item rounded-md" onclick="openReviewModal('{{ blog.id }}')">
-                    <i class="bi bi-check2-circle me-2 text-success"></i> Review & Publish
+                  <button class="dropdown-item" onclick="openReviewModal('{{ blog.id }}')">
+                    <i class="bi bi-check-circle" style="color: #10b981;"></i> Review & Publish
                   </button>
                 </li>
                 <li>
-                  <hr class="dropdown-divider my-1">
+                  <hr class="dropdown-divider">
                 </li>
                 <li>
-                  <button class="dropdown-item rounded-md text-danger" onclick="rejectToDraft('{{ blog.id }}')">
-                    <i class="bi bi-x-circle me-2"></i> Reject to Draft
+                  <button class="dropdown-item text-danger" onclick="rejectToDraft('{{ blog.id }}')">
+                    <i class="bi bi-x-circle"></i> Reject to Draft
                   </button>
                 </li>
               </ul>
@@ -355,49 +441,78 @@
 <!-- View Modal (Read-Only) -->
 <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered">
-    <div class="modal-content border-0 shadow-card rounded-lg">
-      <div class="modal-header border-bottom p-4">
-        <div>
-          <h5 class="modal-title fw-bold text-dark mb-1" id="view-modal-title">Blog Title</h5>
-          <span class="status-badge status-under-review">UNDER REVIEW</span>
-        </div>
+    <div class="modal-content">
+      <div class="custom-modal-header">
+        <h5 class="custom-modal-title">
+          <i class="bi bi-file-earmark-text"></i>
+          Content Preview
+        </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body p-4">
-        <div class="author-info" id="view-author-info">
+
+      <div class="custom-modal-body">
+        <!-- Title & Status -->
+        <h2 class="blog-title-display" id="view-modal-title">Blog Title</h2>
+        <span class="status-badge status-under-review mb-3">
+          <i class="bi bi-hourglass-split"></i> UNDER REVIEW
+        </span>
+
+        <!-- Author Card -->
+        <div class="author-card">
           <div class="author-avatar" id="view-author-avatar">US</div>
-          <div>
-            <div class="fw-bold text-dark" id="view-author-name">Author Name</div>
-            <div class="text-muted small" id="view-submit-date">Submitted on --</div>
+          <div class="author-details">
+            <div class="author-name" id="view-author-name">Author Name</div>
+            <div class="author-meta">
+              <i class="bi bi-calendar-event"></i>
+              <span id="view-submit-date">Submitted on --</span>
+            </div>
           </div>
         </div>
-        <div class="blog-meta-info">
-          <div class="meta-item">
-            <i class="bi bi-folder"></i>
+
+        <!-- Meta Info Bar -->
+        <div class="meta-info-bar">
+          <div class="meta-chip">
+            <i class="bi bi-folder2"></i>
             <span id="view-modal-category">General</span>
           </div>
-          <div class="meta-item">
-            <i class="bi bi-clock"></i>
+          <div class="meta-chip">
+            <i class="bi bi-stopwatch"></i>
             <span id="view-modal-reading-time">-- min read</span>
           </div>
-          <div class="meta-item">
-            <i class="bi bi-file-text"></i>
+          <div class="meta-chip">
+            <i class="bi bi-body-text"></i>
             <span id="view-modal-word-count">-- words</span>
           </div>
         </div>
-        <div class="view-modal-content">
-          <div class="blog-content-preview" id="view-modal-content">
-            Loading content...
+
+        <!-- Table of Contents -->
+        <div class="toc-container d-none" id="view-modal-toc">
+          <div class="toc-header">
+            <i class="bi bi-list-ul"></i>
+            <span>Table of Contents</span>
           </div>
+          <div id="view-modal-toc-content"></div>
+        </div>
+
+        <!-- Content Preview -->
+        <div class="content-label">
+          <i class="bi bi-text-paragraph"></i>
+          <span>Content Preview</span>
+        </div>
+        <div class="blog-content-preview" id="view-modal-content">
+          Loading content...
         </div>
       </div>
-      <div class="modal-footer border-top bg-light p-3">
-        <button type="button" class="btn btn-light text-secondary fw-bold" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-outline-danger" id="view-reject-btn">
-          <i class="bi bi-x-circle me-2"></i>Reject
+
+      <div class="custom-modal-footer">
+        <button type="button" class="btn-modal btn-modal-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Close
         </button>
-        <button type="button" class="btn btn-success text-white" id="view-approve-btn">
-          <i class="bi bi-check2-circle me-2"></i>Approve & Publish
+        <button type="button" class="btn-modal btn-modal-danger" id="view-reject-btn">
+          <i class="bi bi-arrow-return-left"></i> Reject
+        </button>
+        <button type="button" class="btn-modal btn-modal-success" id="view-approve-btn">
+          <i class="bi bi-check-circle"></i> Approve
         </button>
       </div>
     </div>
@@ -407,44 +522,66 @@
 <!-- Review Modal -->
 <div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered">
-    <div class="modal-content shadow-card">
-      <div class="modal-header border-bottom p-4">
-        <h5 class="modal-title fw-bold text-dark">Review & Publish</h5>
+    <div class="modal-content">
+      <div class="custom-modal-header">
+        <h5 class="custom-modal-title">
+          <i class="bi bi-clipboard-check"></i>
+          Review & Publish
+        </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body p-4">
-        <div class="mb-4">
-          <label class="form-label text-secondary small fw-bold text-uppercase">Title</label>
-          <h3 id="viewTitle" class="fw-bold text-info"></h3>
-        </div>
-        <div class="blog-meta-info">
-          <div class="meta-item">
-            <i class="bi bi-folder"></i>
+
+      <div class="custom-modal-body">
+        <!-- Title & Status -->
+        <h2 class="blog-title-display" id="viewTitle">Blog Title</h2>
+        <span class="status-badge status-under-review mb-3">
+          <i class="bi bi-hourglass-split"></i> PENDING REVIEW
+        </span>
+
+        <!-- Meta Info Bar -->
+        <div class="meta-info-bar">
+          <div class="meta-chip">
+            <i class="bi bi-folder2"></i>
             <span id="review-category">General</span>
           </div>
-          <div class="meta-item">
-            <i class="bi bi-clock"></i>
+          <div class="meta-chip">
+            <i class="bi bi-stopwatch"></i>
             <span id="review-reading-time">-- min read</span>
           </div>
-          <div class="meta-item">
-            <i class="bi bi-file-text"></i>
+          <div class="meta-chip">
+            <i class="bi bi-body-text"></i>
             <span id="review-word-count">-- words</span>
           </div>
         </div>
-        <div>
-          <label class="form-label text-secondary small fw-bold text-uppercase">Content Preview</label>
-          <div class="view-modal-content">
-            <div class="blog-content-preview" id="viewContent"></div>
+
+        <!-- Table of Contents -->
+        <div class="toc-container d-none" id="review-modal-toc">
+          <div class="toc-header">
+            <i class="bi bi-list-ul"></i>
+            <span>Table of Contents</span>
           </div>
+          <div id="review-modal-toc-content"></div>
+        </div>
+
+        <!-- Content Preview -->
+        <div class="content-label">
+          <i class="bi bi-text-paragraph"></i>
+          <span>Content Preview</span>
+        </div>
+        <div class="blog-content-preview" id="viewContent">
+          Loading content...
         </div>
       </div>
-      <div class="modal-footer border-top p-3 bg-light">
-        <button type="button" class="btn btn-light text-secondary fw-bold" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-outline-danger" id="modalRejectBtn">
-          <i class="bi bi-x-circle me-2"></i>Reject to Draft
+
+      <div class="custom-modal-footer">
+        <button type="button" class="btn-modal btn-modal-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Close
         </button>
-        <button type="button" class="btn btn-success text-white fw-medium px-4" id="modalApproveBtn">
-          <i class="bi bi-check2-circle me-2"></i>Approve & Publish
+        <button type="button" class="btn-modal btn-modal-danger" id="modalRejectBtn">
+          <i class="bi bi-arrow-return-left"></i> Reject
+        </button>
+        <button type="button" class="btn-modal btn-modal-success" id="modalApproveBtn">
+          <i class="bi bi-check-circle"></i> Approve
         </button>
       </div>
     </div>
@@ -462,6 +599,7 @@
 
       if (data.success) {
         const blog = data.blog;
+        const content = blog.content;
 
         // Set title
         document.getElementById('view-modal-title').innerText = (blog.title || 'Untitled').replace(/\*\*/g, '');
@@ -481,16 +619,36 @@
           });
         }
 
-        // Get content (handle both string and object formats)
+        // Get content - use html field for formatted content
         let contentHtml = '';
-        if (typeof blog.content === 'object') {
-          contentHtml = blog.content.html || blog.content.body || '';
+        if (typeof content === 'object') {
+          contentHtml = content.html || content.body || '';
         } else {
-          contentHtml = blog.content || '';
+          contentHtml = content || '';
         }
 
-        // Set content
+        // Set content with proper HTML rendering
         document.getElementById('view-modal-content').innerHTML = contentHtml || '<p class="text-muted">No content available</p>';
+
+        // Display TOC if available
+        const tocContainer = document.getElementById('view-modal-toc');
+        const tocContent = document.getElementById('view-modal-toc-content');
+        if (typeof content === 'object' && content.toc && content.toc.length > 0) {
+          let tocHtml = '<ul>';
+          content.toc.forEach(item => {
+            tocHtml += `<li class="toc-level-${item.level}">
+              <a href="#${item.slug}">${item.text}</a>
+            </li>`;
+          });
+          tocHtml += '</ul>';
+          tocContent.innerHTML = tocHtml;
+          tocContainer.classList.remove('d-none');
+        } else if (typeof content === 'object' && content.toc_html) {
+          tocContent.innerHTML = content.toc_html;
+          tocContainer.classList.remove('d-none');
+        } else {
+          tocContainer.classList.add('d-none');
+        }
 
         // Calculate reading time and word count
         const textContent = contentHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -531,21 +689,42 @@
 
       if (data.success) {
         const blog = data.blog;
+        const content = blog.content;
 
         document.getElementById('viewTitle').innerText = (blog.title || 'Untitled').replace(/\*\*/g, '');
 
         // Set category
         document.getElementById('review-category').innerText = blog.category || 'General';
 
-        // Get content (handle both string and object formats)
+        // Get content - use html field for formatted content
         let contentHtml = '';
-        if (typeof blog.content === 'object') {
-          contentHtml = blog.content.html || blog.content.body || '';
+        if (typeof content === 'object') {
+          contentHtml = content.html || content.body || '';
         } else {
-          contentHtml = blog.content || '';
+          contentHtml = content || '';
         }
 
         document.getElementById('viewContent').innerHTML = contentHtml || '<p class="text-muted">No content</p>';
+
+        // Display TOC if available
+        const tocContainer = document.getElementById('review-modal-toc');
+        const tocContent = document.getElementById('review-modal-toc-content');
+        if (typeof content === 'object' && content.toc && content.toc.length > 0) {
+          let tocHtml = '<ul>';
+          content.toc.forEach(item => {
+            tocHtml += `<li class="toc-level-${item.level}">
+              <a href="#${item.slug}">${item.text}</a>
+            </li>`;
+          });
+          tocHtml += '</ul>';
+          tocContent.innerHTML = tocHtml;
+          tocContainer.classList.remove('d-none');
+        } else if (typeof content === 'object' && content.toc_html) {
+          tocContent.innerHTML = content.toc_html;
+          tocContainer.classList.remove('d-none');
+        } else {
+          tocContainer.classList.add('d-none');
+        }
 
         // Calculate reading time and word count
         const textContent = contentHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
