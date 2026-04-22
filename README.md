@@ -18,6 +18,16 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 - **Real-time SEO Tools**: Live content analysis with keyword density, word count, and optimization suggestions
 - **Parallel Processing**: Efficient content generation with caching and parallel execution utilities
 
+### Public Blog Site
+- **Modern Design**: Professional, responsive public-facing blog with hero sections and gradient styling
+- **Multiple Pages**: Home, Blog (with pagination), About, and Contact pages
+- **Mobile-First**: Responsive navigation with hamburger menu for mobile devices
+- **Contact Form**: Visitor contact form with Firestore storage
+- **Newsletter Signup**: Email subscription with duplicate prevention
+- **Site Settings**: Customizable site name, description, colors, social links, and SEO metadata
+- **Category Filtering**: Browse posts by category with sidebar navigation
+- **Search & Sort**: Client-side search and sorting on the blog listing page
+
 ## Tech Stack
 
 - **Backend**: Flask (Python)
@@ -40,9 +50,18 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 │   │   └── ...
 │   ├── firebase/         # Firebase configuration
 │   ├── routes/           # API routes
+│   │   ├── site_routes.py  # Public blog site routes
+│   │   └── ...
 │   ├── static/           # CSS, JS, images
 │   ├── templates/        # HTML templates
-│   │   └── partials/     # Reusable template components
+│   │   ├── partials/     # Reusable template components
+│   │   └── site/         # Public blog site templates
+│   │       ├── site_base.html
+│   │       ├── site_home.html
+│   │       ├── site_blog.html
+│   │       ├── site_post.html
+│   │       ├── site_about.html
+│   │       └── site_contact.html
 │   └── utils/            # Utility modules (caching, parallel processing)
 ├── docs/                 # Documentation
 ├── config.py
@@ -101,6 +120,15 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 ### Formatting
 - `POST /api/blog/format` - Format content with professional styling
 - `GET /api/blog/<draft_id>/formatted` - Get formatted version of draft
+
+### Public Site
+- `GET /site/<user_id>` - Public blog homepage
+- `GET /site/<user_id>/blog` - Paginated blog listing with search
+- `GET /site/<user_id>/post/<blog_id>` - Single blog post view
+- `GET /site/<user_id>/about` - About page
+- `GET /site/<user_id>/contact` - Contact page
+- `POST /site/<user_id>/contact` - Submit contact form
+- `POST /site/<user_id>/subscribe` - Newsletter subscription
 
 ## Documentation
 
