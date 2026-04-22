@@ -936,7 +936,7 @@ def site_settings_page():
 
 @blog_bp.route('/api/site-settings', methods=['POST'])
 def update_site_settings():
-    """Update site settings"""
+    """Update site settings with all configuration options"""
     try:
         user_id = session.get('user_id')
         if not user_id:
@@ -944,11 +944,44 @@ def update_site_settings():
 
         data = request.get_json()
 
+        # Build settings object with all fields
         settings = {
+            # General
             'site_name': data.get('site_name', '').strip(),
             'site_description': data.get('site_description', '').strip(),
-            'niche': data.get('niche', '').strip()
+            'niche': data.get('niche', '').strip(),
+            # Appearance
+            'logo_url': data.get('logo_url', '').strip(),
+            'favicon_url': data.get('favicon_url', '').strip(),
+            'primary_color': data.get('primary_color', '#4318FF').strip(),
+            'cover_image_url': data.get('cover_image_url', '').strip(),
+            # Content
+            'posts_per_page': int(data.get('posts_per_page', 10)),
+            'show_reading_time': data.get('show_reading_time', True),
+            'show_author': data.get('show_author', True),
+            'featured_post_id': data.get('featured_post_id', '').strip(),
+            # SEO
+            'meta_title': data.get('meta_title', '').strip(),
+            'meta_description': data.get('meta_description', '').strip(),
+            'og_image_url': data.get('og_image_url', '').strip(),
+            'analytics_id': data.get('analytics_id', '').strip(),
+            # Social
+            'social_links': {
+                'twitter': data.get('social_twitter', '').strip(),
+                'linkedin': data.get('social_linkedin', '').strip(),
+                'github': data.get('social_github', '').strip()
+            },
+            'contact_email': data.get('contact_email', '').strip(),
+            'about_content': data.get('about_content', '').strip(),
+            # Behavior
+            'site_visibility': data.get('site_visibility', 'public')
         }
+
+        # Handle boolean values that come as strings from form
+        if isinstance(settings['show_reading_time'], str):
+            settings['show_reading_time'] = settings['show_reading_time'].lower() == 'true'
+        if isinstance(settings['show_author'], str):
+            settings['show_author'] = settings['show_author'].lower() == 'true'
 
         if not settings['site_name']:
             return jsonify({"success": False, "error": "Site name is required"}), 400

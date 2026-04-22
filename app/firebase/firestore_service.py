@@ -633,38 +633,147 @@ class FirestoreService:
 
     # ---------------- SITE SETTINGS METHODS ----------------
 
+    def _get_site_settings_defaults(self, user_id):
+        """Returns the default site settings schema."""
+        return {
+            "id": user_id,
+            "owner_id": user_id,
+            # General
+            "site_name": "My Blog",
+            "site_description": "Welcome to my blog",
+            "niche": "",
+            # Appearance
+            "logo_url": "",
+            "favicon_url": "",
+            "primary_color": "#4318FF",
+            "cover_image_url": "",
+            # Content
+            "posts_per_page": 10,
+            "default_language": "en",
+            "show_reading_time": True,
+            "show_author": True,
+            "featured_post_id": "",
+            # SEO
+            "meta_title": "",
+            "meta_description": "",
+            "og_image_url": "",
+            "analytics_id": "",
+            # Social
+            "social_links": {
+                "twitter": "",
+                "linkedin": "",
+                "github": ""
+            },
+            "contact_email": "",
+            "about_content": "",
+            # Behavior
+            "site_visibility": "public"
+        }
+
     def get_site_settings(self, user_id):
         """
         Retrieves site settings for a user.
-        Returns default settings if none exist.
+        Merges stored data with defaults to ensure all fields exist.
         """
         try:
+            defaults = self._get_site_settings_defaults(user_id)
             doc = self.db.collection("site_settings").document(user_id).get()
+
             if doc.exists:
-                data = doc.to_dict()
-                data['id'] = doc.id
-                return data
-            # Return default settings
-            return {
-                "id": user_id,
-                "site_name": "My Blog",
-                "site_description": "Welcome to my blog",
-                "niche": "General",
-                "owner_id": user_id
-            }
+                stored_data = doc.to_dict()
+                # Deep merge: defaults first, then stored data overwrites
+                merged = {**defaults, **stored_data}
+                merged['id'] = doc.id
+
+                # Handle nested social_links merge
+                default_social = defaults.get('social_links', {})
+                stored_social = stored_data.get('social_links', {})
+                merged['social_links'] = {**default_social, **stored_social}
+
+                return merged
+
+            return defaults
         except Exception as e:
             print(f"❌ Error fetching site settings: {e}")
-            return None
+            return self._get_site_settings_defaults(user_id)
+
+    def _validate_site_settings(self, settings):
+        """Validates and sanitizes site settings input."""
+        validated = {}
+
+        # String fields with max lengths
+        string_fields = {
+            'site_name': 100,
+            'site_description': 500,
+            'niche': 50,
+            'logo_url': 500,
+            'favicon_url': 500,
+            'cover_image_url': 500,
+            'default_language': 10,
+            'featured_post_id': 100,
+            'meta_title': 70,
+            'meta_description': 160,
+            'og_image_url': 500,
+            'analytics_id': 50,
+            'contact_email': 100,
+            'about_content': 5000,
+        }
+
+        for field, max_len in string_fields.items():
+            if field in settings:
+                val = str(settings[field]).strip()[:max_len]
+                validated[field] = val
+
+        # Primary color validation (hex format)
+        if 'primary_color' in settings:
+            color = str(settings['primary_color']).strip()
+            if color.startswith('#') and len(color) in [4, 7]:
+                validated['primary_color'] = color
+            else:
+                validated['primary_color'] = '#4318FF'
+
+        # Integer fields with bounds
+        if 'posts_per_page' in settings:
+            try:
+                val = int(settings['posts_per_page'])
+                validated['posts_per_page'] = max(1, min(50, val))
+            except (ValueError, TypeError):
+                validated['posts_per_page'] = 10
+
+        # Boolean fields
+        bool_fields = ['show_reading_time', 'show_author']
+        for field in bool_fields:
+            if field in settings:
+                validated[field] = bool(settings[field])
+
+        # Enum validation for site_visibility
+        if 'site_visibility' in settings:
+            vis = str(settings['site_visibility']).lower()
+            validated['site_visibility'] = vis if vis in ['public', 'unlisted'] else 'public'
+
+        # Social links (nested object)
+        if 'social_links' in settings and isinstance(settings['social_links'], dict):
+            validated['social_links'] = {
+                'twitter': str(settings['social_links'].get('twitter', '')).strip()[:200],
+                'linkedin': str(settings['social_links'].get('linkedin', '')).strip()[:200],
+                'github': str(settings['social_links'].get('github', '')).strip()[:200],
+            }
+
+        return validated
 
     def update_site_settings(self, user_id, settings):
         """
         Updates or creates site settings for a user.
+        Validates input before saving.
         """
         try:
+            # Validate settings
+            validated = self._validate_site_settings(settings)
+            validated['owner_id'] = user_id
+            validated['updated_at'] = datetime.utcnow()
+
             doc_ref = self.db.collection("site_settings").document(user_id)
-            settings['owner_id'] = user_id
-            settings['updated_at'] = datetime.utcnow()
-            doc_ref.set(settings, merge=True)
+            doc_ref.set(validated, merge=True)
             return True
         except Exception as e:
             print(f"❌ Error updating site settings: {e}")

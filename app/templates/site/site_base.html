@@ -1,9 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ settings.default_language or 'en' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{{ settings.site_name }}{% endblock %}</title>
+    <title>{% block title %}{{ settings.meta_title or settings.site_name }}{% endblock %}</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="{{ settings.meta_description or settings.site_description }}">
+    {% if settings.site_visibility == 'unlisted' %}
+    <meta name="robots" content="noindex, nofollow">
+    {% endif %}
+
+    <!-- Open Graph / Social Sharing -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ settings.meta_title or settings.site_name }}">
+    <meta property="og:description" content="{{ settings.meta_description or settings.site_description }}">
+    {% if settings.og_image_url %}
+    <meta property="og:image" content="{{ settings.og_image_url }}">
+    {% endif %}
+    <meta property="og:site_name" content="{{ settings.site_name }}">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ settings.meta_title or settings.site_name }}">
+    <meta name="twitter:description" content="{{ settings.meta_description or settings.site_description }}">
+    {% if settings.og_image_url %}
+    <meta name="twitter:image" content="{{ settings.og_image_url }}">
+    {% endif %}
+
+    <!-- Favicon -->
+    {% if settings.favicon_url %}
+    <link rel="icon" href="{{ settings.favicon_url }}">
+    {% endif %}
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,9 +41,20 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
+    <!-- Google Analytics -->
+    {% if settings.analytics_id %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ settings.analytics_id }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ settings.analytics_id }}');
+    </script>
+    {% endif %}
+
     <style>
         :root {
-            --primary-color: #4318FF;
+            --primary-color: {{ settings.primary_color or '#4318FF' }};
             --secondary-color: #64748b;
             --success-color: #05CD99;
             --warning-color: #FFB547;
@@ -77,6 +116,13 @@
         .site-logo i {
             font-size: 1.5rem;
             color: var(--primary-color);
+        }
+
+        .site-logo .logo-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
         }
 
         .site-logo-text {
@@ -148,6 +194,32 @@
             color: var(--primary-color);
         }
 
+        /* Social Links */
+        .footer-social {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .footer-social a {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(67, 24, 255, 0.08);
+            border-radius: 50%;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 1rem;
+            transition: var(--transition-base);
+        }
+
+        .footer-social a:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
         /* Powered By */
         .powered-by {
             display: flex;
@@ -178,6 +250,10 @@
                 flex-direction: column;
                 text-align: center;
             }
+
+            .footer-social {
+                justify-content: center;
+            }
         }
 
         {% block extra_css %}{% endblock %}
@@ -188,7 +264,11 @@
     <header class="site-header">
         <div class="header-container">
             <a href="{{ url_for('site_bp.site_home', user_id=user_id) }}" class="site-logo">
+                {% if settings.logo_url %}
+                <img src="{{ settings.logo_url }}" alt="{{ settings.site_name }}" class="logo-image">
+                {% else %}
                 <i class="bi bi-journal-richtext"></i>
+                {% endif %}
                 <span class="site-logo-text">{{ settings.site_name }}</span>
             </a>
             <nav class="site-nav">
@@ -209,10 +289,32 @@
             <div class="footer-text">
                 &copy; {{ settings.site_name }} {{ now().year if now else '2024' }}
             </div>
+
+            {% if settings.social_links and (settings.social_links.twitter or settings.social_links.linkedin or settings.social_links.github) %}
+            <div class="footer-social">
+                {% if settings.social_links.twitter %}
+                <a href="{{ settings.social_links.twitter }}" target="_blank" rel="noopener noreferrer" title="Twitter">
+                    <i class="bi bi-twitter-x"></i>
+                </a>
+                {% endif %}
+                {% if settings.social_links.linkedin %}
+                <a href="{{ settings.social_links.linkedin }}" target="_blank" rel="noopener noreferrer" title="LinkedIn">
+                    <i class="bi bi-linkedin"></i>
+                </a>
+                {% endif %}
+                {% if settings.social_links.github %}
+                <a href="{{ settings.social_links.github }}" target="_blank" rel="noopener noreferrer" title="GitHub">
+                    <i class="bi bi-github"></i>
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+
             <div class="footer-links">
                 <a href="{{ url_for('site_bp.site_home', user_id=user_id) }}">Home</a>
                 <a href="{{ url_for('site_bp.site_about', user_id=user_id) }}">About</a>
             </div>
+
             <div class="powered-by">
                 <i class="bi bi-lightning-charge-fill" style="color: var(--primary-color);"></i>
                 Powered by <a href="/">ScriptlyAI</a>

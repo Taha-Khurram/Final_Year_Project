@@ -42,7 +42,7 @@
     }
 
     textarea.form-control {
-        min-height: 120px;
+        min-height: 100px;
         line-height: 1.6;
     }
 
@@ -78,6 +78,59 @@
         margin-bottom: 1.5rem;
         color: #64748b;
         font-size: 0.9rem;
+    }
+
+    /* Tab Styles */
+    .settings-tabs {
+        display: flex;
+        gap: 0.5rem;
+        border-bottom: 2px solid #e2e8f0;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .settings-tab {
+        padding: 0.85rem 1.25rem;
+        border: none;
+        background: transparent;
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .settings-tab:hover {
+        color: var(--primary-color);
+        background: rgba(67, 24, 255, 0.03);
+    }
+
+    .settings-tab.active {
+        color: var(--primary-color);
+        border-bottom-color: var(--primary-color);
+    }
+
+    .settings-tab i {
+        font-size: 1rem;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     /* Button Styles */
@@ -167,6 +220,110 @@
         font-size: 0.8rem;
         color: #94a3b8;
         margin-top: 0.5rem;
+    }
+
+    /* Color Picker */
+    .color-picker-wrapper {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+    }
+
+    .color-picker-wrapper input[type="color"] {
+        width: 50px;
+        height: 42px;
+        padding: 0;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .color-picker-wrapper input[type="text"] {
+        flex: 1;
+        max-width: 120px;
+    }
+
+    /* Toggle Switch */
+    .form-switch-lg {
+        padding-left: 3.5rem;
+    }
+
+    .form-switch-lg .form-check-input {
+        width: 3rem;
+        height: 1.5rem;
+        margin-left: -3.5rem;
+        cursor: pointer;
+    }
+
+    .form-switch-lg .form-check-label {
+        padding-top: 0.15rem;
+        cursor: pointer;
+    }
+
+    /* Image Preview */
+    .image-preview {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        border: 2px solid #e2e8f0;
+        background: #f8fafc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .image-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .image-preview i {
+        font-size: 1.5rem;
+        color: #cbd5e1;
+    }
+
+    .image-input-wrapper {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .image-input-wrapper .form-control {
+        flex: 1;
+    }
+
+    /* Character Counter */
+    .char-counter {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        text-align: right;
+        margin-top: 0.25rem;
+    }
+
+    .char-counter.warning {
+        color: #f59e0b;
+    }
+
+    .char-counter.danger {
+        color: #ef4444;
+    }
+
+    /* Section Divider */
+    .section-divider {
+        border-top: 1px solid #e2e8f0;
+        margin: 2rem 0;
+        padding-top: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 1.25rem;
     }
 
     /* Published Blogs List */
@@ -295,41 +452,297 @@
             </div>
         </div>
 
-        <!-- Settings Form -->
+        <!-- Settings Form with Tabs -->
         <div class="settings-card animate-fade-up">
-            <h3><i class="bi bi-gear"></i> General Settings</h3>
-            <p class="text-muted">Configure your public blog site appearance and information.</p>
+            <h3><i class="bi bi-sliders"></i> Site Configuration</h3>
+            <p class="text-muted">Configure all aspects of your public blog site.</p>
+
+            <!-- Tabs Navigation -->
+            <div class="settings-tabs">
+                <button class="settings-tab active" data-tab="general">
+                    <i class="bi bi-gear"></i> General
+                </button>
+                <button class="settings-tab" data-tab="appearance">
+                    <i class="bi bi-palette"></i> Appearance
+                </button>
+                <button class="settings-tab" data-tab="content">
+                    <i class="bi bi-file-text"></i> Content
+                </button>
+                <button class="settings-tab" data-tab="seo">
+                    <i class="bi bi-search"></i> SEO
+                </button>
+                <button class="settings-tab" data-tab="social">
+                    <i class="bi bi-share"></i> Social
+                </button>
+            </div>
 
             <form id="settings-form" class="ajax-form">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label">Site Name</label>
-                            <input type="text" class="form-control" id="site_name" name="site_name"
-                                   value="{{ settings.site_name }}" placeholder="e.g., My Awesome Blog" required>
-                            <p class="form-hint">This will appear as your site title</p>
+                <!-- General Tab -->
+                <div class="tab-content active" id="tab-general">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Site Name *</label>
+                                <input type="text" class="form-control" id="site_name" name="site_name"
+                                       value="{{ settings.site_name }}" placeholder="e.g., My Awesome Blog" required>
+                                <p class="form-hint">This will appear as your site title</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Niche / Category</label>
+                                <input type="text" class="form-control" id="niche" name="niche"
+                                       value="{{ settings.niche }}" placeholder="e.g., Technology, Lifestyle">
+                                <p class="form-hint">The main focus area of your blog</p>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label">Niche / Category</label>
-                            <input type="text" class="form-control" id="niche" name="niche"
-                                   value="{{ settings.niche }}" placeholder="e.g., Technology, Lifestyle, Business">
-                            <p class="form-hint">The main focus area of your blog</p>
+
+                    <div class="form-group">
+                        <label class="form-label">Site Description</label>
+                        <textarea class="form-control" id="site_description" name="site_description" rows="3"
+                                  placeholder="Write a brief description of your blog...">{{ settings.site_description }}</textarea>
+                        <p class="form-hint">A short description that appears on your site's homepage</p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Site Visibility</label>
+                                <select class="form-select" id="site_visibility" name="site_visibility">
+                                    <option value="public" {% if settings.site_visibility == 'public' %}selected{% endif %}>Public - Anyone can view</option>
+                                    <option value="unlisted" {% if settings.site_visibility == 'unlisted' %}selected{% endif %}>Unlisted - Only with direct link</option>
+                                </select>
+                                <p class="form-hint">Control who can access your site</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Site Description</label>
-                    <textarea class="form-control" id="site_description" name="site_description" rows="4"
-                              placeholder="Write a brief description of your blog...">{{ settings.site_description }}</textarea>
-                    <p class="form-hint">A short description that appears on your site's homepage</p>
+                <!-- Appearance Tab -->
+                <div class="tab-content" id="tab-appearance">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Logo URL</label>
+                                <div class="image-input-wrapper">
+                                    <div class="image-preview" id="logo-preview">
+                                        {% if settings.logo_url %}
+                                        <img src="{{ settings.logo_url }}" alt="Logo">
+                                        {% else %}
+                                        <i class="bi bi-image"></i>
+                                        {% endif %}
+                                    </div>
+                                    <input type="url" class="form-control" id="logo_url" name="logo_url"
+                                           value="{{ settings.logo_url }}" placeholder="https://example.com/logo.png"
+                                           onchange="updateImagePreview('logo_url', 'logo-preview')">
+                                </div>
+                                <p class="form-hint">Square image recommended (e.g., 200x200px)</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Favicon URL</label>
+                                <div class="image-input-wrapper">
+                                    <div class="image-preview" id="favicon-preview">
+                                        {% if settings.favicon_url %}
+                                        <img src="{{ settings.favicon_url }}" alt="Favicon">
+                                        {% else %}
+                                        <i class="bi bi-image"></i>
+                                        {% endif %}
+                                    </div>
+                                    <input type="url" class="form-control" id="favicon_url" name="favicon_url"
+                                           value="{{ settings.favicon_url }}" placeholder="https://example.com/favicon.ico"
+                                           onchange="updateImagePreview('favicon_url', 'favicon-preview')">
+                                </div>
+                                <p class="form-hint">Browser tab icon (32x32px recommended)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Primary Color</label>
+                                <div class="color-picker-wrapper">
+                                    <input type="color" id="primary_color_picker" value="{{ settings.primary_color or '#4318FF' }}"
+                                           onchange="syncColorInput(this.value)">
+                                    <input type="text" class="form-control" id="primary_color" name="primary_color"
+                                           value="{{ settings.primary_color or '#4318FF' }}" placeholder="#4318FF"
+                                           pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                                           onchange="syncColorPicker(this.value)">
+                                </div>
+                                <p class="form-hint">Accent color for buttons, links, and highlights</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Cover Image URL</label>
+                                <input type="url" class="form-control" id="cover_image_url" name="cover_image_url"
+                                       value="{{ settings.cover_image_url }}" placeholder="https://example.com/cover.jpg">
+                                <p class="form-hint">Hero/banner image for your homepage</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="d-flex gap-3 mt-4">
+                <!-- Content Tab -->
+                <div class="tab-content" id="tab-content">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Posts Per Page</label>
+                                <select class="form-select" id="posts_per_page" name="posts_per_page">
+                                    {% for num in [5, 10, 15, 20, 25, 30, 50] %}
+                                    <option value="{{ num }}" {% if settings.posts_per_page == num %}selected{% endif %}>{{ num }} posts</option>
+                                    {% endfor %}
+                                </select>
+                                <p class="form-hint">Number of posts shown on the homepage</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Featured Post</label>
+                                <select class="form-select" id="featured_post_id" name="featured_post_id">
+                                    <option value="">None</option>
+                                    {% for blog in published_blogs %}
+                                    <option value="{{ blog.id }}" {% if settings.featured_post_id == blog.id %}selected{% endif %}>
+                                        {{ blog.title[:50] }}{% if blog.title|length > 50 %}...{% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <p class="form-hint">Highlighted post at the top of your site</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-divider">
+                        <div class="section-title">Display Options</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="form-check form-switch form-switch-lg">
+                                    <input class="form-check-input" type="checkbox" id="show_reading_time" name="show_reading_time"
+                                           {% if settings.show_reading_time %}checked{% endif %}>
+                                    <label class="form-check-label" for="show_reading_time">
+                                        <strong>Show Reading Time</strong>
+                                        <br><span class="text-muted small">Display estimated reading time on posts</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="form-check form-switch form-switch-lg">
+                                    <input class="form-check-input" type="checkbox" id="show_author" name="show_author"
+                                           {% if settings.show_author %}checked{% endif %}>
+                                    <label class="form-check-label" for="show_author">
+                                        <strong>Show Author Name</strong>
+                                        <br><span class="text-muted small">Display author information on posts</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEO Tab -->
+                <div class="tab-content" id="tab-seo">
+                    <div class="form-group">
+                        <label class="form-label">Meta Title</label>
+                        <input type="text" class="form-control" id="meta_title" name="meta_title"
+                               value="{{ settings.meta_title }}" placeholder="Override the default site title for search engines"
+                               maxlength="70" oninput="updateCharCounter(this, 70)">
+                        <div class="char-counter" id="meta_title_counter">0/70</div>
+                        <p class="form-hint">Leave empty to use Site Name. Recommended: 50-60 characters</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Meta Description</label>
+                        <textarea class="form-control" id="meta_description" name="meta_description" rows="2"
+                                  placeholder="A compelling description for search engine results"
+                                  maxlength="160" oninput="updateCharCounter(this, 160)">{{ settings.meta_description }}</textarea>
+                        <div class="char-counter" id="meta_description_counter">0/160</div>
+                        <p class="form-hint">Appears in search results. Recommended: 150-160 characters</p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">OG Image URL</label>
+                                <input type="url" class="form-control" id="og_image_url" name="og_image_url"
+                                       value="{{ settings.og_image_url }}" placeholder="https://example.com/og-image.jpg">
+                                <p class="form-hint">Image shown when sharing on social media (1200x630px)</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Google Analytics ID</label>
+                                <input type="text" class="form-control" id="analytics_id" name="analytics_id"
+                                       value="{{ settings.analytics_id }}" placeholder="G-XXXXXXXXXX">
+                                <p class="form-hint">Your GA4 measurement ID for tracking</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Tab -->
+                <div class="tab-content" id="tab-social">
+                    <div class="section-title">Social Links</div>
+                    <p class="text-muted small mb-4">Add your social media profiles. They'll appear in your site footer.</p>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label"><i class="bi bi-twitter-x me-1"></i> Twitter / X</label>
+                                <input type="url" class="form-control" id="social_twitter" name="social_twitter"
+                                       value="{{ settings.social_links.twitter if settings.social_links else '' }}"
+                                       placeholder="https://twitter.com/username">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label"><i class="bi bi-linkedin me-1"></i> LinkedIn</label>
+                                <input type="url" class="form-control" id="social_linkedin" name="social_linkedin"
+                                       value="{{ settings.social_links.linkedin if settings.social_links else '' }}"
+                                       placeholder="https://linkedin.com/in/username">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label"><i class="bi bi-github me-1"></i> GitHub</label>
+                                <input type="url" class="form-control" id="social_github" name="social_github"
+                                       value="{{ settings.social_links.github if settings.social_links else '' }}"
+                                       placeholder="https://github.com/username">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-divider">
+                        <div class="section-title">Contact & About</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Contact Email</label>
+                        <input type="email" class="form-control" id="contact_email" name="contact_email"
+                               value="{{ settings.contact_email }}" placeholder="hello@example.com">
+                        <p class="form-hint">Displayed on your About page for visitors to reach you</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">About Content</label>
+                        <textarea class="form-control" id="about_content" name="about_content" rows="5"
+                                  placeholder="Tell visitors about yourself, your blog, and what they can expect...">{{ settings.about_content }}</textarea>
+                        <p class="form-hint">Custom content for your About page. HTML is allowed.</p>
+                    </div>
+                </div>
+
+                <!-- Submit Button (visible on all tabs) -->
+                <div class="d-flex gap-3 mt-4 pt-3 border-top">
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-lg me-2"></i>Save Settings
+                        <i class="bi bi-check-lg me-2"></i>Save All Settings
                     </button>
                 </div>
             </form>
@@ -397,13 +810,50 @@
 </div>
 
 <script>
+    // Tab Navigation
+    document.querySelectorAll('.settings-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Remove active from all tabs and contents
+            document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            // Add active to clicked tab and corresponding content
+            this.classList.add('active');
+            document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+        });
+    });
+
+    // Form Submission
     document.getElementById('settings-form').addEventListener('submit', async function(e) {
         e.preventDefault();
 
         const formData = {
+            // General
             site_name: document.getElementById('site_name').value,
             site_description: document.getElementById('site_description').value,
-            niche: document.getElementById('niche').value
+            niche: document.getElementById('niche').value,
+            site_visibility: document.getElementById('site_visibility').value,
+            // Appearance
+            logo_url: document.getElementById('logo_url').value,
+            favicon_url: document.getElementById('favicon_url').value,
+            primary_color: document.getElementById('primary_color').value,
+            cover_image_url: document.getElementById('cover_image_url').value,
+            // Content
+            posts_per_page: parseInt(document.getElementById('posts_per_page').value),
+            show_reading_time: document.getElementById('show_reading_time').checked,
+            show_author: document.getElementById('show_author').checked,
+            featured_post_id: document.getElementById('featured_post_id').value,
+            // SEO
+            meta_title: document.getElementById('meta_title').value,
+            meta_description: document.getElementById('meta_description').value,
+            og_image_url: document.getElementById('og_image_url').value,
+            analytics_id: document.getElementById('analytics_id').value,
+            // Social
+            social_twitter: document.getElementById('social_twitter').value,
+            social_linkedin: document.getElementById('social_linkedin').value,
+            social_github: document.getElementById('social_github').value,
+            contact_email: document.getElementById('contact_email').value,
+            about_content: document.getElementById('about_content').value
         };
 
         try {
@@ -445,6 +895,51 @@
         }
     });
 
+    // Color Picker Sync
+    function syncColorInput(value) {
+        document.getElementById('primary_color').value = value;
+    }
+
+    function syncColorPicker(value) {
+        if (/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(value)) {
+            document.getElementById('primary_color_picker').value = value;
+        }
+    }
+
+    // Image Preview
+    function updateImagePreview(inputId, previewId) {
+        const url = document.getElementById(inputId).value;
+        const preview = document.getElementById(previewId);
+
+        if (url) {
+            preview.innerHTML = `<img src="${url}" alt="Preview" onerror="this.parentElement.innerHTML='<i class=\\'bi bi-x-circle\\' style=\\'color:#ef4444\\'></i>'">`;
+        } else {
+            preview.innerHTML = '<i class="bi bi-image"></i>';
+        }
+    }
+
+    // Character Counter
+    function updateCharCounter(input, max) {
+        const counter = document.getElementById(input.id + '_counter');
+        const len = input.value.length;
+        counter.textContent = `${len}/${max}`;
+
+        counter.classList.remove('warning', 'danger');
+        if (len >= max) {
+            counter.classList.add('danger');
+        } else if (len >= max * 0.8) {
+            counter.classList.add('warning');
+        }
+    }
+
+    // Initialize counters on load
+    document.addEventListener('DOMContentLoaded', function() {
+        const metaTitle = document.getElementById('meta_title');
+        const metaDesc = document.getElementById('meta_description');
+        if (metaTitle) updateCharCounter(metaTitle, 70);
+        if (metaDesc) updateCharCounter(metaDesc, 160);
+    });
+
     function copyUrl() {
         const url = window.location.origin + '/site/{{ session.get("user_id") }}';
         navigator.clipboard.writeText(url);
@@ -470,7 +965,6 @@
             const data = await response.json();
 
             if (data.success) {
-                // Remove the item from the list with animation
                 const item = document.getElementById(`published-${blogId}`);
                 if (item) {
                     item.style.transition = 'all 0.3s ease';
@@ -478,7 +972,6 @@
                     item.style.transform = 'translateX(20px)';
                     setTimeout(() => {
                         item.remove();
-                        // Check if list is now empty
                         const list = document.querySelector('.published-list');
                         if (list && !list.querySelector('.published-item')) {
                             list.innerHTML = `
@@ -489,7 +982,6 @@
                                 </div>
                             `;
                         }
-                        // Update stats count
                         const publishedStat = document.querySelector('[style*="rgba(67, 24, 255"] h2');
                         const pendingStat = document.querySelector('[style*="rgba(255, 181, 71"] h2');
                         if (publishedStat) {

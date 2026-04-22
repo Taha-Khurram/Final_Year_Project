@@ -459,14 +459,22 @@
                 {% endif %}
                 <h1 class="article-title">{{ blog.title }}</h1>
                 <div class="article-meta">
+                    {% if settings.show_author != false %}
                     <span class="article-meta-item">
                         <i class="bi bi-person-circle"></i>
                         {{ blog.author or 'Author' }}
                     </span>
+                    {% endif %}
                     <span class="article-meta-item">
                         <i class="bi bi-calendar3"></i>
                         {{ blog.updated_at.strftime('%B %d, %Y') if blog.updated_at else 'Recently Published' }}
                     </span>
+                    {% if settings.show_reading_time != false and blog.content and blog.content.reading_time %}
+                    <span class="article-meta-item">
+                        <i class="bi bi-clock"></i>
+                        {{ blog.content.reading_time }}
+                    </span>
+                    {% endif %}
                 </div>
             </header>
 
