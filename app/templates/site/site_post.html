@@ -12,6 +12,74 @@
         align-items: start;
     }
 
+    /* TOC at top of article */
+    .toc-top {
+        background: linear-gradient(135deg, rgba(67, 24, 255, 0.03) 0%, rgba(139, 92, 246, 0.03) 100%);
+        border: 1px solid rgba(67, 24, 255, 0.1);
+        border-radius: var(--radius-md);
+        padding: 1.5rem 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .toc-top h4 {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .toc-top .toc-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0.5rem 2rem;
+    }
+
+    .toc-top .toc-list li {
+        margin-bottom: 0.25rem;
+    }
+
+    .toc-top .toc-list a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.35rem 0;
+        transition: var(--transition-base);
+    }
+
+    .toc-top .toc-list a:before {
+        content: "→";
+        color: var(--primary-color);
+        font-size: 0.8rem;
+        opacity: 0.5;
+        transition: var(--transition-base);
+    }
+
+    .toc-top .toc-list a:hover {
+        color: var(--primary-color);
+    }
+
+    .toc-top .toc-list a:hover:before {
+        opacity: 1;
+        transform: translateX(3px);
+    }
+
+    .toc-top .toc-list .toc-h3 {
+        padding-left: 1rem;
+        font-size: 0.85rem;
+    }
+
+    .toc-top .toc-list .toc-h3:before {
+        content: "›";
+    }
+
     /* Article Header */
     .article-header {
         margin-bottom: 2rem;
@@ -402,8 +470,24 @@
                 </div>
             </header>
 
+            {% if blog.toc and blog.toc|length > 0 %}
+            <div class="toc-top">
+                <h4><i class="bi bi-list-nested"></i> Table of Contents</h4>
+                <ul class="toc-list">
+                    {% for item in blog.toc %}
+                    <li>
+                        <a href="#{{ item.slug or item.id }}" class="{% if item.level == 3 %}toc-h3{% endif %}">
+                            {{ item.text or item.title }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
             <div class="article-body">
                 {{ blog.html_content|safe }}
+            </div>
             </div>
 
             <div class="share-section">
@@ -428,21 +512,6 @@
 
     <!-- Sidebar -->
     <aside class="article-sidebar">
-        {% if blog.toc %}
-        <div class="toc-card">
-            <h4><i class="bi bi-list-nested"></i> Table of Contents</h4>
-            <ul class="toc-list">
-                {% for item in blog.toc %}
-                <li>
-                    <a href="#{{ item.id }}" class="{% if item.level == 3 %}toc-h3{% endif %}">
-                        {{ item.title }}
-                    </a>
-                </li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
-
         {% if related_blogs %}
         <div class="related-card">
             <h4><i class="bi bi-journal-text"></i> Related Posts</h4>
