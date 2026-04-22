@@ -441,6 +441,41 @@ def update_status(blog_id):
         if blog_data.get("author_id") != user_id and user_role != "ADMIN":
             return jsonify({"success": False, "error": "Not allowed"}), 403
 
+        # Apply formatting when publishing
+        if new_status == "PUBLISHED":
+            try:
+                # Extract markdown content
+                content = blog_data.get('content', '')
+                if isinstance(content, dict):
+                    markdown_content = content.get('markdown') or content.get('body') or content.get('text', '')
+                else:
+                    markdown_content = str(content)
+
+                title = blog_data.get('title', '')
+
+                # Apply formatting agent
+                formatter = FormattingAgent()
+                formatted = formatter.format_blog(markdown_content, title)
+
+                # Update blog with formatted content
+                formatted_content = {
+                    'body': markdown_content,
+                    'markdown': markdown_content,
+                    'html': formatted['html'],
+                    'toc': formatted['toc'],
+                    'toc_html': formatted['toc_html'],
+                    'reading_time': formatted['reading_time_text'],
+                    'statistics': formatted['statistics']
+                }
+
+                # Update blog content with formatting
+                db_service.update_blog_content(blog_id, title, formatted_content)
+                print(f"✓ Formatting applied to blog: {title}")
+
+            except Exception as format_error:
+                print(f"⚠ Formatting warning (continuing): {format_error}")
+                # Continue with publish even if formatting fails
+
         success = db_service.update_blog_status(blog_id, new_status)
 
         if not success:
