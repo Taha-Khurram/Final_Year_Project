@@ -2,74 +2,926 @@
 
 {% block title %}{{ settings.site_name }} - Home{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ==================== HERO SECTION ==================== */
+    .site-hero {
+        position: relative;
+        min-height: 520px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 4rem 2rem;
+        margin: -2rem -2rem 3rem -2rem;
+        background: linear-gradient(135deg, rgba(67, 24, 255, 0.03) 0%, rgba(99, 102, 241, 0.08) 50%, rgba(139, 92, 246, 0.05) 100%);
+        overflow: hidden;
+    }
+
+    .site-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(67, 24, 255, 0.08) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .site-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        max-width: 800px;
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        color: white;
+        padding: 0.5rem 1.25rem;
+        border-radius: 30px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero-badge i {
+        font-size: 0.9rem;
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: 1.25rem;
+        line-height: 1.2;
+    }
+
+    .hero-title span {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-subtitle {
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        max-width: 600px;
+        margin: 0 auto 2rem;
+        line-height: 1.7;
+    }
+
+    .hero-cta {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 2.5rem;
+    }
+
+    .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1rem;
+        transition: var(--transition-base);
+        box-shadow: 0 4px 15px rgba(67, 24, 255, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(67, 24, 255, 0.4);
+    }
+
+    .btn-outline {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: white;
+        color: var(--text-primary);
+        padding: 1rem 2rem;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1rem;
+        border: 2px solid rgba(0, 0, 0, 0.1);
+        transition: var(--transition-base);
+    }
+
+    .btn-outline:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        transform: translateY(-3px);
+    }
+
+    .hero-stats {
+        display: flex;
+        gap: 3rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .hero-stat {
+        text-align: center;
+    }
+
+    .hero-stat-number {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        display: block;
+    }
+
+    .hero-stat-label {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
+
+    /* ==================== FEATURED SECTION ==================== */
+    .featured-section {
+        margin-bottom: 3rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .section-header h2 i {
+        color: var(--primary-color);
+        font-size: 1.25rem;
+    }
+
+    .section-header .view-all {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        transition: var(--transition-base);
+    }
+
+    .section-header .view-all:hover {
+        gap: 0.6rem;
+    }
+
+    .featured-grid {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .featured-main {
+        grid-row: span 2;
+    }
+
+    .featured-card {
+        background: var(--bg-card);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-card);
+        transition: var(--transition-base);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .featured-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .featured-card-image {
+        position: relative;
+        height: 280px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .featured-main .featured-card-image {
+        height: 100%;
+        min-height: 320px;
+    }
+
+    .featured-secondary .featured-card-image {
+        height: 140px;
+    }
+
+    .featured-card-image i {
+        font-size: 4rem;
+        color: rgba(255, 255, 255, 0.2);
+        transition: var(--transition-smooth);
+    }
+
+    .featured-card:hover .featured-card-image i {
+        transform: scale(1.1);
+    }
+
+    .featured-card-category {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        background: white;
+        color: var(--primary-color);
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .featured-card-body {
+        padding: 1.5rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .featured-card-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+        line-height: 1.4;
+    }
+
+    .featured-main .featured-card-title {
+        font-size: 1.5rem;
+    }
+
+    .featured-card-title a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .featured-card-title a:hover {
+        color: var(--primary-color);
+    }
+
+    .featured-card-excerpt {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.7;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        flex: 1;
+    }
+
+    .featured-secondary .featured-card-excerpt {
+        -webkit-line-clamp: 2;
+    }
+
+    .featured-card-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin-top: 1rem;
+    }
+
+    /* ==================== BLOG GRID ==================== */
+    .blog-section {
+        margin-bottom: 3rem;
+    }
+
+    .category-filter {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+
+    .category-pill {
+        padding: 0.5rem 1.25rem;
+        border-radius: 30px;
+        background: var(--bg-card);
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        transition: var(--transition-base);
+    }
+
+    .category-pill:hover, .category-pill.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .blog-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .blog-card {
+        background: var(--bg-card);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-card);
+        transition: var(--transition-base);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .blog-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .blog-card-image {
+        height: 180px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .blog-card-image i {
+        font-size: 3rem;
+        color: rgba(255, 255, 255, 0.25);
+        transition: var(--transition-smooth);
+    }
+
+    .blog-card:hover .blog-card-image i {
+        transform: scale(1.15);
+    }
+
+    .blog-card-category {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        background: rgba(255, 255, 255, 0.95);
+        color: var(--primary-color);
+        padding: 0.35rem 1rem;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .blog-card-body {
+        padding: 1.5rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .blog-card-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .blog-card-title a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .blog-card-title a:hover {
+        color: var(--primary-color);
+    }
+
+    .blog-card-excerpt {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        line-height: 1.6;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        flex: 1;
+    }
+
+    .blog-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1.25rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .blog-card-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+    }
+
+    .blog-card-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        transition: var(--transition-base);
+    }
+
+    .blog-card-link:hover {
+        gap: 0.6rem;
+    }
+
+    .view-all-btn {
+        display: flex;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    /* ==================== NEWSLETTER SECTION ==================== */
+    .newsletter-section {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        border-radius: var(--radius-lg);
+        padding: 3rem;
+        text-align: center;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .newsletter-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    .newsletter-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .newsletter-icon {
+        width: 70px;
+        height: 70px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+    }
+
+    .newsletter-icon i {
+        font-size: 2rem;
+    }
+
+    .newsletter-section h2 {
+        font-size: 1.75rem;
+        font-weight: 800;
+        margin-bottom: 0.75rem;
+    }
+
+    .newsletter-section p {
+        font-size: 1rem;
+        opacity: 0.9;
+        max-width: 500px;
+        margin: 0 auto 1.5rem;
+    }
+
+    .newsletter-form-lg {
+        display: flex;
+        gap: 0.75rem;
+        max-width: 450px;
+        margin: 0 auto;
+    }
+
+    .newsletter-form-lg input {
+        flex: 1;
+        padding: 1rem 1.25rem;
+        border: none;
+        border-radius: 30px;
+        font-size: 1rem;
+        background: white;
+        color: var(--text-primary);
+    }
+
+    .newsletter-form-lg input::placeholder {
+        color: var(--text-secondary);
+    }
+
+    .newsletter-form-lg button {
+        padding: 1rem 2rem;
+        background: var(--bg-dark);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: var(--transition-base);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .newsletter-form-lg button:hover {
+        background: var(--bg-darker);
+        transform: translateY(-2px);
+    }
+
+    .newsletter-disclaimer {
+        font-size: 0.85rem;
+        opacity: 0.7;
+        margin-top: 1rem;
+    }
+
+    /* ==================== EMPTY STATE ==================== */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--bg-card);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-card);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: var(--text-secondary);
+        opacity: 0.3;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        font-size: 1.25rem;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        color: var(--text-secondary);
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 900px) {
+        .featured-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .featured-main {
+            grid-row: span 1;
+        }
+
+        .featured-secondary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .site-hero {
+            min-height: 420px;
+            padding: 3rem 1.5rem;
+            margin: -1.5rem -1.5rem 2rem -1.5rem;
+        }
+
+        .hero-title {
+            font-size: 2.25rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1rem;
+        }
+
+        .hero-stats {
+            gap: 2rem;
+        }
+
+        .hero-stat-number {
+            font-size: 1.5rem;
+        }
+
+        .featured-secondary {
+            grid-template-columns: 1fr;
+        }
+
+        .blog-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .newsletter-section {
+            padding: 2rem 1.5rem;
+        }
+
+        .newsletter-form-lg {
+            flex-direction: column;
+        }
+
+        .newsletter-form-lg button {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
 <section class="site-hero">
-    <h1>{{ settings.site_name }}</h1>
-    <p>{{ settings.site_description or 'Welcome to our blog. Discover insightful articles and stories.' }}</p>
-    {% if settings.niche %}
-    <span class="niche-badge">{{ settings.niche }}</span>
-    {% endif %}
-</section>
-
-<!-- Category Filter -->
-{% if categories %}
-<div class="category-filter">
-    <a href="{{ url_for('site_bp.site_home', user_id=user_id) }}" class="category-pill {% if not current_category %}active{% endif %}">
-        All Posts
-    </a>
-    {% for cat in categories %}
-    <a href="{{ url_for('site_bp.site_category', user_id=user_id, category_name=cat.name) }}"
-       class="category-pill {% if current_category and current_category|lower == cat.name|lower %}active{% endif %}">
-        {{ cat.name }}
-    </a>
-    {% endfor %}
-</div>
-{% endif %}
-
-<!-- Blog Grid -->
-{% if blogs %}
-<div class="blog-grid">
-    {% for blog in blogs %}
-    <article class="blog-card">
-        <div class="blog-card-image">
-            <i class="bi bi-journal-richtext"></i>
-            {% if blog.category %}
-            <span class="blog-card-category">{{ blog.category }}</span>
-            {% endif %}
+    <div class="hero-content">
+        {% if settings.niche %}
+        <div class="hero-badge">
+            <i class="bi bi-stars"></i>
+            {{ settings.niche }}
         </div>
-        <div class="blog-card-body">
-            <h2 class="blog-card-title">
-                <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}">
-                    {{ blog.title }}
-                </a>
-            </h2>
-            <p class="blog-card-excerpt">
-                {% if blog.content is mapping %}
-                    {{ (blog.content.body or blog.content.markdown or blog.content.text or '')|striptags|truncate(150) }}
-                {% else %}
-                    {{ blog.content|striptags|truncate(150) }}
-                {% endif %}
-            </p>
-            <div class="blog-card-footer">
-                <div class="blog-card-meta">
-                    <i class="bi bi-calendar3"></i>
-                    {{ blog.updated_at.strftime('%b %d, %Y') if blog.updated_at else 'Recently' }}
-                </div>
-                <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}" class="blog-card-link">
-                    Read More <i class="bi bi-arrow-right"></i>
-                </a>
+        {% endif %}
+
+        <h1 class="hero-title">
+            Welcome to <span>{{ settings.site_name }}</span>
+        </h1>
+
+        <p class="hero-subtitle">
+            {{ settings.site_description or 'Discover insightful articles, tips, and stories that inspire and inform. Join our community of readers today.' }}
+        </p>
+
+        <div class="hero-cta">
+            <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="btn-primary">
+                <i class="bi bi-journal-text"></i> Explore Articles
+            </a>
+            <a href="{{ url_for('site_bp.site_about', user_id=user_id) }}" class="btn-outline">
+                <i class="bi bi-info-circle"></i> Learn More
+            </a>
+        </div>
+
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <span class="hero-stat-number">{{ blogs|length if blogs else 0 }}</span>
+                <span class="hero-stat-label">Articles</span>
+            </div>
+            <div class="hero-stat">
+                <span class="hero-stat-number">{{ categories|length if categories else 0 }}</span>
+                <span class="hero-stat-label">Categories</span>
+            </div>
+            <div class="hero-stat">
+                <span class="hero-stat-number">{{ (blogs|length * 50) if blogs else 0 }}+</span>
+                <span class="hero-stat-label">Readers</span>
             </div>
         </div>
-    </article>
-    {% endfor %}
-</div>
+    </div>
+</section>
+
+{% if blogs and blogs|length > 0 %}
+<!-- Featured Posts Section -->
+<section class="featured-section">
+    <div class="section-header">
+        <h2><i class="bi bi-bookmark-star"></i> Featured Posts</h2>
+        <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="view-all">
+            View All <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+
+    <div class="featured-grid">
+        <!-- Main Featured Post -->
+        {% set main_post = featured_post if featured_post else blogs[0] %}
+        <div class="featured-main">
+            <article class="featured-card">
+                <div class="featured-card-image">
+                    <i class="bi bi-journal-richtext"></i>
+                    {% if main_post.category %}
+                    <span class="featured-card-category">{{ main_post.category }}</span>
+                    {% endif %}
+                </div>
+                <div class="featured-card-body">
+                    <h3 class="featured-card-title">
+                        <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=main_post.id) }}">
+                            {{ main_post.title }}
+                        </a>
+                    </h3>
+                    <p class="featured-card-excerpt">
+                        {% if main_post.content is mapping %}
+                            {{ (main_post.content.body or main_post.content.markdown or main_post.content.text or '')|striptags|truncate(200) }}
+                        {% else %}
+                            {{ main_post.content|striptags|truncate(200) }}
+                        {% endif %}
+                    </p>
+                    <div class="featured-card-meta">
+                        <i class="bi bi-calendar3"></i>
+                        {{ main_post.updated_at.strftime('%B %d, %Y') if main_post.updated_at else 'Recently Published' }}
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <!-- Secondary Featured Posts -->
+        <div class="featured-secondary">
+            {% for blog in blogs[1:3] %}
+            <article class="featured-card">
+                <div class="featured-card-image">
+                    <i class="bi bi-journal-richtext"></i>
+                    {% if blog.category %}
+                    <span class="featured-card-category">{{ blog.category }}</span>
+                    {% endif %}
+                </div>
+                <div class="featured-card-body">
+                    <h3 class="featured-card-title">
+                        <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}">
+                            {{ blog.title }}
+                        </a>
+                    </h3>
+                    <p class="featured-card-excerpt">
+                        {% if blog.content is mapping %}
+                            {{ (blog.content.body or blog.content.markdown or blog.content.text or '')|striptags|truncate(100) }}
+                        {% else %}
+                            {{ blog.content|striptags|truncate(100) }}
+                        {% endif %}
+                    </p>
+                    <div class="featured-card-meta">
+                        <i class="bi bi-calendar3"></i>
+                        {{ blog.updated_at.strftime('%b %d, %Y') if blog.updated_at else 'Recently' }}
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Latest Posts Section -->
+{% if blogs|length > 3 %}
+<section class="blog-section">
+    <div class="section-header">
+        <h2><i class="bi bi-grid"></i> Latest Posts</h2>
+    </div>
+
+    <!-- Category Filter -->
+    {% if categories %}
+    <div class="category-filter">
+        <a href="{{ url_for('site_bp.site_home', user_id=user_id) }}" class="category-pill {% if not current_category %}active{% endif %}">
+            All Posts
+        </a>
+        {% for cat in categories %}
+        <a href="{{ url_for('site_bp.site_category', user_id=user_id, category_name=cat.name) }}"
+           class="category-pill {% if current_category and current_category|lower == cat.name|lower %}active{% endif %}">
+            {{ cat.name }}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="blog-grid">
+        {% for blog in blogs[3:] %}
+        <article class="blog-card">
+            <div class="blog-card-image">
+                <i class="bi bi-journal-richtext"></i>
+                {% if blog.category %}
+                <span class="blog-card-category">{{ blog.category }}</span>
+                {% endif %}
+            </div>
+            <div class="blog-card-body">
+                <h2 class="blog-card-title">
+                    <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}">
+                        {{ blog.title }}
+                    </a>
+                </h2>
+                <p class="blog-card-excerpt">
+                    {% if blog.content is mapping %}
+                        {{ (blog.content.body or blog.content.markdown or blog.content.text or '')|striptags|truncate(150) }}
+                    {% else %}
+                        {{ blog.content|striptags|truncate(150) }}
+                    {% endif %}
+                </p>
+                <div class="blog-card-footer">
+                    <div class="blog-card-meta">
+                        <i class="bi bi-calendar3"></i>
+                        {{ blog.updated_at.strftime('%b %d, %Y') if blog.updated_at else 'Recently' }}
+                    </div>
+                    <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}" class="blog-card-link">
+                        Read More <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    <div class="view-all-btn">
+        <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="btn-primary">
+            <i class="bi bi-grid-3x3-gap"></i> View All Posts
+        </a>
+    </div>
+</section>
+{% endif %}
 {% else %}
+<!-- Empty State -->
 <div class="empty-state">
     <i class="bi bi-journal-x"></i>
     <h3>No posts yet</h3>
     <p>Check back soon for new content!</p>
 </div>
 {% endif %}
+
+<!-- Newsletter Section -->
+<section class="newsletter-section">
+    <div class="newsletter-content">
+        <div class="newsletter-icon">
+            <i class="bi bi-envelope-paper"></i>
+        </div>
+        <h2>Stay Updated</h2>
+        <p>Subscribe to our newsletter and never miss a new article. Get the latest posts delivered right to your inbox.</p>
+        <form class="newsletter-form-lg" id="home-newsletter-form">
+            <input type="email" name="email" placeholder="Enter your email address" required>
+            <button type="submit">
+                Subscribe <i class="bi bi-arrow-right"></i>
+            </button>
+        </form>
+        <p class="newsletter-disclaimer">No spam, unsubscribe anytime.</p>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Newsletter Form
+    document.getElementById('home-newsletter-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const email = this.querySelector('input[name="email"]').value;
+        const button = this.querySelector('button');
+        const originalHTML = button.innerHTML;
+
+        button.innerHTML = '<i class="bi bi-hourglass-split"></i> Subscribing...';
+        button.disabled = true;
+
+        try {
+            const response = await fetch('{{ url_for("site_bp.site_subscribe", user_id=user_id) }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `email=${encodeURIComponent(email)}`
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                button.innerHTML = '<i class="bi bi-check-lg"></i> Subscribed!';
+                this.querySelector('input').value = '';
+                setTimeout(() => { button.innerHTML = originalHTML; button.disabled = false; }, 3000);
+            } else {
+                button.innerHTML = '<i class="bi bi-x-lg"></i> Failed';
+                setTimeout(() => { button.innerHTML = originalHTML; button.disabled = false; }, 2000);
+            }
+        } catch (err) {
+            button.innerHTML = '<i class="bi bi-x-lg"></i> Error';
+            setTimeout(() => { button.innerHTML = originalHTML; button.disabled = false; }, 2000);
+        }
+    });
+</script>
 {% endblock %}

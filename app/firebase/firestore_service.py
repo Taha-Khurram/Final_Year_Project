@@ -833,3 +833,90 @@ class FirestoreService:
         except Exception as e:
             print(f"❌ Error fetching published blog {blog_id}: {e}")
             return None
+
+    # ---------------- CONTACT & NEWSLETTER METHODS ----------------
+
+    def save_contact_submission(self, user_id, data):
+        """
+        Saves a contact form submission to Firestore.
+        Stores in 'contact_submissions' collection.
+        """
+        try:
+            submission = {
+                'site_owner_id': user_id,
+                'name': data.get('name', '').strip()[:100],
+                'email': data.get('email', '').strip()[:100],
+                'subject': data.get('subject', '').strip()[:200],
+                'message': data.get('message', '').strip()[:5000],
+                'created_at': firestore.SERVER_TIMESTAMP,
+                'read': False
+            }
+            doc_ref = self.db.collection('contact_submissions').add(submission)
+            return doc_ref[1].id
+        except Exception as e:
+            print(f"❌ Error saving contact submission: {e}")
+            return None
+
+    def save_newsletter_subscriber(self, user_id, email):
+        """
+        Saves a newsletter subscriber to Firestore.
+        Uses email as part of doc ID to prevent duplicates.
+        """
+        try:
+            email_clean = email.strip().lower()
+            subscriber = {
+                'site_owner_id': user_id,
+                'email': email_clean,
+                'subscribed_at': firestore.SERVER_TIMESTAMP,
+                'active': True
+            }
+            # Create unique doc ID to prevent duplicates
+            doc_id = f"{user_id}_{email_clean.replace('@', '_at_').replace('.', '_')}"
+            self.db.collection('newsletter_subscribers').document(doc_id).set(subscriber, merge=True)
+            return doc_id
+        except Exception as e:
+            print(f"❌ Error saving newsletter subscriber: {e}")
+            return None
+
+    def get_contact_submissions(self, user_id, limit=50):
+        """
+        Fetches contact submissions for a site owner.
+        """
+        try:
+            docs = self.db.collection('contact_submissions')\
+                .where(filter=FieldFilter('site_owner_id', '==', user_id))\
+                .order_by('created_at', direction=firestore.Query.DESCENDING)\
+                .limit(limit)\
+                .stream()
+
+            submissions = []
+            for doc in docs:
+                data = doc.to_dict()
+                data['id'] = doc.id
+                submissions.append(data)
+            return submissions
+        except Exception as e:
+            print(f"❌ Error fetching contact submissions: {e}")
+            return []
+
+    def get_newsletter_subscribers(self, user_id, limit=100):
+        """
+        Fetches newsletter subscribers for a site owner.
+        """
+        try:
+            docs = self.db.collection('newsletter_subscribers')\
+                .where(filter=FieldFilter('site_owner_id', '==', user_id))\
+                .where(filter=FieldFilter('active', '==', True))\
+                .order_by('subscribed_at', direction=firestore.Query.DESCENDING)\
+                .limit(limit)\
+                .stream()
+
+            subscribers = []
+            for doc in docs:
+                data = doc.to_dict()
+                data['id'] = doc.id
+                subscribers.append(data)
+            return subscribers
+        except Exception as e:
+            print(f"❌ Error fetching newsletter subscribers: {e}")
+            return []
