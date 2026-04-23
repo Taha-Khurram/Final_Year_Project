@@ -408,6 +408,139 @@
         opacity: 0.3;
         margin-bottom: 1rem;
     }
+
+    /* Button Loading State */
+    .btn-primary.loading {
+        position: relative;
+        color: transparent;
+        pointer-events: none;
+    }
+
+    .btn-primary.loading::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin-left: -10px;
+        margin-top: -10px;
+        border: 3px solid transparent;
+        border-top-color: white;
+        border-radius: 50%;
+        animation: btn-spinner 0.8s linear infinite;
+    }
+
+    @keyframes btn-spinner {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Custom Confirmation Modal */
+    .confirm-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1100;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .confirm-modal-overlay.active {
+        display: flex;
+        opacity: 1;
+    }
+
+    .confirm-modal-content {
+        background: white;
+        border-radius: var(--radius-lg, 16px);
+        padding: 2rem;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        transform: scale(0.9);
+        transition: transform 0.2s ease;
+    }
+
+    .confirm-modal-overlay.active .confirm-modal-content {
+        transform: scale(1);
+    }
+
+    .confirm-modal-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.25rem;
+    }
+
+    .confirm-modal-icon i {
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .confirm-modal-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary, #1a1a2e);
+        margin-bottom: 0.5rem;
+    }
+
+    .confirm-modal-message {
+        color: #64748b;
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+    }
+
+    .confirm-modal-actions {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+    }
+
+    .confirm-modal-actions .btn {
+        min-width: 120px;
+        padding: 0.625rem 1.25rem;
+        font-weight: 600;
+        border-radius: 10px;
+    }
+
+    .confirm-modal-actions .btn-outline-secondary {
+        border: 2px solid #e2e8f0;
+        color: #64748b;
+        background: white;
+    }
+
+    .confirm-modal-actions .btn-outline-secondary:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: #475569;
+    }
+
+    .confirm-modal-actions .btn-danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        border: none;
+        color: white;
+        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+    }
+
+    .confirm-modal-actions .btn-danger:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    }
 </style>
 {% endblock %}
 
@@ -809,6 +942,21 @@
     </main>
 </div>
 
+<!-- Custom Confirmation Modal -->
+<div class="confirm-modal-overlay" id="confirmModal">
+    <div class="confirm-modal-content">
+        <div class="confirm-modal-icon">
+            <i class="bi bi-arrow-counterclockwise"></i>
+        </div>
+        <h4 class="confirm-modal-title">Unpublish Blog?</h4>
+        <p class="confirm-modal-message">This blog will be moved back to the approval queue and will no longer be visible on your site.</p>
+        <div class="confirm-modal-actions">
+            <button class="btn btn-outline-secondary" id="confirmCancel">Cancel</button>
+            <button class="btn btn-danger" id="confirmProceed">Unpublish</button>
+        </div>
+    </div>
+</div>
+
 <script>
     // Tab Navigation
     document.querySelectorAll('.settings-tab').forEach(tab => {
@@ -826,6 +974,10 @@
     // Form Submission
     document.getElementById('settings-form').addEventListener('submit', async function(e) {
         e.preventDefault();
+
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
 
         const formData = {
             // General
@@ -892,6 +1044,9 @@
                 message: 'Failed to save settings.',
                 duration: 5000
             });
+        } finally {
+            submitBtn.classList.remove('loading');
+            submitBtn.disabled = false;
         }
     });
 
@@ -951,8 +1106,45 @@
         });
     }
 
+    function showConfirmModal() {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('confirmModal');
+            const cancelBtn = document.getElementById('confirmCancel');
+            const proceedBtn = document.getElementById('confirmProceed');
+
+            modal.classList.add('active');
+
+            function cleanup() {
+                modal.classList.remove('active');
+                cancelBtn.removeEventListener('click', handleCancel);
+                proceedBtn.removeEventListener('click', handleProceed);
+            }
+
+            function handleCancel() {
+                cleanup();
+                resolve(false);
+            }
+
+            function handleProceed() {
+                cleanup();
+                resolve(true);
+            }
+
+            cancelBtn.addEventListener('click', handleCancel);
+            proceedBtn.addEventListener('click', handleProceed);
+
+            // Close on backdrop click
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    handleCancel();
+                }
+            }, { once: true });
+        });
+    }
+
     async function unpublishBlog(blogId) {
-        if (!confirm('Are you sure you want to unpublish this blog? It will be moved back to the approval queue.')) {
+        const confirmed = await showConfirmModal();
+        if (!confirmed) {
             return;
         }
 

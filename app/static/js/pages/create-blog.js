@@ -19,12 +19,15 @@ async function handleGeneration() {
   const promptText = promptInput.value.trim();
   const loader = document.getElementById('loader');
   const genBtn = document.getElementById('genBtn');
+  const promptBox = promptInput.closest('.prompt-box');
 
   if (!promptText) return;
 
   loader.classList.remove('d-none');
   genBtn.disabled = true;
   promptInput.disabled = true;
+  promptInput.blur();
+  promptBox.classList.add('locked');
 
   try {
     const response = await fetch('/api/generate', {
@@ -54,6 +57,7 @@ async function handleGeneration() {
       });
       genBtn.disabled = false;
       promptInput.disabled = false;
+      promptBox.classList.remove('locked');
       loader.classList.add('d-none');
     }
   } catch (err) {
@@ -66,6 +70,7 @@ async function handleGeneration() {
     });
     genBtn.disabled = false;
     promptInput.disabled = false;
+    promptBox.classList.remove('locked');
     loader.classList.add('d-none');
   }
 }

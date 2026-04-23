@@ -36,6 +36,54 @@ async function loadDrafts() {
     }
 }
 
+async function researchKeywordsForDraft() {
+    const draftId = document.getElementById('draft-select').value;
+    const region = document.getElementById('draft-region').value;
+
+    if (!draftId) {
+        alert('Please select a draft first');
+        return;
+    }
+
+    showLoading('Researching keywords for your draft...');
+
+    try {
+        // First get the draft content
+        const draftRes = await fetch(`/api/get_blog/${draftId}`);
+        const draftData = await draftRes.json();
+
+        if (!draftData.success) {
+            hideLoading();
+            alert('Error loading draft');
+            return;
+        }
+
+        const topic = draftData.blog.title || '';
+
+        // Research keywords using the draft title as topic
+        const response = await fetch('/api/seo/keywords', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topic, region })
+        });
+
+        const data = await response.json();
+        hideLoading();
+
+        if (data.success) {
+            currentDraftId = draftId;
+            currentDraftTitle = topic;
+            displayKeywordsOnly(data);
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        hideLoading();
+        alert('Network error. Please try again.');
+        console.error(error);
+    }
+}
+
 async function analyzeDraft() {
     const draftId = document.getElementById('draft-select').value;
     const region = document.getElementById('draft-region').value;
@@ -46,7 +94,7 @@ async function analyzeDraft() {
     }
 
     currentDraftId = draftId;
-    showLoading();
+    showLoading('Analyzing SEO performance...');
 
     try {
         const response = await fetch(`/api/seo/analyze-draft/${draftId}`, {
@@ -77,7 +125,6 @@ function displayOriginalAnalysis(analysis, title) {
     document.getElementById('results-section').style.display = 'none';
     document.getElementById('comparison-section').style.display = 'none';
     document.getElementById('original-analysis-section').style.display = 'block';
-    document.getElementById('apply-seo-btn').style.display = 'none';
 
     // Score
     const score = analysis.seo_score?.total || 0;
@@ -120,20 +167,26 @@ function displayOriginalAnalysis(analysis, title) {
 }
 
 async function applyOptimizationToDraft() {
-    if (!currentDraftId) {
-        alert('No draft selected');
+    // Get draft ID from current state or from select dropdown
+    const draftId = currentDraftId || document.getElementById('draft-select').value;
+
+    if (!draftId) {
+        alert('Please select a draft first');
         return;
     }
 
-    if (!confirm('This will update your draft with SEO-optimized content. Continue?')) {
+    // Show custom confirmation modal
+    const confirmed = await showConfirmModal();
+    if (!confirmed) {
         return;
     }
 
+    currentDraftId = draftId;
     const region = document.getElementById('draft-region').value;
-    showLoading();
+    showLoading('Applying SEO optimization to your draft...');
 
     try {
-        const response = await fetch(`/api/seo/optimize-blog/${currentDraftId}`, {
+        const response = await fetch(`/api/seo/optimize-blog/${draftId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ region })
@@ -143,6 +196,7 @@ async function applyOptimizationToDraft() {
         hideLoading();
 
         if (data.success) {
+            currentDraftTitle = data.new_title || currentDraftTitle;
             displayComparison(data, currentDraftTitle);
             loadDrafts(); // Refresh drafts list
         } else {
@@ -221,93 +275,35 @@ function resetAnalysis() {
     document.getElementById('results-section').style.display = 'none';
     document.getElementById('original-analysis-section').style.display = 'none';
     document.getElementById('comparison-section').style.display = 'none';
-    document.getElementById('apply-seo-btn').style.display = 'none';
     document.getElementById('draft-select').value = '';
+
+    // Reset visibility of subsections for next use
+    document.getElementById('seo-score-section').style.display = '';
+    document.getElementById('seo-checklist-section').style.display = '';
+    document.getElementById('optimized-title-section').style.display = '';
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function showLoading() {
-    document.getElementById('loading-overlay').classList.add('active');
+function showLoading(message = 'AI is analyzing your content...') {
+    document.getElementById('seo-loader-text').textContent = message;
+    document.getElementById('seo-loader').classList.remove('d-none');
 }
 
 function hideLoading() {
-    document.getElementById('loading-overlay').classList.remove('active');
-}
-
-async function runSEOAnalysis() {
-    const title = document.getElementById('seo-title').value;
-    const content = document.getElementById('seo-content').value;
-    const region = document.getElementById('seo-region').value;
-
-    if (!content) {
-        alert('Please enter some content to analyze');
-        return;
-    }
-
-    currentDraftId = null;
-    document.getElementById('apply-seo-btn').style.display = 'none';
-    document.getElementById('original-analysis-section').style.display = 'none';
-    document.getElementById('comparison-section').style.display = 'none';
-    showLoading();
-
-    try {
-        const response = await fetch('/api/seo/analyze', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title, content, region })
-        });
-
-        const data = await response.json();
-        hideLoading();
-
-        if (data.success) {
-            displayResults(data.seo_analysis);
-        } else {
-            alert('Error: ' + data.error);
-        }
-    } catch (error) {
-        hideLoading();
-        alert('Network error. Please try again.');
-        console.error(error);
-    }
-}
-
-async function researchKeywords() {
-    const topic = document.getElementById('seo-title').value;
-    const region = document.getElementById('seo-region').value;
-
-    if (!topic) {
-        alert('Please enter a topic');
-        return;
-    }
-
-    showLoading();
-
-    try {
-        const response = await fetch('/api/seo/keywords', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ topic, region })
-        });
-
-        const data = await response.json();
-        hideLoading();
-
-        if (data.success) {
-            displayKeywordsOnly(data);
-        } else {
-            alert('Error: ' + data.error);
-        }
-    } catch (error) {
-        hideLoading();
-        alert('Network error. Please try again.');
-        console.error(error);
-    }
+    document.getElementById('seo-loader').classList.add('d-none');
 }
 
 function displayResults(analysis) {
+    // Hide other sections
+    document.getElementById('original-analysis-section').style.display = 'none';
+    document.getElementById('comparison-section').style.display = 'none';
+
+    // Show results section and all its subsections
     document.getElementById('results-section').style.display = 'block';
+    document.getElementById('seo-score-section').style.display = '';
+    document.getElementById('seo-checklist-section').style.display = '';
+    document.getElementById('optimized-title-section').style.display = '';
 
     // SEO Score - handle both old and new format
     let score = 0;
@@ -397,15 +393,20 @@ function updateScoreBreakdown(breakdown) {
 }
 
 function displayKeywordsOnly(data) {
+    // Hide other sections first
+    document.getElementById('original-analysis-section').style.display = 'none';
+    document.getElementById('comparison-section').style.display = 'none';
+
+    // Show results section
     document.getElementById('results-section').style.display = 'block';
 
-    // Hide score sections for keywords-only
-    document.getElementById('seo-score-value').textContent = '--';
-    document.getElementById('seo-score-label').textContent = 'Run full analysis for score';
+    // Hide SEO-specific sections (not relevant for keyword research only)
+    document.getElementById('seo-score-section').style.display = 'none';
+    document.getElementById('seo-checklist-section').style.display = 'none';
+    document.getElementById('optimized-title-section').style.display = 'none';
 
-    // Display seed keywords first
+    // Display keywords
     const related = data.related_keywords || [];
-
     displayKeywords([...related]);
 
     // Primary from related
@@ -416,6 +417,9 @@ function displayKeywordsOnly(data) {
         diffBadge.textContent = primary.competition || 'LOW';
         diffBadge.className = 'badge bg-' + (primary.competition === 'LOW' ? 'success' : primary.competition === 'MEDIUM' ? 'warning' : 'danger');
     }
+
+    // Scroll to results
+    document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
 }
 
 function displayKeywords(keywords) {
@@ -473,5 +477,69 @@ function copyToClipboard(elementId) {
     const el = document.getElementById(elementId);
     el.select();
     document.execCommand('copy');
-    alert('Copied!');
+    showCopyToast();
+}
+
+// Show copy toast notification
+function showCopyToast() {
+    const toast = document.getElementById('copy-toast');
+    toast.classList.add('show');
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 2000);
+}
+
+// Custom confirmation modal
+function showConfirmModal() {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('confirm-modal');
+        const okBtn = document.getElementById('confirm-ok-btn');
+        const cancelBtn = document.getElementById('confirm-cancel-btn');
+
+        // Show modal
+        modal.classList.add('active');
+
+        // Handle OK click
+        const handleOk = () => {
+            modal.classList.remove('active');
+            cleanup();
+            resolve(true);
+        };
+
+        // Handle Cancel click
+        const handleCancel = () => {
+            modal.classList.remove('active');
+            cleanup();
+            resolve(false);
+        };
+
+        // Handle clicking outside the modal
+        const handleOutsideClick = (e) => {
+            if (e.target === modal) {
+                handleCancel();
+            }
+        };
+
+        // Handle escape key
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                handleCancel();
+            }
+        };
+
+        // Cleanup event listeners
+        const cleanup = () => {
+            okBtn.removeEventListener('click', handleOk);
+            cancelBtn.removeEventListener('click', handleCancel);
+            modal.removeEventListener('click', handleOutsideClick);
+            document.removeEventListener('keydown', handleEscape);
+        };
+
+        // Add event listeners
+        okBtn.addEventListener('click', handleOk);
+        cancelBtn.addEventListener('click', handleCancel);
+        modal.addEventListener('click', handleOutsideClick);
+        document.addEventListener('keydown', handleEscape);
+    });
 }

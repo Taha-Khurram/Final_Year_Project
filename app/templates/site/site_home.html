@@ -224,6 +224,12 @@
         grid-row: span 2;
     }
 
+    .featured-secondary {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
     .featured-card {
         background: var(--bg-card);
         border-radius: var(--radius-lg);
@@ -639,6 +645,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 1rem;
+            flex-direction: unset;
         }
     }
 
@@ -677,6 +684,8 @@
 
         .featured-secondary {
             grid-template-columns: 1fr;
+            display: flex;
+            flex-direction: column;
         }
 
         .blog-grid {

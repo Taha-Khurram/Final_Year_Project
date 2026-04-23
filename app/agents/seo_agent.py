@@ -997,9 +997,33 @@ class SEOAgent:
         try:
             import json
             text = response.text.strip()
-            if text.startswith('```'):
-                text = re.sub(r'^```json?\n?', '', text)
-                text = re.sub(r'\n?```$', '', text)
+
+            # Remove markdown code blocks
+            if '```' in text:
+                # Find JSON within code blocks
+                json_match = re.search(r'```(?:json)?\s*\n?([\s\S]*?)\n?```', text)
+                if json_match:
+                    text = json_match.group(1).strip()
+                else:
+                    # Remove leading/trailing backticks
+                    text = re.sub(r'^```json?\n?', '', text)
+                    text = re.sub(r'\n?```$', '', text)
+
+            # Find the JSON object - look for opening { and matching closing }
+            start_idx = text.find('{')
+            if start_idx != -1:
+                # Find the matching closing brace
+                brace_count = 0
+                end_idx = start_idx
+                for i, char in enumerate(text[start_idx:], start_idx):
+                    if char == '{':
+                        brace_count += 1
+                    elif char == '}':
+                        brace_count -= 1
+                        if brace_count == 0:
+                            end_idx = i + 1
+                            break
+                text = text[start_idx:end_idx]
 
             result = json.loads(text)
 

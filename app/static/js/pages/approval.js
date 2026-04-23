@@ -4,6 +4,30 @@
 
 let currentBlogId = null;
 
+// Check if there are remaining approvals and show empty state if needed
+function checkEmptyState() {
+  const container = document.querySelector('.approvals-container');
+  const remainingRows = container.querySelectorAll('.draft-row');
+
+  if (remainingRows.length === 0) {
+    // Remove the header too
+    const header = container.querySelector('.drafts-header');
+    if (header) header.remove();
+
+    // Remove pagination if exists
+    const pagination = container.querySelector('.p-4.border-top');
+    if (pagination) pagination.remove();
+
+    // Add empty state
+    container.innerHTML = `
+      <div class="text-center py-5">
+        <div class="mb-3 text-muted opacity-50"><i class="bi bi-check-all fs-1"></i></div>
+        <p class="text-secondary fw-bold">All caught up! No pending approvals.</p>
+      </div>
+    `;
+  }
+}
+
 async function openViewModal(id) {
   currentBlogId = id;
   try {
@@ -194,6 +218,14 @@ async function openReviewModal(id) {
 }
 
 async function approveBlog(id) {
+  // Find and disable the dropdown button for this row
+  const row = document.getElementById(`row-${id}`);
+  const dropdownBtn = row ? row.querySelector('.btn-dropdown-trigger') : null;
+  if (dropdownBtn) {
+    dropdownBtn.disabled = true;
+    dropdownBtn.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div>';
+  }
+
   try {
     const res = await fetch(`/api/update_status/${id}`, {
       method: 'POST',
@@ -208,14 +240,20 @@ async function approveBlog(id) {
         message: 'The blog has been approved and is now live on the site.',
         duration: 4000
       });
-      const row = document.getElementById(`row-${id}`);
       if (row) {
         row.style.transition = 'all 0.3s ease';
         row.style.opacity = '0';
         row.style.transform = 'translateX(20px)';
-        setTimeout(() => row.remove(), 300);
+        setTimeout(() => {
+          row.remove();
+          checkEmptyState();
+        }, 300);
       }
     } else {
+      if (dropdownBtn) {
+        dropdownBtn.disabled = false;
+        dropdownBtn.innerHTML = '<i class="bi bi-three-dots-vertical"></i>';
+      }
       showToast({
         type: 'error',
         title: 'Approval Failed',
@@ -224,6 +262,10 @@ async function approveBlog(id) {
       });
     }
   } catch (err) {
+    if (dropdownBtn) {
+      dropdownBtn.disabled = false;
+      dropdownBtn.innerHTML = '<i class="bi bi-three-dots-vertical"></i>';
+    }
     showToast({
       type: 'error',
       title: 'Error',
@@ -234,6 +276,14 @@ async function approveBlog(id) {
 }
 
 async function rejectToDraft(id) {
+  // Find and disable the dropdown button for this row
+  const row = document.getElementById(`row-${id}`);
+  const dropdownBtn = row ? row.querySelector('.btn-dropdown-trigger') : null;
+  if (dropdownBtn) {
+    dropdownBtn.disabled = true;
+    dropdownBtn.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div>';
+  }
+
   try {
     const res = await fetch(`/api/update_status/${id}`, {
       method: 'POST',
@@ -248,14 +298,20 @@ async function rejectToDraft(id) {
         message: 'The blog has been rejected and moved back to drafts.',
         duration: 4000
       });
-      const row = document.getElementById(`row-${id}`);
       if (row) {
         row.style.transition = 'all 0.3s ease';
         row.style.opacity = '0';
         row.style.transform = 'translateX(20px)';
-        setTimeout(() => row.remove(), 300);
+        setTimeout(() => {
+          row.remove();
+          checkEmptyState();
+        }, 300);
       }
     } else {
+      if (dropdownBtn) {
+        dropdownBtn.disabled = false;
+        dropdownBtn.innerHTML = '<i class="bi bi-three-dots-vertical"></i>';
+      }
       showToast({
         type: 'error',
         title: 'Rejection Failed',
@@ -264,6 +320,10 @@ async function rejectToDraft(id) {
       });
     }
   } catch (err) {
+    if (dropdownBtn) {
+      dropdownBtn.disabled = false;
+      dropdownBtn.innerHTML = '<i class="bi bi-three-dots-vertical"></i>';
+    }
     showToast({
       type: 'error',
       title: 'Error',

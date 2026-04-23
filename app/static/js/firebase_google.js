@@ -116,21 +116,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Helper functions for loading state
+    function setButtonLoading(btn, isLoading) {
+        if (isLoading) {
+            btn.disabled = true;
+            btn.classList.add('loading');
+        } else {
+            btn.disabled = false;
+            btn.classList.remove('loading');
+        }
+    }
+
     // Handle Buttons (Google)
     document.addEventListener('click', async (e) => {
         const btn = e.target.closest('#googleSignIn, #googleSignUp');
         if (!btn) return;
         e.preventDefault();
         const provider = new firebase.auth.GoogleAuthProvider();
+        setButtonLoading(btn, true);
         try {
             const result = await auth.signInWithPopup(provider);
             await sendTokenToBackend(result.user);
-        } catch (error) { alert(error.message); }
+        } catch (error) {
+            setButtonLoading(btn, false);
+            alert(error.message);
+        }
     });
 
     // Handle Manual Forms (Login & Signup)
     const authForm = document.querySelector('form');
     if (authForm) {
+        const submitBtn = authForm.querySelector('button[type="submit"]');
+
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = authForm.email.value;
@@ -147,13 +164,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         return;
                     }
 
+                    setButtonLoading(submitBtn, true);
                     userCred = await auth.createUserWithEmailAndPassword(email, password);
                     await userCred.user.updateProfile({ displayName: username });
                 } else {
+                    setButtonLoading(submitBtn, true);
                     userCred = await auth.signInWithEmailAndPassword(email, password);
                 }
                 await sendTokenToBackend(userCred.user);
-            } catch (error) { alert(error.message); }
+            } catch (error) {
+                setButtonLoading(submitBtn, false);
+                alert(error.message);
+            }
         });
 
         // Real-time validation on blur for signup

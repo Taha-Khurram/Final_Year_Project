@@ -144,3 +144,20 @@
   cursor: not-allowed;
   opacity: 0.7;
 }
+
+/* Locked/Disabled state for prompt input */
+.prompt-input:disabled {
+  cursor: not-allowed;
+  caret-color: transparent;
+  color: var(--secondary-color);
+  opacity: 0.7;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.prompt-box.locked {
+  background: #f8f9fc;
+  border-color: var(--secondary-color);
+  opacity: 0.85;
+  pointer-events: none;
+}

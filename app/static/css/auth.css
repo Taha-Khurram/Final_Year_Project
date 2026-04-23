@@ -200,6 +200,49 @@ body {
     box-shadow: 0 15px 30px rgba(67, 24, 255, 0.25);
 }
 
+.primary-btn:disabled,
+.google-outline-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.primary-btn.loading,
+.google-outline-btn.loading {
+    position: relative;
+    color: transparent;
+}
+
+.primary-btn.loading::after,
+.google-outline-btn.loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    margin-left: -10px;
+    margin-top: -10px;
+    border: 3px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: btn-spinner 0.8s linear infinite;
+}
+
+.primary-btn.loading::after {
+    border-top-color: white;
+}
+
+.google-outline-btn.loading::after {
+    border-top-color: #2B3674;
+}
+
+@keyframes btn-spinner {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* Divider */
 .divider {
     display: flex;

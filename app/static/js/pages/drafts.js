@@ -5,6 +5,27 @@
 let currentEditingId = null;
 let currentViewingId = null;
 
+// Check if there are remaining drafts and show empty state if needed
+function checkEmptyState() {
+  const container = document.querySelector('.drafts-container');
+  const remainingRows = container.querySelectorAll('.draft-row');
+
+  if (remainingRows.length === 0) {
+    // Remove the header too
+    const header = container.querySelector('.drafts-header');
+    if (header) header.remove();
+
+    // Add empty state
+    container.innerHTML = `
+      <div class="text-center py-5">
+        <div class="mb-3 text-muted opacity-50"><i class="bi bi-file-earmark-text fs-1"></i></div>
+        <p class="text-secondary fw-bold">No drafts found.</p>
+        <a href="/create" class="btn btn-sm btn-outline-primary mt-2 rounded-pill px-4">Create New</a>
+      </div>
+    `;
+  }
+}
+
 const initEditor = (initialContent) => {
   if (tinymce.get('editor-canvas')) {
     tinymce.remove('#editor-canvas');
@@ -207,6 +228,14 @@ async function saveModalChanges() {
 }
 
 async function submitForReview(id) {
+  // Find and disable the dropdown button for this row
+  const row = document.getElementById(`row-${id}`);
+  const dropdownBtn = row ? row.querySelector('.btn-dropdown-trigger') : null;
+  if (dropdownBtn) {
+    dropdownBtn.disabled = true;
+    dropdownBtn.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div>';
+  }
+
   try {
     const res = await fetch(`/api/update_status/${id}`, {
       method: 'POST',
@@ -221,14 +250,20 @@ async function submitForReview(id) {
         message: 'Your draft has been sent for approval.',
         duration: 4000
       });
-      const row = document.getElementById(`row-${id}`);
       if (row) {
         row.style.transition = 'all 0.3s ease';
         row.style.opacity = '0';
         row.style.transform = 'translateX(20px)';
-        setTimeout(() => row.remove(), 300);
+        setTimeout(() => {
+          row.remove();
+          checkEmptyState();
+        }, 300);
       }
     } else {
+      if (dropdownBtn) {
+        dropdownBtn.disabled = false;
+        dropdownBtn.innerHTML = '<i class="bi bi-three-dots-vertical"></i>';
+      }
       showToast({
         type: 'error',
         title: 'Submission Failed',
@@ -237,6 +272,10 @@ async function submitForReview(id) {
       });
     }
   } catch (e) {
+    if (dropdownBtn) {
+      dropdownBtn.disabled = false;
+      dropdownBtn.innerHTML = '<i class="bi bi-three-dots-vertical"></i>';
+    }
     showToast({
       type: 'error',
       title: 'Error',
@@ -247,6 +286,14 @@ async function submitForReview(id) {
 }
 
 async function deleteDraft(id) {
+  // Find and disable the dropdown button for this row
+  const row = document.getElementById(`row-${id}`);
+  const dropdownBtn = row ? row.querySelector('.btn-dropdown-trigger') : null;
+  if (dropdownBtn) {
+    dropdownBtn.disabled = true;
+    dropdownBtn.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div>';
+  }
+
   try {
     const res = await fetch(`/api/delete_blog/${id}`, { method: 'DELETE' });
     const data = await res.json();
@@ -257,14 +304,20 @@ async function deleteDraft(id) {
         message: 'The draft has been permanently removed.',
         duration: 4000
       });
-      const row = document.getElementById(`row-${id}`);
       if (row) {
         row.style.transition = 'all 0.3s ease';
         row.style.opacity = '0';
         row.style.transform = 'translateX(20px)';
-        setTimeout(() => row.remove(), 300);
+        setTimeout(() => {
+          row.remove();
+          checkEmptyState();
+        }, 300);
       }
     } else {
+      if (dropdownBtn) {
+        dropdownBtn.disabled = false;
+        dropdownBtn.innerHTML = '<i class="bi bi-three-dots-vertical"></i>';
+      }
       showToast({
         type: 'error',
         title: 'Delete Failed',
@@ -273,6 +326,10 @@ async function deleteDraft(id) {
       });
     }
   } catch (e) {
+    if (dropdownBtn) {
+      dropdownBtn.disabled = false;
+      dropdownBtn.innerHTML = '<i class="bi bi-three-dots-vertical"></i>';
+    }
     showToast({
       type: 'error',
       title: 'Error',
