@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ subject }}</title>
+    <!--[if mso]>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
+    <![endif]-->
+    <style>
+        /* Reset styles */
+        body, table, td, p, a, li, blockquote {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        table, td {
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+        img {
+            -ms-interpolation-mode: bicubic;
+            border: 0;
+            height: auto;
+            line-height: 100%;
+            outline: none;
+            text-decoration: none;
+        }
+
+        /* Base styles */
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background-color: #f4f4f4;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .wrapper {
+            width: 100%;
+            background-color: #f4f4f4;
+            padding: 40px 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #4318FF 0%, #7B5AFF 100%);
+            color: #ffffff;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            margin: 10px 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Content */
+        .content {
+            padding: 40px 30px;
+        }
+
+        .intro {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333333;
+            margin-bottom: 30px;
+        }
+
+        /* Post card */
+        .post {
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 20px;
+            transition: border-color 0.2s;
+        }
+
+        .post:hover {
+            border-color: #4318FF;
+        }
+
+        .post-category {
+            display: inline-block;
+            background-color: #f0edff;
+            color: #4318FF;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .post h3 {
+            margin: 0 0 12px;
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+            line-height: 1.3;
+        }
+
+        .post p {
+            margin: 0 0 16px;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #555555;
+        }
+
+        .post a {
+            color: #4318FF;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .post a:hover {
+            text-decoration: underline;
+        }
+
+        /* CTA Button */
+        .cta-section {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #4318FF 0%, #7B5AFF 100%);
+            color: #ffffff !important;
+            padding: 16px 40px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(67, 24, 255, 0.3);
+        }
+
+        /* Closing */
+        .closing {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #666666;
+            text-align: center;
+            padding: 20px 30px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #f9f9f9;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .footer p {
+            margin: 0 0 10px;
+            font-size: 13px;
+            color: #888888;
+            line-height: 1.5;
+        }
+
+        .footer a {
+            color: #4318FF;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .social-links {
+            margin: 20px 0;
+        }
+
+        .social-links a {
+            display: inline-block;
+            margin: 0 8px;
+            color: #888888;
+            text-decoration: none;
+        }
+
+        .unsubscribe {
+            font-size: 12px;
+            color: #aaaaaa;
+            margin-top: 20px;
+        }
+
+        /* Responsive */
+        @media only screen and (max-width: 620px) {
+            .container {
+                width: 100% !important;
+                border-radius: 0;
+            }
+            .header, .content, .footer {
+                padding-left: 20px !important;
+                padding-right: 20px !important;
+            }
+            .header h1 {
+                font-size: 24px;
+            }
+            .post {
+                padding: 18px;
+            }
+            .cta-button {
+                padding: 14px 30px;
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+            <tr>
+                <td align="center">
+                    <div class="container">
+                        <!-- Header -->
+                        <div class="header">
+                            <h1>{{ site_name }}</h1>
+                            <p>Your latest updates</p>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="content">
+                            <!-- Introduction -->
+                            <p class="intro">{{ intro }}</p>
+
+                            <!-- Posts -->
+                            {% for post in posts %}
+                            <div class="post">
+                                {% if post.category %}
+                                <span class="post-category">{{ post.category }}</span>
+                                {% endif %}
+                                <h3>{{ post.title }}</h3>
+                                <p>{{ post.summary }}</p>
+                                <a href="{{ base_url }}/blog/{{ post.id }}">Read More &rarr;</a>
+                            </div>
+                            {% endfor %}
+
+                            <!-- CTA -->
+                            <div class="cta-section">
+                                <a href="{{ base_url }}" class="cta-button">{{ cta_text }}</a>
+                            </div>
+                        </div>
+
+                        <!-- Closing -->
+                        <div class="closing">
+                            <p>{{ closing }}</p>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="footer">
+                            <p><strong>{{ site_name }}</strong></p>
+                            <p>Thank you for being a valued subscriber!</p>
+
+                            <p class="unsubscribe">
+                                You received this email because you subscribed to {{ site_name }}.<br>
+                                <a href="{{ unsubscribe_url }}">Unsubscribe</a> |
+                                <a href="{{ base_url }}">Visit Website</a>
+                            </p>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>

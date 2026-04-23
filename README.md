@@ -18,6 +18,14 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 - **Real-time SEO Tools**: Live content analysis with keyword density, word count, and optimization suggestions
 - **Parallel Processing**: Efficient content generation with caching and parallel execution utilities
 
+### Newsletter System
+- **AI Newsletter Generation**: Automatically create engaging newsletters from published blogs using Gemini AI
+- **Email Sending**: Send newsletters to subscribers via Resend API
+- **Subscriber Management**: Track and manage newsletter subscribers
+- **Newsletter History**: View and manage sent newsletters with full content preview
+- **Draft Saving**: Save newsletter drafts for later editing
+- **Subject Line Variations**: AI-generated alternative subject lines
+
 ### Public Blog Site
 - **Modern Design**: Professional, responsive public-facing blog with hero sections and gradient styling
 - **Multiple Pages**: Home, Blog (with pagination), About, and Contact pages
@@ -34,6 +42,7 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 - **Database**: Firebase Firestore
 - **Authentication**: Firebase Auth
 - **AI**: Google Generative AI (Gemini)
+- **Email**: Resend API
 - **SEO Analysis**: RapidAPI (Google Search, Keyword Research)
 - **Deployment**: Gunicorn / Waitress
 
@@ -47,21 +56,21 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 │   │   ├── content_agent.py
 │   │   ├── seo_agent.py
 │   │   ├── formatting_agent.py
+│   │   ├── newsletter_agent.py
 │   │   └── ...
 │   ├── firebase/         # Firebase configuration
 │   ├── routes/           # API routes
-│   │   ├── site_routes.py  # Public blog site routes
+│   │   ├── blog_routes.py
+│   │   ├── site_routes.py
+│   │   ├── newsletter_routes.py
 │   │   └── ...
+│   ├── services/         # External services
+│   │   └── email_service.py
 │   ├── static/           # CSS, JS, images
 │   ├── templates/        # HTML templates
 │   │   ├── partials/     # Reusable template components
-│   │   └── site/         # Public blog site templates
-│   │       ├── site_base.html
-│   │       ├── site_home.html
-│   │       ├── site_blog.html
-│   │       ├── site_post.html
-│   │       ├── site_about.html
-│   │       └── site_contact.html
+│   │   ├── site/         # Public blog site templates
+│   │   └── emails/       # Email templates
 │   └── utils/            # Utility modules (caching, parallel processing)
 ├── docs/                 # Documentation
 ├── config.py
@@ -69,7 +78,7 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 └── requirements.txt
 ```
 
-## Setup
+## Quick Start
 
 1. Clone the repository:
    ```bash
@@ -101,10 +110,13 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 
 ## Environment Variables
 
-- `FIREBASE_SERVICE_ACCOUNT` - Path to Firebase service account JSON
-- `GEMINI_API_KEY` - Google Gemini API key
-- `SECRET_KEY` - Flask secret key
-- `RAPIDAPI_KEY` - RapidAPI key for SEO tools (optional)
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `FIREBASE_SERVICE_ACCOUNT` | Path to Firebase service account JSON | Yes |
+| `GEMINI_API_KEY` | Google Gemini API key | Yes |
+| `SECRET_KEY` | Flask secret key | Yes |
+| `RESEND_API_KEY` | Resend API key for newsletters | Optional |
+| `RAPIDAPI_KEY` | RapidAPI key for SEO tools | Optional |
 
 ## API Endpoints
 
@@ -121,6 +133,14 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 - `POST /api/blog/format` - Format content with professional styling
 - `GET /api/blog/<draft_id>/formatted` - Get formatted version of draft
 
+### Newsletter
+- `POST /api/newsletter/generate` - Generate newsletter from blogs
+- `POST /api/newsletter/render` - Render newsletter HTML
+- `POST /api/newsletter/send` - Send newsletter to subscribers
+- `GET /api/newsletter/subscribers` - Get subscriber list
+- `GET /api/newsletter/history` - Get sent newsletter history
+- `GET /api/newsletter/drafts` - Get saved drafts
+
 ### Public Site
 - `GET /site/<user_id>` - Public blog homepage
 - `GET /site/<user_id>/blog` - Paginated blog listing with search
@@ -132,8 +152,7 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 
 ## Documentation
 
-- [Advanced Features](ADVANCED_FEATURES.md) - Detailed feature implementation plan
-- [RapidAPI Setup](docs/RAPIDAPI_SETUP.md) - Guide for setting up SEO API integrations
+See [docs/SETUP.md](docs/SETUP.md) for detailed setup instructions.
 
 ## License
 

@@ -904,10 +904,10 @@ class FirestoreService:
         Fetches newsletter subscribers for a site owner.
         """
         try:
+            # Simple query without order_by to avoid composite index requirement
             docs = self.db.collection('newsletter_subscribers')\
                 .where(filter=FieldFilter('site_owner_id', '==', user_id))\
                 .where(filter=FieldFilter('active', '==', True))\
-                .order_by('subscribed_at', direction=firestore.Query.DESCENDING)\
                 .limit(limit)\
                 .stream()
 
@@ -915,8 +915,212 @@ class FirestoreService:
             for doc in docs:
                 data = doc.to_dict()
                 data['id'] = doc.id
+                # Convert timestamp to ISO string for JSON serialization
+                if data.get('subscribed_at'):
+                    data['subscribed_at'] = data['subscribed_at'].isoformat()
                 subscribers.append(data)
+
+            # Sort by subscribed_at in Python (newest first)
+            subscribers.sort(
+                key=lambda x: x.get('subscribed_at') or '',
+                reverse=True
+            )
             return subscribers
         except Exception as e:
             print(f"❌ Error fetching newsletter subscribers: {e}")
             return []
+
+    def get_subscriber_count(self, user_id):
+        """Get total count of active subscribers."""
+        try:
+            count_query = self.db.collection('newsletter_subscribers')\
+                .where(filter=FieldFilter('site_owner_id', '==', user_id))\
+                .where(filter=FieldFilter('active', '==', True))\
+                .count()
+            result = count_query.get()
+            return result[0][0].value
+        except Exception as e:
+            print(f"❌ Error counting subscribers: {e}")
+            return 0
+
+    def unsubscribe_newsletter(self, user_id, email):
+        """Mark subscriber as inactive (unsubscribed)."""
+        try:
+            email_clean = email.strip().lower()
+            doc_id = f"{user_id}_{email_clean.replace('@', '_at_').replace('.', '_')}"
+            doc_ref = self.db.collection('newsletter_subscribers').document(doc_id)
+
+            doc = doc_ref.get()
+            if not doc.exists:
+                return False
+
+            doc_ref.update({
+                'active': False,
+                'unsubscribed_at': datetime.utcnow()
+            })
+            return True
+        except Exception as e:
+            print(f"❌ Error unsubscribing: {e}")
+            return False
+
+    def resubscribe_newsletter(self, user_id, email):
+        """Reactivate a previously unsubscribed email."""
+        try:
+            email_clean = email.strip().lower()
+            doc_id = f"{user_id}_{email_clean.replace('@', '_at_').replace('.', '_')}"
+            doc_ref = self.db.collection('newsletter_subscribers').document(doc_id)
+
+            doc = doc_ref.get()
+            if not doc.exists:
+                return False
+
+            doc_ref.update({
+                'active': True,
+                'resubscribed_at': datetime.utcnow()
+            })
+            return True
+        except Exception as e:
+            print(f"❌ Error resubscribing: {e}")
+            return False
+
+    def log_newsletter_send(self, user_id, recipient_count, subject, content_preview="", html_content=""):
+        """Log a newsletter send for history tracking."""
+        try:
+            self.db.collection('newsletter_history').add({
+                'user_id': user_id,
+                'recipient_count': recipient_count,
+                'subject': subject,
+                'content_preview': content_preview[:500],
+                'html_content': html_content,
+                'sent_at': firestore.SERVER_TIMESTAMP,
+                'status': 'sent'
+            })
+            return True
+        except Exception as e:
+            print(f"❌ Error logging newsletter: {e}")
+            return False
+
+    def get_newsletter_history(self, user_id, limit=20):
+        """Get newsletter send history."""
+        try:
+            # Simple query without order_by to avoid composite index requirement
+            docs = self.db.collection('newsletter_history')\
+                .where(filter=FieldFilter('user_id', '==', user_id))\
+                .limit(limit)\
+                .stream()
+
+            history = []
+            for doc in docs:
+                data = doc.to_dict()
+                data['id'] = doc.id
+                # Convert timestamp to ISO string for JSON serialization
+                if data.get('sent_at'):
+                    data['sent_at'] = data['sent_at'].isoformat()
+                history.append(data)
+
+            # Sort by sent_at in Python (newest first)
+            history.sort(
+                key=lambda x: x.get('sent_at') or '',
+                reverse=True
+            )
+            return history
+        except Exception as e:
+            print(f"❌ Error fetching newsletter history: {e}")
+            return []
+
+    def get_newsletter_by_id(self, newsletter_id, user_id):
+        """Get a single newsletter by ID."""
+        try:
+            doc = self.db.collection('newsletter_history').document(newsletter_id).get()
+            if not doc.exists:
+                return None
+            data = doc.to_dict()
+            # Verify ownership
+            if data.get('user_id') != user_id:
+                return None
+            data['id'] = doc.id
+            # Convert timestamp to ISO string for JSON serialization
+            if data.get('sent_at'):
+                data['sent_at'] = data['sent_at'].isoformat()
+            return data
+        except Exception as e:
+            print(f"❌ Error fetching newsletter by ID: {e}")
+            return None
+
+    def delete_newsletter(self, newsletter_id, user_id):
+        """Delete a newsletter from history."""
+        try:
+            doc_ref = self.db.collection('newsletter_history').document(newsletter_id)
+            doc = doc_ref.get()
+            if not doc.exists:
+                return False
+            # Verify ownership
+            if doc.to_dict().get('user_id') != user_id:
+                return False
+            doc_ref.delete()
+            return True
+        except Exception as e:
+            print(f"❌ Error deleting newsletter: {e}")
+            return False
+
+    def save_newsletter_draft(self, user_id, draft_data):
+        """Save a newsletter draft for later editing."""
+        try:
+            draft = {
+                'user_id': user_id,
+                'subject': draft_data.get('subject', ''),
+                'intro': draft_data.get('intro', ''),
+                'posts': draft_data.get('posts', []),
+                'cta_text': draft_data.get('cta_text', 'Read More'),
+                'closing': draft_data.get('closing', ''),
+                'html_content': draft_data.get('html_content', ''),
+                'created_at': firestore.SERVER_TIMESTAMP,
+                'updated_at': datetime.utcnow(),
+                'status': 'draft'
+            }
+            doc_ref = self.db.collection('newsletter_drafts').add(draft)
+            return doc_ref[1].id
+        except Exception as e:
+            print(f"❌ Error saving newsletter draft: {e}")
+            return None
+
+    def get_newsletter_drafts(self, user_id, limit=10):
+        """Get newsletter drafts."""
+        try:
+            # Simple query without order_by to avoid composite index requirement
+            docs = self.db.collection('newsletter_drafts')\
+                .where(filter=FieldFilter('user_id', '==', user_id))\
+                .where(filter=FieldFilter('status', '==', 'draft'))\
+                .limit(limit)\
+                .stream()
+
+            drafts = []
+            for doc in docs:
+                data = doc.to_dict()
+                data['id'] = doc.id
+                drafts.append(data)
+
+            # Sort by updated_at in Python (newest first)
+            drafts.sort(
+                key=lambda x: x.get('updated_at') or '',
+                reverse=True
+            )
+            return drafts
+        except Exception as e:
+            print(f"❌ Error fetching newsletter drafts: {e}")
+            return []
+
+    def delete_newsletter_draft(self, draft_id, user_id):
+        """Delete a newsletter draft."""
+        try:
+            doc_ref = self.db.collection('newsletter_drafts').document(draft_id)
+            doc = doc_ref.get()
+            if not doc.exists:
+                return False
+            if doc.to_dict().get('user_id') != user_id:
+                return False
+            doc_ref.delete()
+            return True
+        except Exception as e:
+            print(f"❌ Error deleting newsletter draft: {e}")
+            return False

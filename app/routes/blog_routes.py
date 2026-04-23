@@ -1004,6 +1004,25 @@ def update_site_settings():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+# ---------------------------------------------------
+# NEWSLETTER PAGE ROUTE
+# ---------------------------------------------------
+
+@blog_bp.route('/newsletter')
+def newsletter_page():
+    """Newsletter Management Dashboard"""
+    user_id = session.get('user_id')
+
+    # Get published blogs count for stats
+    published_blogs = db_service.get_blogs_by_status("PUBLISHED", user_id=user_id)
+
+    return render_template(
+        'newsletter.html',
+        published_count=len(published_blogs),
+        username=session.get('user_name', 'User')
+    )
+
+
 @blog_bp.route('/api/unpublish/<blog_id>', methods=['POST'])
 def unpublish_blog(blog_id):
     """Unpublish a blog - moves it back to approval queue (UNDER_REVIEW)"""
