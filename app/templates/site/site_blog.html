@@ -13,6 +13,19 @@
     <p class="blog-header-subtitle">{{ settings.blog_subtitle or 'Exploring the intersection of intellectual precision and modern technology. Dive into our latest thoughts on writing, design, and digital craftsmanship.' }}</p>
 </section>
 
+<!-- Search Results Banner -->
+{% if search_query %}
+<div class="search-results-banner">
+    <div class="search-results-info">
+        <i class="bi bi-search"></i>
+        <span>Search results for "<strong>{{ search_query }}</strong>" - {{ total_posts }} article{% if total_posts != 1 %}s{% endif %} found</span>
+    </div>
+    <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="clear-search-btn">
+        <i class="bi bi-x-lg"></i> Clear Search
+    </a>
+</div>
+{% endif %}
+
 <!-- Blog Toolbar -->
 <div class="blog-toolbar">
     <div class="blog-toolbar-left">
@@ -94,7 +107,7 @@
         {% if total_pages > 1 %}
         <nav class="blog-pagination">
             {% if current_page > 1 %}
-            <a href="{{ url_for('site_bp.site_blog', user_id=user_id, page=current_page-1, category=current_category) }}" class="pagination-btn">
+            <a href="{{ url_for('site_bp.site_blog', user_id=user_id, page=current_page-1, category=current_category, search=search_query or None) }}" class="pagination-btn">
                 <i class="bi bi-chevron-left"></i>
             </a>
             {% else %}
@@ -105,14 +118,14 @@
                 {% if page_num == current_page %}
                     <span class="pagination-btn active">{{ page_num }}</span>
                 {% elif page_num == 1 or page_num == total_pages or (page_num >= current_page - 2 and page_num <= current_page + 2) %}
-                    <a href="{{ url_for('site_bp.site_blog', user_id=user_id, page=page_num, category=current_category) }}" class="pagination-btn">{{ page_num }}</a>
+                    <a href="{{ url_for('site_bp.site_blog', user_id=user_id, page=page_num, category=current_category, search=search_query or None) }}" class="pagination-btn">{{ page_num }}</a>
                 {% elif page_num == current_page - 3 or page_num == current_page + 3 %}
                     <span class="pagination-ellipsis">...</span>
                 {% endif %}
             {% endfor %}
 
             {% if current_page < total_pages %}
-            <a href="{{ url_for('site_bp.site_blog', user_id=user_id, page=current_page+1, category=current_category) }}" class="pagination-btn">
+            <a href="{{ url_for('site_bp.site_blog', user_id=user_id, page=current_page+1, category=current_category, search=search_query or None) }}" class="pagination-btn">
                 <i class="bi bi-chevron-right"></i>
             </a>
             {% else %}
@@ -124,11 +137,11 @@
         {% else %}
         <div class="blog-empty-state">
             <div class="empty-state-icon">
-                <i class="bi bi-journal-x"></i>
+                <i class="bi bi-{% if search_query %}search{% else %}journal-x{% endif %}"></i>
             </div>
-            <h3>No articles found</h3>
-            <p>{% if current_category %}No articles in this category yet.{% else %}Check back soon for new content!{% endif %}</p>
-            {% if current_category %}
+            <h3>{% if search_query %}No results found{% else %}No articles found{% endif %}</h3>
+            <p>{% if search_query %}No articles match "{{ search_query }}". Try a different search term.{% elif current_category %}No articles in this category yet.{% else %}Check back soon for new content!{% endif %}</p>
+            {% if current_category or search_query %}
             <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="btn-back">
                 <i class="bi bi-arrow-left"></i> View All Articles
             </a>

@@ -418,6 +418,136 @@
     cursor: not-allowed;
 }
 
+/* ==================== RESULT MODALS (Success/Info) ==================== */
+.result-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.result-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.result-modal {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem;
+    max-width: 420px;
+    width: 90%;
+    text-align: center;
+    position: relative;
+    transform: scale(0.9) translateY(20px);
+    transition: all 0.3s ease;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.result-modal-overlay.active .result-modal {
+    transform: scale(1) translateY(0);
+}
+
+.result-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+}
+
+.result-modal-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: var(--text-primary);
+}
+
+.result-modal-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+}
+
+.result-modal-icon.success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.result-modal-icon.info {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.result-modal-icon i {
+    font-size: 1.75rem;
+    color: white;
+}
+
+.result-modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.result-modal-message {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+}
+
+.result-modal-btn {
+    padding: 0.875rem 2rem;
+    border-radius: var(--radius-md);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 120px;
+}
+
+.result-modal-btn.primary {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+}
+
+.result-modal-btn.primary:hover {
+    background: #3311cc;
+}
+
+.result-modal-btn.outline {
+    background: transparent;
+    color: var(--text-primary);
+    border: 2px solid rgba(0, 0, 0, 0.15);
+}
+
+.result-modal-btn.outline:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 1024px) {
     .header-search input {

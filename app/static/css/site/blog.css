@@ -25,6 +25,54 @@
     line-height: 1.7;
 }
 
+/* ==================== SEARCH RESULTS BANNER ==================== */
+.search-results-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: var(--primary-light);
+    border-radius: var(--radius-md);
+    margin-bottom: 2rem;
+}
+
+.search-results-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.search-results-info i {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}
+
+.search-results-info strong {
+    color: var(--primary-color);
+}
+
+.clear-search-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 1rem;
+    background: white;
+    color: var(--text-secondary);
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.clear-search-btn:hover {
+    color: var(--danger-color);
+    background: rgba(239, 68, 68, 0.1);
+}
+
 /* ==================== BLOG TOOLBAR ==================== */
 .blog-toolbar {
     display: flex;
@@ -647,6 +695,16 @@
 
     .blog-header-subtitle {
         font-size: 0.95rem;
+    }
+
+    .search-results-banner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .search-results-info {
+        font-size: 0.9rem;
     }
 
     .blog-toolbar {

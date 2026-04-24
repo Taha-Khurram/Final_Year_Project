@@ -22,7 +22,7 @@
             <!-- Search -->
             <div class="header-search">
                 <i class="bi bi-search"></i>
-                <input type="text" placeholder="Search posts..." id="header-search-input" data-search-url="{{ url_for('site_bp.site_blog', user_id=user_id) }}">
+                <input type="text" placeholder="Search posts..." id="header-search-input" data-search-url="{{ url_for('site_bp.site_blog', user_id=user_id) }}" value="{{ search_query or '' }}">
             </div>
 
             <!-- Subscribe Button -->
@@ -45,7 +45,7 @@
         <a href="{{ url_for('site_bp.site_contact', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_contact' %}active{% endif %}">Contact</a>
         <div class="mobile-search">
             <i class="bi bi-search"></i>
-            <input type="text" placeholder="Search posts..." data-search-url="{{ url_for('site_bp.site_blog', user_id=user_id) }}">
+            <input type="text" placeholder="Search posts..." data-search-url="{{ url_for('site_bp.site_blog', user_id=user_id) }}" value="{{ search_query or '' }}">
         </div>
         <button class="mobile-subscribe-btn" id="mobile-subscribe-btn">Subscribe</button>
     </nav>
@@ -68,5 +68,39 @@
             <input type="email" name="email" placeholder="Enter your email" required>
             <button type="submit">Subscribe</button>
         </form>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="result-modal-overlay" id="success-modal">
+    <div class="result-modal">
+        <button class="result-modal-close" onclick="closeResultModal('success-modal')">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div class="result-modal-icon success">
+            <i class="bi bi-check-lg"></i>
+        </div>
+        <h3 class="result-modal-title">Thanks for subscribing!</h3>
+        <p class="result-modal-message">
+            You've been added to our list. Stay tuned for intellectual precision in your inbox.
+        </p>
+        <button class="result-modal-btn primary" onclick="closeResultModal('success-modal')">Close</button>
+    </div>
+</div>
+
+<!-- Already Subscribed Modal -->
+<div class="result-modal-overlay" id="already-subscribed-modal">
+    <div class="result-modal">
+        <button class="result-modal-close" onclick="closeResultModal('already-subscribed-modal')">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div class="result-modal-icon info">
+            <i class="bi bi-info-lg"></i>
+        </div>
+        <h3 class="result-modal-title">Already Subscribed</h3>
+        <p class="result-modal-message">
+            We already have you on the list. Check your inbox for updates.
+        </p>
+        <button class="result-modal-btn outline" onclick="closeResultModal('already-subscribed-modal')">Okay</button>
     </div>
 </div>

@@ -7,6 +7,14 @@ site_bp = Blueprint('site_bp', __name__, url_prefix='/site')
 db_service = FirestoreService()
 
 
+def _get_blog_text_content(blog):
+    """Extract searchable text content from a blog post"""
+    content = blog.get('content', '')
+    if isinstance(content, dict):
+        return content.get('body', '') or content.get('markdown', '') or content.get('text', '')
+    return str(content) if content else ''
+
+
 # ---------------------------------------------------
 # PUBLIC SITE ROUTES (No authentication required)
 # ---------------------------------------------------
@@ -86,11 +94,15 @@ def site_post(user_id, blog_id):
                 if b.get('category') == blog.get('category') and b.get('id') != blog_id
             ][:3]
 
+        # Get categories for footer
+        categories = db_service.get_all_categories(user_id=user_id)
+
         return render_template(
             'site/site_post.html',
             settings=settings,
             blog=blog,
             related_blogs=related_blogs,
+            categories=categories,
             user_id=user_id
         )
 
@@ -160,18 +172,29 @@ def site_category(user_id, category_name):
 
 @site_bp.route('/<user_id>/blog')
 def site_blog(user_id):
-    """Dedicated blog listing page with pagination"""
+    """Dedicated blog listing page with pagination and search"""
     try:
         # Get site settings
         settings = db_service.get_site_settings(user_id)
 
-        # Pagination parameters
+        # Pagination and filter parameters
         page = request.args.get('page', 1, type=int)
         per_page = settings.get('posts_per_page', 12)
         category = request.args.get('category', None)
+        search_query = request.args.get('search', '').strip()
 
         # Get all published blogs
         all_blogs = db_service.get_published_blogs(user_id, limit=100)
+
+        # Filter by search query if provided
+        if search_query:
+            search_lower = search_query.lower()
+            all_blogs = [
+                b for b in all_blogs
+                if search_lower in b.get('title', '').lower()
+                or search_lower in _get_blog_text_content(b).lower()
+                or search_lower in b.get('category', '').lower()
+            ]
 
         # Filter by category if provided
         if category:
@@ -195,6 +218,7 @@ def site_blog(user_id):
             blogs=paginated_blogs,
             categories=categories,
             current_category=category,
+            search_query=search_query,
             current_page=page,
             total_pages=total_pages,
             total_posts=total_posts,

@@ -28,13 +28,16 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 
 ### Public Blog Site
 - **Modern Design**: Professional, responsive public-facing blog with hero sections and gradient styling
-- **Multiple Pages**: Home, Blog (with pagination), About, and Contact pages
+- **Modular Architecture**: Separate CSS/JS files per page for maintainability and performance
+- **Multiple Pages**: Home, Blog (with pagination), About, Contact, and Single Post pages
+- **Single Post View**: Sticky sidebar with table of contents, author info, reading time, social sharing, and bookmarking
+- **Related Posts**: Automatically displays posts from the same category
 - **Mobile-First**: Responsive navigation with hamburger menu for mobile devices
-- **Contact Form**: Visitor contact form with Firestore storage
-- **Newsletter Signup**: Email subscription with duplicate prevention and custom modals
+- **Contact Form**: Visitor contact form with FAQ accordion and Firestore storage
+- **Newsletter Signup**: Email subscription with custom success and already-subscribed modals
 - **Site Settings**: Customizable site name, description, colors, social links, and SEO metadata
 - **Category Filtering**: Browse posts by category with sidebar navigation
-- **Search & Sort**: Client-side search and sorting on the blog listing page
+- **Search Functionality**: Server-side search filtering by title, content, and category
 - **Performance Optimized**: Response compression, static asset caching, in-memory query caching, and link prefetching for fast navigation
 
 ## Tech Stack
@@ -69,6 +72,8 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 │   ├── services/         # External services
 │   │   └── email_service.py
 │   ├── static/           # CSS, JS, images
+│   │   ├── css/site/     # Modular CSS (header, footer, home, blog, post, about, contact)
+│   │   └── js/site/      # Modular JS (header, footer, home, blog, post, about, contact)
 │   ├── templates/        # HTML templates
 │   │   ├── partials/     # Reusable template components
 │   │   ├── site/         # Public blog site templates

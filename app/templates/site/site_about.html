@@ -3,412 +3,13 @@
 {% block title %}About | {{ settings.site_name }}{% endblock %}
 
 {% block extra_css %}
-<style>
-    /* ==================== ABOUT HERO ==================== */
-    .about-hero {
-        text-align: center;
-        padding: 4rem 2rem;
-        margin: -2rem -2rem 3rem -2rem;
-        background: linear-gradient(135deg, rgba(67, 24, 255, 0.03) 0%, rgba(99, 102, 241, 0.08) 50%, rgba(139, 92, 246, 0.05) 100%);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .about-hero::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -20%;
-        width: 500px;
-        height: 500px;
-        background: radial-gradient(circle, rgba(67, 24, 255, 0.06) 0%, transparent 70%);
-        border-radius: 50%;
-    }
-
-    .about-hero-content {
-        position: relative;
-        z-index: 1;
-    }
-
-    .about-avatar {
-        width: 120px;
-        height: 120px;
-        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 2rem;
-        box-shadow: 0 10px 40px rgba(67, 24, 255, 0.3);
-    }
-
-    .about-avatar img {
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        object-fit: cover;
-    }
-
-    .about-avatar i {
-        font-size: 3rem;
-        color: white;
-    }
-
-    .about-hero h1 {
-        font-size: 2.75rem;
-        font-weight: 800;
-        color: var(--text-primary);
-        margin-bottom: 1rem;
-    }
-
-    .about-hero h1 span {
-        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .about-hero-description {
-        font-size: 1.15rem;
-        color: var(--text-secondary);
-        max-width: 700px;
-        margin: 0 auto 1.5rem;
-        line-height: 1.7;
-    }
-
-    .niche-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
-        color: white;
-        padding: 0.5rem 1.5rem;
-        border-radius: 30px;
-        font-size: 0.85rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    /* ==================== STORY SECTION ==================== */
-    .story-section {
-        max-width: 800px;
-        margin: 0 auto 3rem;
-    }
-
-    .story-card {
-        background: var(--bg-card);
-        border-radius: var(--radius-lg);
-        padding: 2.5rem;
-        box-shadow: var(--shadow-card);
-    }
-
-    .story-card h2 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-
-    .story-card h2 i {
-        color: var(--primary-color);
-        padding: 0.5rem;
-        background: var(--primary-light);
-        border-radius: 10px;
-    }
-
-    .story-content {
-        font-size: 1.05rem;
-        line-height: 1.8;
-        color: var(--text-secondary);
-    }
-
-    .story-content p {
-        margin-bottom: 1.25rem;
-    }
-
-    .story-content p:last-child {
-        margin-bottom: 0;
-    }
-
-    /* ==================== VALUES SECTION ==================== */
-    .values-section {
-        margin-bottom: 3rem;
-    }
-
-    .section-title {
-        text-align: center;
-        font-size: 1.75rem;
-        font-weight: 800;
-        color: var(--text-primary);
-        margin-bottom: 2rem;
-    }
-
-    .values-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1.5rem;
-    }
-
-    .value-card {
-        background: var(--bg-card);
-        border-radius: var(--radius-lg);
-        padding: 2rem;
-        text-align: center;
-        box-shadow: var(--shadow-card);
-        transition: var(--transition-base);
-    }
-
-    .value-card:hover {
-        transform: translateY(-6px);
-        box-shadow: var(--shadow-lg);
-    }
-
-    .value-icon {
-        width: 70px;
-        height: 70px;
-        background: var(--primary-light);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1.25rem;
-        transition: var(--transition-base);
-    }
-
-    .value-card:hover .value-icon {
-        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
-    }
-
-    .value-icon i {
-        font-size: 1.75rem;
-        color: var(--primary-color);
-        transition: var(--transition-base);
-    }
-
-    .value-card:hover .value-icon i {
-        color: white;
-    }
-
-    .value-card h3 {
-        font-size: 1.15rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin-bottom: 0.75rem;
-    }
-
-    .value-card p {
-        font-size: 0.9rem;
-        color: var(--text-secondary);
-        line-height: 1.6;
-    }
-
-    /* ==================== STATS SECTION ==================== */
-    .stats-section {
-        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
-        border-radius: var(--radius-lg);
-        padding: 3rem 2rem;
-        margin-bottom: 3rem;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .stats-section::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -20%;
-        width: 300px;
-        height: 300px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-    }
-
-    .stats-section::after {
-        content: '';
-        position: absolute;
-        bottom: -30%;
-        left: -10%;
-        width: 200px;
-        height: 200px;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 50%;
-    }
-
-    .stats-content {
-        position: relative;
-        z-index: 1;
-    }
-
-    .stats-title {
-        text-align: center;
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: white;
-        margin-bottom: 2rem;
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 2rem;
-    }
-
-    .stat-item {
-        text-align: center;
-    }
-
-    .stat-number {
-        font-size: 2.75rem;
-        font-weight: 800;
-        color: white;
-        margin-bottom: 0.5rem;
-        line-height: 1;
-    }
-
-    .stat-label {
-        font-size: 0.9rem;
-        color: rgba(255, 255, 255, 0.85);
-        font-weight: 600;
-    }
-
-    /* ==================== CTA SECTION ==================== */
-    .cta-section {
-        background: var(--bg-card);
-        border-radius: var(--radius-lg);
-        padding: 3rem;
-        text-align: center;
-        box-shadow: var(--shadow-card);
-    }
-
-    .cta-section h2 {
-        font-size: 1.75rem;
-        font-weight: 800;
-        color: var(--text-primary);
-        margin-bottom: 0.75rem;
-    }
-
-    .cta-section p {
-        font-size: 1rem;
-        color: var(--text-secondary);
-        max-width: 500px;
-        margin: 0 auto 1.5rem;
-    }
-
-    .cta-buttons {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    .btn-primary {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
-        color: white;
-        padding: 1rem 2rem;
-        border-radius: 30px;
-        text-decoration: none;
-        font-weight: 700;
-        font-size: 0.95rem;
-        transition: var(--transition-base);
-        box-shadow: 0 4px 15px rgba(67, 24, 255, 0.3);
-    }
-
-    .btn-primary:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 20px rgba(67, 24, 255, 0.4);
-    }
-
-    .btn-outline {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        background: transparent;
-        color: var(--text-primary);
-        padding: 1rem 2rem;
-        border-radius: 30px;
-        text-decoration: none;
-        font-weight: 700;
-        font-size: 0.95rem;
-        border: 2px solid rgba(0, 0, 0, 0.1);
-        transition: var(--transition-base);
-    }
-
-    .btn-outline:hover {
-        border-color: var(--primary-color);
-        color: var(--primary-color);
-        transform: translateY(-3px);
-    }
-
-    /* ==================== RESPONSIVE ==================== */
-    @media (max-width: 900px) {
-        .values-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .about-hero {
-            padding: 3rem 1.5rem;
-            margin: -1.5rem -1.5rem 2rem -1.5rem;
-        }
-
-        .about-hero h1 {
-            font-size: 2rem;
-        }
-
-        .about-avatar {
-            width: 100px;
-            height: 100px;
-        }
-
-        .about-avatar i {
-            font-size: 2.5rem;
-        }
-
-        .story-card {
-            padding: 1.5rem;
-        }
-
-        .stats-section {
-            padding: 2rem 1.5rem;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-        }
-
-        .cta-section {
-            padding: 2rem 1.5rem;
-        }
-
-        .cta-buttons {
-            flex-direction: column;
-        }
-
-        .cta-buttons a {
-            width: 100%;
-            justify-content: center;
-        }
-    }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/site/about.css') }}">
 {% endblock %}
 
 {% block content %}
 <!-- About Hero -->
 <section class="about-hero">
-    <div class="about-hero-content">
+    <div class="about-hero-container">
         <div class="about-avatar">
             {% if settings.logo_url %}
             <img src="{{ settings.logo_url }}" alt="{{ settings.site_name }}">
@@ -416,27 +17,23 @@
             <i class="bi bi-journal-richtext"></i>
             {% endif %}
         </div>
-        <h1>About <span>{{ settings.site_name }}</span></h1>
+        <h1 class="about-hero-title">About <span class="highlight">{{ settings.site_name }}</span></h1>
         <p class="about-hero-description">
             {{ settings.site_description or 'Discover insightful articles, tips, and stories that inspire and inform. Join our community of readers today.' }}
         </p>
-        {% if settings.niche %}
-        <span class="niche-badge">
-            <i class="bi bi-stars"></i> {{ settings.niche }}
-        </span>
-        {% endif %}
     </div>
 </section>
 
-<!-- Story Section -->
-<section class="story-section">
-    <div class="story-card">
-        <h2><i class="bi bi-book"></i> Our Story</h2>
-        <div class="story-content">
+<!-- Mission Section -->
+<section class="about-mission">
+    <div class="about-mission-container fade-in-up">
+        <span class="about-mission-label">Our Mission</span>
+        <h2 class="about-mission-title">{{ settings.mission_title or 'The art of thoughtful commentary.' }}</h2>
+        <div class="about-mission-content">
             {% if settings.about_content %}
             {{ settings.about_content|safe }}
             {% else %}
-            <p>Welcome to {{ settings.site_name }}! We're passionate about sharing valuable insights and stories with our readers.</p>
+            <p>Welcome to {{ settings.site_name }}! We're passionate about sharing valuable insights and stories with our readers. Our platform is built on the belief that great content has the power to inspire, educate, and connect people from all walks of life.</p>
             <p>Our mission is to provide high-quality content that informs, inspires, and engages our community. Whether you're here to learn something new, find inspiration, or simply enjoy great content, we've got you covered.</p>
             <p>Thank you for being part of our journey. We're constantly working to bring you the best content and experiences possible.</p>
             {% endif %}
@@ -445,69 +42,79 @@
 </section>
 
 <!-- Values Section -->
-<section class="values-section">
-    <h2 class="section-title">What We Stand For</h2>
-    <div class="values-grid">
-        <div class="value-card">
-            <div class="value-icon">
-                <i class="bi bi-trophy"></i>
-            </div>
-            <h3>Quality Content</h3>
-            <p>We're committed to delivering well-researched, thoughtful articles that provide real value to our readers.</p>
+<section class="about-values">
+    <div class="about-values-container">
+        <div class="about-values-header fade-in-up">
+            <h2 class="about-values-title">Our <span class="highlight">Core Values</span></h2>
+            <p class="about-values-subtitle">The principles that guide everything we do and create.</p>
         </div>
-        <div class="value-card">
-            <div class="value-icon">
-                <i class="bi bi-people"></i>
+        <div class="about-values-grid">
+            <div class="about-value-card fade-in-up">
+                <div class="about-value-icon">
+                    <i class="bi bi-trophy"></i>
+                </div>
+                <h3 class="about-value-title">{{ settings.value_1_title or 'Quality Content' }}</h3>
+                <p class="about-value-description">{{ settings.value_1_description or "We're committed to delivering well-researched, thoughtful articles that provide real value to our readers." }}</p>
             </div>
-            <h3>Community First</h3>
-            <p>Our readers are at the heart of everything we do. We listen, engage, and grow together as a community.</p>
-        </div>
-        <div class="value-card">
-            <div class="value-icon">
-                <i class="bi bi-shield-check"></i>
+            <div class="about-value-card fade-in-up">
+                <div class="about-value-icon">
+                    <i class="bi bi-people"></i>
+                </div>
+                <h3 class="about-value-title">{{ settings.value_2_title or 'Community First' }}</h3>
+                <p class="about-value-description">{{ settings.value_2_description or 'Our readers are at the heart of everything we do. We listen, engage, and grow together as a community.' }}</p>
             </div>
-            <h3>Authenticity</h3>
-            <p>We believe in honest, transparent content. What you read is our genuine perspective and experience.</p>
+            <div class="about-value-card fade-in-up">
+                <div class="about-value-icon">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <h3 class="about-value-title">{{ settings.value_3_title or 'Authenticity' }}</h3>
+                <p class="about-value-description">{{ settings.value_3_description or 'We believe in honest, transparent content. What you read is our genuine perspective and experience.' }}</p>
+            </div>
         </div>
     </div>
 </section>
 
 <!-- Stats Section -->
-<section class="stats-section">
-    <div class="stats-content">
-        <h2 class="stats-title">By the Numbers</h2>
-        <div class="stats-grid">
-            <div class="stat-item">
-                <div class="stat-number">{{ published_count }}</div>
-                <div class="stat-label">Articles Published</div>
+<section class="about-stats">
+    <div class="about-stats-container">
+        <div class="about-stats-grid">
+            <div class="about-stat-item fade-in-up">
+                <div class="about-stat-number">{{ settings.stat_1_number or (published_count ~ '+') }}</div>
+                <div class="about-stat-label">{{ settings.stat_1_label or 'Articles Published' }}</div>
             </div>
-            <div class="stat-item">
-                <div class="stat-number">{{ categories_count }}</div>
-                <div class="stat-label">Categories</div>
+            <div class="about-stat-item fade-in-up">
+                <div class="about-stat-number">{{ settings.stat_2_number or ((published_count * 50)|string ~ 'K') }}</div>
+                <div class="about-stat-label">{{ settings.stat_2_label or 'Happy Readers' }}</div>
             </div>
-            <div class="stat-item">
-                <div class="stat-number">{{ (published_count * 50) }}+</div>
-                <div class="stat-label">Happy Readers</div>
+            <div class="about-stat-item fade-in-up">
+                <div class="about-stat-number">{{ settings.stat_3_number or (categories_count ~ 'K') }}</div>
+                <div class="about-stat-label">{{ settings.stat_3_label or 'Subscribers' }}</div>
             </div>
-            <div class="stat-item">
-                <div class="stat-number">24/7</div>
-                <div class="stat-label">Always Available</div>
+            <div class="about-stat-item fade-in-up">
+                <div class="about-stat-number">{{ settings.stat_4_number or '8+' }}</div>
+                <div class="about-stat-label">{{ settings.stat_4_label or 'Years of Experience' }}</div>
             </div>
         </div>
     </div>
 </section>
 
 <!-- CTA Section -->
-<section class="cta-section">
-    <h2>Ready to Explore?</h2>
-    <p>Discover our latest articles or get in touch with us. We'd love to hear from you!</p>
-    <div class="cta-buttons">
-        <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="btn-primary">
-            <i class="bi bi-journal-text"></i> Browse Articles
-        </a>
-        <a href="{{ url_for('site_bp.site_contact', user_id=user_id) }}" class="btn-outline">
-            <i class="bi bi-envelope"></i> Contact Us
-        </a>
+<section class="about-cta">
+    <div class="about-cta-container fade-in-up">
+        <h2 class="about-cta-title">{{ settings.cta_title or 'Have something to share?' }}</h2>
+        <p class="about-cta-subtitle">{{ settings.cta_description or "We'd love to hear from you. Explore our latest articles or get in touch with our team." }}</p>
+        <div class="about-cta-buttons">
+            <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="btn-cta-primary">
+                <i class="bi bi-journal-text"></i> Browse Articles
+            </a>
+            <a href="{{ url_for('site_bp.site_contact', user_id=user_id) }}" class="btn-cta-secondary">
+                <i class="bi bi-envelope"></i> Contact Us
+            </a>
+        </div>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/site/about.js') }}"></script>
 {% endblock %}

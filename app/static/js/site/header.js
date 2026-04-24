@@ -103,10 +103,88 @@ document.addEventListener('DOMContentLoaded', function() {
         subscribeForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             const subscribeUrl = this.dataset.subscribeUrl;
-            if (subscribeUrl && typeof handleNewsletterSubmit === 'function') {
-                await handleNewsletterSubmit(this, subscribeUrl);
+            const emailInput = this.querySelector('input[type="email"]');
+            const submitBtn = this.querySelector('button[type="submit"]');
+
+            if (!subscribeUrl || !emailInput) return;
+
+            const email = emailInput.value.trim();
+            if (!email) return;
+
+            // Disable button while submitting
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Subscribing...';
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('email', email);
+
+                const response = await fetch(subscribeUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                // Close subscribe modal first
                 closeSubscribeModal();
+
+                // Reset form
+                emailInput.value = '';
+
+                // Show appropriate result modal
+                if (data.success) {
+                    if (data.is_new) {
+                        openResultModal('success-modal');
+                    } else {
+                        openResultModal('already-subscribed-modal');
+                    }
+                }
+            } catch (error) {
+                console.error('Subscription error:', error);
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Subscribe';
+                }
             }
         });
+    }
+});
+
+// ==================== RESULT MODAL FUNCTIONS ====================
+function openResultModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeResultModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+// Close result modals on overlay click
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('result-modal-overlay')) {
+        e.target.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+});
+
+// Close result modals on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.result-modal-overlay.active').forEach(modal => {
+            modal.classList.remove('active');
+        });
+        document.body.style.overflow = '';
     }
 });
