@@ -5,18 +5,11 @@ from app.services.embedding_service import EmbeddingService
 from app.firebase.firestore_service import FirestoreService
 import re
 import json
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 
 
 class SemanticSearchAgent:
     """
-    Optimized Semantic Search Agent
-
-    Performance optimizations:
-    1. Parallel query embedding + blog fetching
-    2. Fast vector search first, LLM rerank only top results
-    3. Simplified prompts for faster LLM response
-    4. Timeout handling to prevent slow responses
+    Semantic Search Agent with keyword fallback.
     """
 
     def __init__(self):
@@ -26,7 +19,7 @@ class SemanticSearchAgent:
         self.model = genai.GenerativeModel('gemini-3-flash-preview')
 
     def _cosine_similarity(self, vec1, vec2):
-        """Fast cosine similarity calculation."""
+        """Calculate cosine similarity."""
         vec1 = np.array(vec1, dtype=np.float32)
         vec2 = np.array(vec2, dtype=np.float32)
         dot = np.dot(vec1, vec2)
@@ -34,18 +27,24 @@ class SemanticSearchAgent:
         return float(dot / norm) if norm > 0 else 0.0
 
     def _get_text_content(self, blog):
-        """Extract clean text from blog content."""
+        """Extract text from blog content."""
         content = blog.get('content', '')
         if isinstance(content, dict):
             text = content.get('body', '') or content.get('markdown', '') or ''
         else:
             text = str(content) if content else ''
-        return re.sub(r'<[^>]+>', '', text)
+        return re.sub(r'<[^>]+>', '', text).lower()
 
     def _get_excerpt(self, blog, max_length=120):
-        """Extract clean excerpt without markdown."""
-        text = self._get_text_content(blog)
-        # Clean markdown
+        """Extract clean excerpt."""
+        content = blog.get('content', '')
+        if isinstance(content, dict):
+            text = content.get('body', '') or content.get('markdown', '') or ''
+        else:
+            text = str(content) if content else ''
+
+        # Clean markdown and HTML
+        text = re.sub(r'<[^>]+>', '', text)
         text = re.sub(r'^#+\s*', '', text, flags=re.MULTILINE)
         text = re.sub(r'\*\*?([^*]+)\*\*?', r'\1', text)
         text = re.sub(r'`[^`]+`', '', text)
@@ -56,37 +55,38 @@ class SemanticSearchAgent:
             return text[:max_length].rsplit(' ', 1)[0] + '...'
         return text
 
-    def _keyword_boost(self, blog, query_terms):
-        """Fast keyword matching boost."""
+    def _keyword_score(self, blog, query_terms):
+        """Calculate keyword match score."""
         title = blog.get('title', '').lower()
         category = blog.get('category', '').lower()
+        content = self._get_text_content(blog)
 
-        boost = 0.0
+        score = 0.0
         for term in query_terms:
             if term in title:
-                boost += 0.15
+                score += 0.3
             if term in category:
-                boost += 0.1
-        return min(boost, 0.3)
+                score += 0.2
+            if term in content:
+                score += 0.1
+        return min(score, 1.0)
 
-    def _rerank_top_results(self, query, candidates):
-        """Quick LLM rerank of top candidates only."""
-        if not candidates or len(candidates) == 0:
+    def _rerank_with_llm(self, query, candidates):
+        """Rerank top results with LLM."""
+        if not candidates:
             return candidates
 
         try:
-            # Only rerank top 5 for speed
             to_rerank = candidates[:5]
-
             posts_info = "\n".join([
                 f"{i}. {c.get('title', '')} [{c.get('category', '')}]"
                 for i, c in enumerate(to_rerank)
             ])
 
-            prompt = f"""Rate these posts for query "{query}" (0-100). Return JSON only:
+            prompt = f"""Rate relevance of these posts for "{query}" (0-100):
 {posts_info}
 
-Format: [{{"id":0,"score":85,"why":"brief reason"}},...]"""
+Return JSON: [{{"id":0,"score":85,"why":"reason"}},...]"""
 
             response = self.model.generate_content(
                 prompt,
@@ -96,20 +96,15 @@ Format: [{{"id":0,"score":85,"why":"brief reason"}},...]"""
             text = response.text.strip()
             text = re.sub(r'^```json?\s*', '', text)
             text = re.sub(r'\s*```$', '', text)
-
             rankings = json.loads(text)
 
-            # Apply rankings
             for rank in rankings:
                 idx = rank.get('id', 0)
                 if idx < len(to_rerank):
                     to_rerank[idx]['score'] = rank.get('score', 50) / 100
                     to_rerank[idx]['match_reason'] = rank.get('why', '')
 
-            # Sort by new score
             to_rerank.sort(key=lambda x: x.get('score', 0), reverse=True)
-
-            # Add remaining candidates
             return to_rerank + candidates[5:]
 
         except Exception as e:
@@ -117,9 +112,7 @@ Format: [{{"id":0,"score":85,"why":"brief reason"}},...]"""
             return candidates
 
     def search(self, user_id, query, top_k=6):
-        """
-        Optimized semantic search pipeline.
-        """
+        """Search blogs using keywords + optional vector similarity."""
         try:
             if not query or len(query) < 2:
                 return []
@@ -127,39 +120,39 @@ Format: [{{"id":0,"score":85,"why":"brief reason"}},...]"""
             query_lower = query.lower()
             query_terms = [t.strip() for t in query_lower.split() if len(t.strip()) > 2]
 
-            # Parallel: get embedding + fetch blogs
-            with ThreadPoolExecutor(max_workers=2) as executor:
-                embedding_future = executor.submit(
-                    self.embedding_service.generate_query_embedding, query
-                )
-                blogs_future = executor.submit(
-                    self.db_service.get_blogs_with_embeddings, user_id
-                )
-
-                query_embedding = embedding_future.result(timeout=5)
-                blogs = blogs_future.result(timeout=5)
+            # Get all published blogs
+            blogs = self.db_service.get_published_blogs(user_id, limit=50)
 
             if not blogs:
-                # Fallback to all published blogs
-                blogs = self.db_service.get_published_blogs(user_id, limit=30)
+                return []
 
-            # Fast vector scoring
+            # Try to get query embedding (non-blocking)
+            query_embedding = None
+            try:
+                query_embedding = self.embedding_service.generate_query_embedding(query)
+            except Exception as e:
+                print(f"Embedding error (using keywords only): {e}")
+
+            # Score all blogs
             candidates = []
             for blog in blogs:
-                blog_embedding = blog.get('embedding')
+                # Keyword score (always works)
+                kw_score = self._keyword_score(blog, query_terms)
 
-                # Vector similarity
+                # Vector score (if available)
                 vec_score = 0.0
+                blog_embedding = blog.get('embedding')
                 if query_embedding and blog_embedding:
                     vec_score = self._cosine_similarity(query_embedding, blog_embedding)
 
-                # Keyword boost
-                keyword_boost = self._keyword_boost(blog, query_terms)
-
                 # Combined score
-                score = vec_score + keyword_boost
+                if vec_score > 0:
+                    score = (vec_score * 0.6) + (kw_score * 0.4)
+                else:
+                    score = kw_score
 
-                if score > 0.25 or keyword_boost > 0.1:
+                # Include if any relevance
+                if score > 0.1:
                     candidates.append({
                         'id': blog.get('id'),
                         'title': blog.get('title', ''),
@@ -171,18 +164,17 @@ Format: [{{"id":0,"score":85,"why":"brief reason"}},...]"""
                         'updated_at': blog.get('updated_at')
                     })
 
-            # Sort by initial score
+            if not candidates:
+                return []
+
+            # Sort by score
             candidates.sort(key=lambda x: x['score'], reverse=True)
 
-            # Quick LLM rerank top results
-            if candidates:
-                candidates = self._rerank_top_results(query, candidates)
+            # LLM rerank top results
+            candidates = self._rerank_with_llm(query, candidates)
 
             return candidates[:top_k]
 
-        except FuturesTimeoutError:
-            print("Search timeout - returning fast results")
-            return []
         except Exception as e:
             print(f"Search error: {e}")
             return []
