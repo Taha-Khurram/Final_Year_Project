@@ -1,10 +1,7 @@
 import numpy as np
-import google.generativeai as genai
-from flask import current_app
 from app.services.embedding_service import EmbeddingService
 from app.firebase.firestore_service import FirestoreService
 import re
-import json
 
 
 class SemanticSearchAgent:
@@ -15,8 +12,6 @@ class SemanticSearchAgent:
     def __init__(self):
         self.embedding_service = EmbeddingService()
         self.db_service = FirestoreService()
-        genai.configure(api_key=current_app.config['GEMINI_API_KEY'])
-        self.model = genai.GenerativeModel('gemini-3-flash-preview')
 
     def _cosine_similarity(self, vec1, vec2):
         """Calculate cosine similarity."""
@@ -71,64 +66,36 @@ class SemanticSearchAgent:
                 score += 0.1
         return min(score, 1.0)
 
+    def _generate_match_reason(self, blog, query_terms):
+        """Generate a match reason based on where keywords matched."""
+        title = blog.get('title', '').lower()
+        category = blog.get('category', '').lower()
+
+        matched_in_title = [t for t in query_terms if t in title]
+        matched_in_category = [t for t in query_terms if t in category]
+
+        if matched_in_title:
+            if len(matched_in_title) > 1:
+                return f"Title contains '{matched_in_title[0]}' and related terms"
+            return f"Title mentions '{matched_in_title[0]}'"
+        elif matched_in_category:
+            return f"In the '{blog.get('category', '')}' category"
+        else:
+            return "Related to your search topic"
+
     def _rerank_with_llm(self, query, candidates):
-        """Rerank top results with LLM."""
+        """Generate match reasons for top results."""
         if not candidates:
             return candidates
 
-        try:
-            to_rerank = candidates[:5]
-            posts_info = "\n".join([
-                f"{i}. {c.get('title', '')} [{c.get('category', '')}]"
-                for i, c in enumerate(to_rerank)
-            ])
+        query_terms = [t.strip() for t in query.lower().split() if len(t.strip()) > 2]
 
-            prompt = f"""Rate these blog posts for the search query "{query}".
+        # Generate reasons based on actual matches (fast and reliable)
+        for c in candidates:
+            blog_data = {'title': c.get('title', ''), 'category': c.get('category', '')}
+            c['match_reason'] = self._generate_match_reason(blog_data, query_terms)
 
-Posts:
-{posts_info}
-
-Return a JSON array with scores (0-100) and brief reasons. Use this exact format:
-[
-  {{"id": 0, "score": 85, "why": "Directly addresses the topic"}},
-  {{"id": 1, "score": 60, "why": "Related but not specific"}}
-]
-
-Only return the JSON array, nothing else."""
-
-            response = self.model.generate_content(
-                prompt,
-                generation_config={"temperature": 0.1, "max_output_tokens": 400}
-            )
-
-            text = response.text.strip()
-
-            # Clean up response
-            text = re.sub(r'^```json?\s*', '', text)
-            text = re.sub(r'\s*```$', '', text)
-            text = text.strip()
-
-            # Fix common JSON issues
-            text = text.replace("'", '"')  # Single to double quotes
-
-            rankings = json.loads(text)
-
-            for rank in rankings:
-                idx = rank.get('id', 0)
-                if idx < len(to_rerank):
-                    to_rerank[idx]['score'] = rank.get('score', 50) / 100
-                    to_rerank[idx]['match_reason'] = rank.get('why', '')
-
-            to_rerank.sort(key=lambda x: x.get('score', 0), reverse=True)
-            return to_rerank + candidates[5:]
-
-        except Exception as e:
-            print(f"Rerank error: {e}")
-            # Return with default reasons based on score
-            for c in candidates:
-                if not c.get('match_reason'):
-                    c['match_reason'] = f"Matches your search"
-            return candidates
+        return candidates
 
     def search(self, user_id, query, top_k=6):
         """Search blogs using keywords + optional vector similarity."""
