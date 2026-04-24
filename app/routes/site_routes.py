@@ -15,6 +15,23 @@ def _get_blog_text_content(blog):
     return str(content) if content else ''
 
 
+def _render_site_404(user_id, settings):
+    """
+    Render the site-specific 404 page with proper styling.
+    Returns a tuple of (rendered template, status code).
+    """
+    try:
+        categories = db_service.get_all_categories(user_id=user_id)
+        return render_template(
+            'site/site_404.html',
+            settings=settings,
+            categories=categories,
+            user_id=user_id
+        ), 404
+    except Exception:
+        abort(404)
+
+
 def _resolve_site(site_identifier):
     """
     Resolve site identifier (slug or user_id) to actual user_id and settings.
@@ -87,11 +104,11 @@ def site_post(site_identifier, slug_or_id):
             blog = db_service.get_published_blog_by_id(slug_or_id)
 
         if not blog:
-            abort(404)
+            return _render_site_404(user_id, settings)
 
         # Verify blog belongs to this site (by site_owner_id, not author_id)
         if blog.get('site_owner_id') != user_id and blog.get('author_id') != user_id:
-            abort(404)
+            return _render_site_404(user_id, settings)
 
         # Process content for display
         content = blog.get('content', '')
@@ -713,4 +730,32 @@ def site_terms_of_service(site_identifier):
 
     except Exception as e:
         print(f"Terms of Service Error: {e}")
+        abort(404)
+
+
+# ---------------------------------------------------
+# CATCH-ALL ROUTE FOR 404 ON PUBLIC SITE
+# Must be defined last to catch all undefined routes
+# ---------------------------------------------------
+
+@site_bp.route('/<site_identifier>/<path:undefined_path>')
+def site_catch_all(site_identifier, undefined_path):
+    """
+    Catch-all route for undefined URLs on the public site.
+    Returns a custom 404 page that matches the site's styling.
+    """
+    try:
+        user_id, settings = _resolve_site(site_identifier)
+        categories = db_service.get_all_categories(user_id=user_id)
+
+        return render_template(
+            'site/site_404.html',
+            settings=settings,
+            categories=categories,
+            user_id=user_id
+        ), 404
+
+    except Exception as e:
+        print(f"Catch-all 404 Error: {e}")
+        # If site doesn't exist, return generic 404
         abort(404)

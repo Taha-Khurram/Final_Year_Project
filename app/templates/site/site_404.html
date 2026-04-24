@@ -1,0 +1,426 @@
+{% extends "site/site_base.html" %}
+
+{% block title %}Page Not Found | {{ settings.site_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-page {
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 4rem 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .error-page::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(67, 24, 255, 0.06) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .error-page::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .error-container {
+        position: relative;
+        z-index: 1;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .error-illustration {
+        margin-bottom: 2rem;
+    }
+
+    .error-illustration svg {
+        width: 100%;
+        max-width: 320px;
+        height: auto;
+    }
+
+    .error-code {
+        font-size: 6rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1;
+        margin-bottom: 1rem;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+
+    .error-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+    }
+
+    .error-message {
+        font-size: 1.05rem;
+        color: var(--text-secondary);
+        line-height: 1.7;
+        margin-bottom: 2rem;
+        max-width: 450px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .error-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-home {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 15px rgba(67, 24, 255, 0.3);
+    }
+
+    .btn-home:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(67, 24, 255, 0.4);
+        color: white;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: white;
+        color: var(--text-primary);
+        padding: 1rem 2rem;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1rem;
+        border: 2px solid rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
+    }
+
+    .btn-back:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        transform: translateY(-3px);
+    }
+
+    .error-suggestions {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .suggestions-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 1rem;
+    }
+
+    .suggestions-list {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .suggestion-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: var(--primary-color);
+        text-decoration: none;
+        font-size: 0.95rem;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        background: rgba(67, 24, 255, 0.06);
+        border-radius: 20px;
+        transition: all 0.2s ease;
+    }
+
+    .suggestion-link:hover {
+        background: rgba(67, 24, 255, 0.12);
+        transform: translateY(-2px);
+    }
+
+    .suggestion-link i {
+        font-size: 0.9rem;
+    }
+
+    /* Decorative elements */
+    .floating-shapes {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        overflow: hidden;
+    }
+
+    .shape {
+        position: absolute;
+        opacity: 0.15;
+    }
+
+    .shape-1 {
+        top: 15%;
+        left: 8%;
+        width: 20px;
+        height: 20px;
+        background: var(--primary-color);
+        border-radius: 4px;
+        transform: rotate(45deg);
+        animation: pulse 3s ease-in-out infinite;
+    }
+
+    .shape-2 {
+        top: 25%;
+        right: 12%;
+        width: 12px;
+        height: 12px;
+        background: #6366f1;
+        border-radius: 50%;
+        animation: pulse 3s ease-in-out infinite 0.5s;
+    }
+
+    .shape-3 {
+        bottom: 30%;
+        left: 15%;
+        width: 16px;
+        height: 16px;
+        background: #8b5cf6;
+        border-radius: 50%;
+        animation: pulse 3s ease-in-out infinite 1s;
+    }
+
+    .shape-4 {
+        bottom: 20%;
+        right: 10%;
+        width: 24px;
+        height: 24px;
+        background: var(--primary-color);
+        border-radius: 6px;
+        transform: rotate(30deg);
+        animation: pulse 3s ease-in-out infinite 1.5s;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 0.15; transform: scale(1) rotate(var(--rotate, 0deg)); }
+        50% { opacity: 0.25; transform: scale(1.1) rotate(var(--rotate, 0deg)); }
+    }
+
+    .shape-1 { --rotate: 45deg; }
+    .shape-4 { --rotate: 30deg; }
+
+    @media (max-width: 768px) {
+        .error-page {
+            padding: 3rem 1.5rem;
+            min-height: 50vh;
+        }
+
+        .error-code {
+            font-size: 4rem;
+        }
+
+        .error-title {
+            font-size: 1.5rem;
+        }
+
+        .error-message {
+            font-size: 1rem;
+        }
+
+        .error-illustration svg {
+            max-width: 240px;
+        }
+
+        .error-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .btn-home, .btn-back {
+            width: 100%;
+            max-width: 280px;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="error-page">
+    <div class="floating-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+        <div class="shape shape-4"></div>
+    </div>
+
+    <div class="error-container">
+        <!-- Illustration -->
+        <div class="error-illustration">
+            <svg viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Background elements -->
+                <ellipse cx="200" cy="150" rx="150" ry="120" fill="url(#errorGrad1)" opacity="0.1"/>
+                <circle cx="320" cy="80" r="40" fill="url(#errorGrad2)" opacity="0.08"/>
+                <circle cx="60" cy="220" r="35" fill="url(#errorGrad2)" opacity="0.06"/>
+
+                <!-- Main illustration - Lost/Search concept -->
+                <!-- Document/Page with question mark -->
+                <rect x="120" y="60" width="160" height="180" rx="12" fill="#E2E8F0"/>
+                <rect x="130" y="70" width="140" height="160" rx="8" fill="white"/>
+
+                <!-- Document content lines -->
+                <rect x="150" y="95" width="80" height="8" rx="4" fill="#CBD5E0"/>
+                <rect x="150" y="115" width="100" height="6" rx="3" fill="#E2E8F0"/>
+                <rect x="150" y="130" width="90" height="6" rx="3" fill="#E2E8F0"/>
+                <rect x="150" y="145" width="95" height="6" rx="3" fill="#E2E8F0"/>
+
+                <!-- Large question mark -->
+                <g transform="translate(175, 165)">
+                    <circle cx="25" cy="25" r="35" fill="url(#errorGrad1)" opacity="0.15"/>
+                    <text x="25" y="38" text-anchor="middle" fill="url(#errorGrad1)" font-size="45" font-weight="bold" font-family="Plus Jakarta Sans, sans-serif">?</text>
+                </g>
+
+                <!-- Magnifying glass -->
+                <g transform="translate(260, 120)">
+                    <circle cx="30" cy="30" r="25" stroke="url(#errorGrad1)" stroke-width="6" fill="white"/>
+                    <line x1="48" y1="48" x2="70" y2="70" stroke="url(#errorGrad1)" stroke-width="6" stroke-linecap="round"/>
+                    <!-- Glare on glass -->
+                    <path d="M20 20 Q25 15 30 20" stroke="white" stroke-width="3" fill="none" opacity="0.8"/>
+                </g>
+
+                <!-- Floating elements -->
+                <!-- Small documents floating away -->
+                <g transform="translate(60, 90) rotate(-15)">
+                    <rect width="35" height="45" rx="4" fill="#F1F5F9"/>
+                    <rect x="6" y="8" width="18" height="3" rx="1.5" fill="#CBD5E0"/>
+                    <rect x="6" y="15" width="23" height="2" rx="1" fill="#E2E8F0"/>
+                    <rect x="6" y="20" width="20" height="2" rx="1" fill="#E2E8F0"/>
+                </g>
+
+                <g transform="translate(310, 180) rotate(10)">
+                    <rect width="30" height="38" rx="3" fill="#F1F5F9"/>
+                    <rect x="5" y="7" width="15" height="3" rx="1.5" fill="#CBD5E0"/>
+                    <rect x="5" y="13" width="20" height="2" rx="1" fill="#E2E8F0"/>
+                    <rect x="5" y="18" width="17" height="2" rx="1" fill="#E2E8F0"/>
+                </g>
+
+                <!-- Stars/sparkles -->
+                <g fill="var(--primary-color, #4318FF)" opacity="0.6">
+                    <path d="M340 50 L342 55 L348 55 L344 59 L346 65 L340 61 L334 65 L336 59 L332 55 L338 55 Z"/>
+                    <path d="M55 150 L56.5 154 L61 154 L58 157 L59 162 L55 159 L51 162 L52 157 L49 154 L53.5 154 Z" transform="scale(0.8)"/>
+                </g>
+
+                <!-- Decorative dots -->
+                <circle cx="90" cy="260" r="4" fill="var(--primary-color, #4318FF)" opacity="0.2"/>
+                <circle cx="310" cy="250" r="3" fill="#6366f1" opacity="0.2"/>
+                <circle cx="350" cy="140" r="5" fill="#8b5cf6" opacity="0.15"/>
+
+                <!-- Gradients -->
+                <defs>
+                    <linearGradient id="errorGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:var(--primary-color, #4318FF)"/>
+                        <stop offset="100%" style="stop-color:#6366f1"/>
+                    </linearGradient>
+                    <linearGradient id="errorGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#6366f1"/>
+                        <stop offset="100%" style="stop-color:#8b5cf6"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+        </div>
+
+        <!-- Error Code -->
+        <div class="error-code">404</div>
+
+        <!-- Error Title -->
+        <h1 class="error-title">Page Not Found</h1>
+
+        <!-- Error Message -->
+        <p class="error-message">
+            Oops! The page you're looking for doesn't exist or may have been moved.
+            Let's get you back to exploring great content.
+        </p>
+
+        <!-- Action Buttons -->
+        <div class="error-actions">
+            <a href="{{ url_for('site_bp.site_home', site_identifier=settings.site_slug|default(user_id, true)) }}" class="btn-home">
+                <i class="bi bi-house-fill"></i> Back to Home
+            </a>
+            <a href="javascript:history.back()" class="btn-back">
+                <i class="bi bi-arrow-left"></i> Go Back
+            </a>
+        </div>
+
+        <!-- Suggestions -->
+        <div class="error-suggestions">
+            <p class="suggestions-title">Try these instead</p>
+            <div class="suggestions-list">
+                <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}" class="suggestion-link">
+                    <i class="bi bi-journal-text"></i> Browse Articles
+                </a>
+                <a href="{{ url_for('site_bp.site_about', site_identifier=settings.site_slug|default(user_id, true)) }}" class="suggestion-link">
+                    <i class="bi bi-info-circle"></i> About Us
+                </a>
+                <a href="{{ url_for('site_bp.site_contact', site_identifier=settings.site_slug|default(user_id, true)) }}" class="suggestion-link">
+                    <i class="bi bi-envelope"></i> Contact
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add subtle parallax effect to floating shapes
+    document.addEventListener('mousemove', function(e) {
+        const shapes = document.querySelectorAll('.shape');
+        const x = e.clientX / window.innerWidth;
+        const y = e.clientY / window.innerHeight;
+
+        shapes.forEach((shape, index) => {
+            const speed = (index + 1) * 5;
+            const xOffset = (x - 0.5) * speed;
+            const yOffset = (y - 0.5) * speed;
+            shape.style.transform = `translate(${xOffset}px, ${yOffset}px) ${shape.classList.contains('shape-1') ? 'rotate(45deg)' : shape.classList.contains('shape-4') ? 'rotate(30deg)' : ''}`;
+        });
+    });
+</script>
+{% endblock %}
