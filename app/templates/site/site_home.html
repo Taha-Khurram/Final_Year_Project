@@ -759,7 +759,7 @@
 <!-- Hero Section -->
 <section class="site-hero">
     <div class="hero-container">
-        <div class="hero-content">
+        <div class="hero-content" data-animate="fade-up">
             {% if settings.niche %}
             <div class="hero-badge">
                 <i class="bi bi-stars"></i>
@@ -896,7 +896,7 @@
         </a>
     </div>
 
-    <div class="featured-grid">
+    <div class="featured-grid" data-animate-stagger>
         <!-- Main Featured Post -->
         {% set main_post = featured_post if featured_post else blogs[0] %}
         <div class="featured-main">
@@ -1062,7 +1062,7 @@
 {% endif %}
 
 <!-- Newsletter Section -->
-<section class="newsletter-section">
+<section class="newsletter-section" data-animate="fade-up">
     <div class="newsletter-content">
         <div class="newsletter-icon">
             <svg viewBox="0 0 50 50" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">

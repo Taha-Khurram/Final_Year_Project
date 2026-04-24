@@ -567,7 +567,7 @@
 {% block content %}
 <!-- Blog Hero -->
 <section class="blog-hero">
-    <div class="blog-hero-content">
+    <div class="blog-hero-content" data-animate="fade-up">
         <h1>Our Blog</h1>
         <p>Explore our collection of articles, tutorials, and insights</p>
         <div class="blog-hero-stats">
@@ -644,7 +644,7 @@
     <!-- Main Content -->
     <main>
         {% if blogs %}
-        <div class="blog-grid" id="blog-grid">
+        <div class="blog-grid" id="blog-grid" data-animate-stagger>
             {% for blog in blogs %}
             <article class="blog-card" data-title="{{ blog.title|lower }}" data-date="{{ blog.updated_at.timestamp() if blog.updated_at else 0 }}">
                 <div class="blog-card-image">

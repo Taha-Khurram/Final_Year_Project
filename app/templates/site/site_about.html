@@ -443,7 +443,7 @@
 {% block content %}
 <!-- About Hero -->
 <section class="about-hero">
-    <div class="about-hero-content">
+    <div class="about-hero-content" data-animate="fade-up">
         <div class="about-avatar">
             {% if settings.logo_url %}
             <img src="{{ settings.logo_url }}" alt="{{ settings.site_name }}">
@@ -572,7 +572,7 @@
 
 <!-- Story Section -->
 <section class="story-section">
-    <div class="story-card">
+    <div class="story-card" data-animate="fade-up">
         <h2><i class="bi bi-book"></i> Our Story</h2>
         <div class="story-content">
             {% if settings.about_content %}
@@ -589,7 +589,7 @@
 <!-- Values Section -->
 <section class="values-section">
     <h2 class="section-title">What We Stand For</h2>
-    <div class="values-grid">
+    <div class="values-grid" data-animate-stagger>
         <div class="value-card">
             <div class="value-icon">
                 <i class="bi bi-trophy"></i>
@@ -615,7 +615,7 @@
 </section>
 
 <!-- Stats Section -->
-<section class="stats-section">
+<section class="stats-section" data-animate="fade-up">
     <div class="stats-content">
         <h2 class="stats-title">By the Numbers</h2>
         <div class="stats-grid">
@@ -640,7 +640,7 @@
 </section>
 
 <!-- CTA Section -->
-<section class="cta-section">
+<section class="cta-section" data-animate="fade-up">
     <h2>Ready to Explore?</h2>
     <p>Discover our latest articles or get in touch with us. We'd love to hear from you!</p>
     <div class="cta-buttons">
