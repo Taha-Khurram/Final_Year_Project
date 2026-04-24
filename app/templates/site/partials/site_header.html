@@ -13,18 +13,10 @@
 
             <!-- Desktop Navigation -->
             <nav class="site-nav">
-                <a href="{{ url_for('site_bp.site_home', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_home' and not current_category %}active{% endif %}">
-                    <i class="bi bi-house"></i> Home
-                </a>
-                <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_blog' %}active{% endif %}">
-                    <i class="bi bi-journal-text"></i> Blog
-                </a>
-                <a href="{{ url_for('site_bp.site_about', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_about' %}active{% endif %}">
-                    <i class="bi bi-info-circle"></i> About
-                </a>
-                <a href="{{ url_for('site_bp.site_contact', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_contact' %}active{% endif %}">
-                    <i class="bi bi-envelope"></i> Contact
-                </a>
+                <a href="{{ url_for('site_bp.site_home', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_home' and not current_category %}active{% endif %}">Home</a>
+                <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_blog' %}active{% endif %}">Blog</a>
+                <a href="{{ url_for('site_bp.site_about', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_about' %}active{% endif %}">About</a>
+                <a href="{{ url_for('site_bp.site_contact', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_contact' %}active{% endif %}">Contact</a>
             </nav>
         </div>
 
@@ -50,18 +42,10 @@
 
     <!-- Mobile Navigation -->
     <nav class="mobile-nav">
-        <a href="{{ url_for('site_bp.site_home', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_home' and not current_category %}active{% endif %}">
-            <i class="bi bi-house"></i> Home
-        </a>
-        <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_blog' %}active{% endif %}">
-            <i class="bi bi-journal-text"></i> Blog
-        </a>
-        <a href="{{ url_for('site_bp.site_about', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_about' %}active{% endif %}">
-            <i class="bi bi-info-circle"></i> About
-        </a>
-        <a href="{{ url_for('site_bp.site_contact', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_contact' %}active{% endif %}">
-            <i class="bi bi-envelope"></i> Contact
-        </a>
+        <a href="{{ url_for('site_bp.site_home', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_home' and not current_category %}active{% endif %}">Home</a>
+        <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_blog' %}active{% endif %}">Blog</a>
+        <a href="{{ url_for('site_bp.site_about', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_about' %}active{% endif %}">About</a>
+        <a href="{{ url_for('site_bp.site_contact', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_contact' %}active{% endif %}">Contact</a>
         <div class="mobile-search">
             <i class="bi bi-search"></i>
             <input type="text" placeholder="Search posts..." data-search-url="{{ url_for('site_bp.site_blog', user_id=user_id) }}" value="{{ search_query or '' }}">
