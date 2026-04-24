@@ -1,9 +1,31 @@
 /**
  * Site Header JavaScript
- * Handles mobile menu, search, and subscribe modal
+ * Handles mobile menu, search, subscribe modal, and scroll effects
  */
 
 document.addEventListener('DOMContentLoaded', function() {
+    // ==================== HEADER SCROLL EFFECT ====================
+    const header = document.querySelector('.site-header');
+
+    if (header) {
+        let lastScroll = 0;
+
+        function handleScroll() {
+            const currentScroll = window.pageYOffset;
+
+            if (currentScroll > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+
+            lastScroll = currentScroll;
+        }
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        handleScroll(); // Check initial state
+    }
+
     // ==================== MOBILE MENU ====================
     const mobileToggle = document.querySelector('.mobile-menu-toggle');
     const mobileNav = document.querySelector('.mobile-nav');
