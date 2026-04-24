@@ -487,6 +487,15 @@ def update_status(blog_id):
                 db_service.update_blog_content(blog_id, title, formatted_content)
                 print(f"✓ Formatting applied to blog: {title}")
 
+                # Generate embedding for semantic search
+                try:
+                    from app.agents.semantic_search_agent import SemanticSearchAgent
+                    search_agent = SemanticSearchAgent()
+                    if search_agent.generate_and_store_embedding(blog_id):
+                        print(f"✓ Embedding generated for blog: {title}")
+                except Exception as embed_error:
+                    print(f"⚠ Embedding generation warning (continuing): {embed_error}")
+
             except Exception as format_error:
                 print(f"⚠ Formatting warning (continuing): {format_error}")
                 # Continue with publish even if formatting fails

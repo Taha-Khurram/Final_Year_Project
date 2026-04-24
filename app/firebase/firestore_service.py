@@ -1233,3 +1233,90 @@ class FirestoreService:
         except Exception as e:
             print(f"❌ Error deleting newsletter draft: {e}")
             return False
+
+    # ---------------- EMBEDDING METHODS ----------------
+
+    def update_blog_embedding(self, blog_id, embedding):
+        """
+        Store embedding vector for a blog post.
+        Called when blog is published or updated.
+        """
+        try:
+            doc_ref = self.db.collection(self.collection_name).document(blog_id)
+            doc_ref.update({
+                'embedding': embedding,
+                'embedding_updated_at': datetime.utcnow()
+            })
+            return True
+        except Exception as e:
+            print(f"❌ Error storing embedding: {e}")
+            return False
+
+    def get_blogs_with_embeddings(self, user_id, limit=100):
+        """
+        Fetch published blogs that have embeddings stored.
+        Returns blogs with embedding vectors for semantic search.
+        """
+        try:
+            blogs = []
+            blog_ids = set()
+
+            # Query by site_owner_id
+            site_owner_query = self.db.collection(self.collection_name)\
+                .where(filter=FieldFilter('site_owner_id', '==', user_id))\
+                .where(filter=FieldFilter('status', '==', 'PUBLISHED'))
+
+            for doc in site_owner_query.stream():
+                data = doc.to_dict()
+                # Only include blogs with embeddings
+                if data.get('embedding'):
+                    data['id'] = doc.id
+                    blog_ids.add(doc.id)
+                    blogs.append(data)
+
+            # Fallback: also fetch by author_id for older blogs
+            fallback_query = self.db.collection(self.collection_name)\
+                .where(filter=FieldFilter('author_id', '==', user_id))\
+                .where(filter=FieldFilter('status', '==', 'PUBLISHED'))
+
+            for doc in fallback_query.stream():
+                if doc.id not in blog_ids:
+                    data = doc.to_dict()
+                    if data.get('embedding'):
+                        data['id'] = doc.id
+                        blogs.append(data)
+
+            return blogs[:limit]
+        except Exception as e:
+            print(f"❌ Error fetching blogs with embeddings: {e}")
+            return []
+
+    def get_blogs_without_embeddings(self, user_id=None, limit=100):
+        """
+        Fetch published blogs that don't have embeddings yet.
+        Used for backfilling embeddings.
+        """
+        try:
+            blogs = []
+
+            if user_id:
+                # Query for specific user
+                query = self.db.collection(self.collection_name)\
+                    .where(filter=FieldFilter('site_owner_id', '==', user_id))\
+                    .where(filter=FieldFilter('status', '==', 'PUBLISHED'))
+            else:
+                # Query all published blogs
+                query = self.db.collection(self.collection_name)\
+                    .where(filter=FieldFilter('status', '==', 'PUBLISHED'))
+
+            for doc in query.stream():
+                data = doc.to_dict()
+                # Only include blogs without embeddings
+                if not data.get('embedding'):
+                    data['id'] = doc.id
+                    blogs.append(data)
+
+            return blogs[:limit]
+        except Exception as e:
+            print(f"❌ Error fetching blogs without embeddings: {e}")
+            return []

@@ -288,3 +288,51 @@ def site_subscribe(user_id):
     except Exception as e:
         print(f"Subscribe Error: {e}")
         return jsonify({'success': False, 'message': 'Subscription failed'}), 500
+
+
+@site_bp.route('/<user_id>/semantic-search', methods=['POST'])
+def site_semantic_search(user_id):
+    """
+    Semantic search API endpoint.
+    Accepts a JSON body with 'query' field and returns semantically relevant blogs.
+    """
+    try:
+        data = request.get_json()
+        query = data.get('query', '').strip() if data else ''
+
+        if not query:
+            return jsonify({'success': False, 'message': 'Query is required', 'results': []}), 400
+
+        if len(query) < 2:
+            return jsonify({'success': False, 'message': 'Query too short', 'results': []}), 400
+
+        # Import here to avoid circular imports
+        from app.agents.semantic_search_agent import SemanticSearchAgent
+
+        search_agent = SemanticSearchAgent()
+        results = search_agent.search(user_id, query, top_k=6, min_score=0.25)
+
+        # Format results for frontend
+        formatted_results = []
+        for result in results:
+            formatted_results.append({
+                'id': result['id'],
+                'title': result['title'],
+                'category': result.get('category', ''),
+                'excerpt': result.get('excerpt', ''),
+                'cover_image': result.get('cover_image', ''),
+                'score': result.get('score', 0),
+                'match_reason': result.get('match_reason', ''),
+                'url': url_for('site_bp.site_post', user_id=user_id, blog_id=result['id'])
+            })
+
+        return jsonify({
+            'success': True,
+            'query': query,
+            'results': formatted_results,
+            'count': len(formatted_results)
+        })
+
+    except Exception as e:
+        print(f"Semantic Search Error: {e}")
+        return jsonify({'success': False, 'message': 'Search failed', 'results': []}), 500

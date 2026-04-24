@@ -10,3 +10,4 @@ flask-compress
 pytrends
 markdown
 resend
+numpy
