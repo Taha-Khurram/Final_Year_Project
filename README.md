@@ -89,12 +89,15 @@ Query → Understand → Plan → Execute Tools → Evaluate → Refine → Expl
 
 ## Public Site
 
-Each user gets a public blog at `/site/<user_id>` with:
+Each user gets a public blog at `/site/<site_slug>` (or `/site/<user_id>` for backwards compatibility) with:
+- **SEO-friendly URLs** - Custom site slugs instead of Firebase IDs
 - Home, Blog, About, Contact pages
+- **Legal Pages** - Privacy Policy, Terms of Service
 - Newsletter subscription
 - Semantic search with agent insights panel
 - Category filtering
 - Social sharing
+- RSS feed, Sitemap, and robots.txt
 
 ## Documentation
 
@@ -114,7 +117,7 @@ See [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md) for complete documentation in
 │   ├── services/         # External services
 │   ├── static/           # CSS, JS
 │   ├── templates/        # HTML templates
-│   └── utils/            # Utilities
+│   └── utils/            # Utilities (date, slug, cache)
 ├── scripts/              # Utility scripts
 ├── docs/                 # Documentation
 └── requirements.txt

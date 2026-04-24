@@ -216,18 +216,24 @@ Industry-standard agentic search with:
 
 ## Public Site
 
-Each user gets a public blog at `/site/<user_id>`.
+Each user gets a public blog at `/site/<site_identifier>` where `site_identifier` can be:
+- **Site slug** (SEO-friendly): `/site/my-awesome-blog`
+- **User ID** (backwards compatible): `/site/abc123xyz`
 
 ### Pages
 
 | Page | URL | Description |
 |------|-----|-------------|
-| Home | `/site/<user_id>` | Landing page with featured posts |
-| Blog | `/site/<user_id>/blog` | Paginated post listing |
-| Post | `/site/<user_id>/post/<id>` | Single article view |
-| About | `/site/<user_id>/about` | About the author |
-| Contact | `/site/<user_id>/contact` | Contact form |
-| Category | `/site/<user_id>/category/<name>` | Posts by category |
+| Home | `/site/<site_identifier>` | Landing page with featured posts |
+| Blog | `/site/<site_identifier>/blog` | Paginated post listing |
+| Post | `/site/<site_identifier>/post/<id>` | Single article view |
+| About | `/site/<site_identifier>/about` | About the author |
+| Contact | `/site/<site_identifier>/contact` | Contact form |
+| Category | `/site/<site_identifier>/category/<name>` | Posts by category |
+| Privacy | `/site/<site_identifier>/privacy-policy` | Privacy policy page |
+| Terms | `/site/<site_identifier>/terms-of-service` | Terms of service page |
+| RSS | `/site/<site_identifier>/rss.xml` | RSS feed |
+| Sitemap | `/site/<site_identifier>/sitemap.xml` | XML sitemap |
 
 ### Site Settings
 
@@ -235,6 +241,7 @@ Customize via Dashboard > Site Settings:
 
 | Setting | Description |
 |---------|-------------|
+| `site_slug` | SEO-friendly URL slug (e.g., `my-blog`) |
 | `site_name` | Blog display name |
 | `site_description` | Tagline/description |
 | `logo_url` | Logo image URL |
@@ -243,6 +250,10 @@ Customize via Dashboard > Site Settings:
 | `social_links` | Twitter, LinkedIn, GitHub |
 | `contact_email` | Contact email address |
 | `analytics_id` | Google Analytics ID |
+| `timezone` | Display timezone (e.g., `America/New_York`) |
+| `date_format` | Date display format |
+| `privacy_policy` | Privacy policy content |
+| `terms_of_service` | Terms of service content |
 
 ### Features
 
@@ -294,12 +305,21 @@ Customize via Dashboard > Site Settings:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/site/<user_id>` | Home page |
-| GET | `/site/<user_id>/blog` | Blog listing |
-| GET | `/site/<user_id>/post/<id>` | Single post |
-| POST | `/site/<user_id>/subscribe` | Newsletter signup |
-| POST | `/site/<user_id>/contact` | Contact form |
-| POST | `/site/<user_id>/semantic-search` | AI search |
+| GET | `/site/<site_identifier>` | Home page |
+| GET | `/site/<site_identifier>/blog` | Blog listing |
+| GET | `/site/<site_identifier>/post/<id>` | Single post |
+| GET | `/site/<site_identifier>/about` | About page |
+| GET | `/site/<site_identifier>/contact` | Contact page |
+| POST | `/site/<site_identifier>/subscribe` | Newsletter signup |
+| POST | `/site/<site_identifier>/contact` | Contact form |
+| POST | `/site/<site_identifier>/semantic-search` | AI search |
+| GET | `/site/<site_identifier>/rss.xml` | RSS feed |
+| GET | `/site/<site_identifier>/sitemap.xml` | XML sitemap |
+| GET | `/site/<site_identifier>/robots.txt` | Robots file |
+| GET | `/site/<site_identifier>/privacy-policy` | Privacy policy |
+| GET | `/site/<site_identifier>/terms-of-service` | Terms of service |
+
+> **Note:** `site_identifier` can be either a custom site slug (e.g., `my-blog`) or the user's Firebase ID for backwards compatibility.
 
 ---
 
@@ -323,6 +343,7 @@ FYP-main/
 │   │   ├── auth.py
 │   │   ├── blog_routes.py
 │   │   ├── newsletter_routes.py
+│   │   ├── settings_routes.py
 │   │   ├── site_routes.py
 │   │   └── user_mgmt.py
 │   ├── services/               # External services
@@ -337,7 +358,9 @@ FYP-main/
 │   │   └── partials/          # Reusable components
 │   └── utils/                  # Utilities
 │       ├── cache.py
-│       └── parallel.py
+│       ├── date_utils.py       # Timezone-aware date formatting
+│       ├── parallel.py
+│       └── slug_utils.py       # URL slug generation
 ├── scripts/
 │   └── backfill_embeddings.py  # Generate embeddings for existing blogs
 ├── docs/
