@@ -310,7 +310,7 @@ def site_semantic_search(user_id):
         from app.agents.semantic_search_agent import SemanticSearchAgent
 
         search_agent = SemanticSearchAgent()
-        results = search_agent.search(user_id, query, top_k=6, min_score=0.25)
+        results = search_agent.search(user_id, query, top_k=6)
 
         # Format results for frontend
         formatted_results = []
