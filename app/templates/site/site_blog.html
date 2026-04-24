@@ -2,49 +2,69 @@
 
 {% block title %}Blog | {{ settings.site_name }}{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/site/blog.css') }}">
+{% endblock %}
+
 {% block content %}
-<!-- Blog Hero -->
-<section class="blog-hero">
-    <h1>Our Blog</h1>
-    <p>Explore our collection of articles, tutorials, and insights</p>
-    <div class="blog-hero-stats">
-        <div class="blog-hero-stat">
-            <i class="bi bi-journal-text"></i>
-            <strong>{{ total_posts }}</strong> Articles
-        </div>
-        <div class="blog-hero-stat">
-            <i class="bi bi-folder"></i>
-            <strong>{{ categories|length }}</strong> Categories
-        </div>
-    </div>
+<!-- Blog Header -->
+<section class="blog-header">
+    <h1 class="blog-header-title">{{ settings.blog_title or 'All Articles' }}</h1>
+    <p class="blog-header-subtitle">{{ settings.blog_subtitle or 'Exploring the intersection of intellectual precision and modern technology. Dive into our latest thoughts on writing, design, and digital craftsmanship.' }}</p>
 </section>
 
 <!-- Blog Toolbar -->
 <div class="blog-toolbar">
-    <div class="search-box">
-        <i class="bi bi-search"></i>
-        <input type="text" id="blog-search" placeholder="Search articles..." onkeyup="filterBlogs()">
+    <div class="blog-toolbar-left">
+        <div class="blog-sort-dropdown">
+            <label>Sort By</label>
+            <select id="sort-select">
+                <option value="latest">Latest</option>
+                <option value="oldest">Oldest</option>
+                <option value="title">Title A-Z</option>
+            </select>
+        </div>
+        <div class="blog-filter-tabs">
+            <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="filter-tab {% if not current_category %}active{% endif %}">All</a>
+            {% for cat in categories[:5] %}
+            <a href="{{ url_for('site_bp.site_blog', user_id=user_id, category=cat.name) }}"
+               class="filter-tab {% if current_category and current_category|lower == cat.name|lower %}active{% endif %}">
+                {{ cat.name }}
+            </a>
+            {% endfor %}
+        </div>
     </div>
-    <div class="sort-dropdown">
-        <label>Sort by:</label>
-        <select id="sort-select">
-            <option value="latest">Latest</option>
-            <option value="oldest">Oldest</option>
-            <option value="title">Title A-Z</option>
-        </select>
+    <div class="blog-toolbar-right">
+        <span class="blog-results-count">
+            Showing <strong>{{ ((current_page - 1) * per_page + 1) if blogs else 0 }}-{{ [current_page * per_page, total_posts]|min }}</strong> of <strong>{{ total_posts }}</strong>
+        </span>
+        <div class="blog-view-toggle">
+            <button class="view-btn active" data-view="grid" title="Grid View">
+                <i class="bi bi-grid-3x3-gap"></i>
+            </button>
+            <button class="view-btn" data-view="list" title="List View">
+                <i class="bi bi-list-ul"></i>
+            </button>
+        </div>
     </div>
 </div>
 
 <!-- Blog Layout -->
 <div class="blog-layout">
     <!-- Main Content -->
-    <main>
+    <main class="blog-main">
         {% if blogs %}
         <div class="blog-grid" id="blog-grid">
             {% for blog in blogs %}
             <article class="blog-card" data-title="{{ blog.title|lower }}" data-date="{{ blog.updated_at.timestamp() if blog.updated_at else 0 }}">
                 <div class="blog-card-image">
-                    <i class="bi bi-journal-richtext"></i>
+                    {% if blog.cover_image %}
+                    <img src="{{ blog.cover_image }}" alt="{{ blog.title }}">
+                    {% else %}
+                    <div class="blog-card-placeholder">
+                        <i class="bi bi-image"></i>
+                    </div>
+                    {% endif %}
                     {% if blog.category %}
                     <span class="blog-card-category">{{ blog.category }}</span>
                     {% endif %}
@@ -52,25 +72,19 @@
                 <div class="blog-card-body">
                     <h2 class="blog-card-title">
                         <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}">
-                            {{ blog.title }}
+                            {{ blog.title|truncate(50) }}
                         </a>
                     </h2>
                     <p class="blog-card-excerpt">
                         {% if blog.content is mapping %}
-                            {{ (blog.content.body or blog.content.markdown or blog.content.text or '')|striptags|truncate(120) }}
+                            {{ (blog.content.body or blog.content.markdown or blog.content.text or '')|striptags|truncate(100) }}
                         {% else %}
-                            {{ blog.content|striptags|truncate(120) }}
+                            {{ blog.content|striptags|truncate(100) }}
                         {% endif %}
                     </p>
-                    <div class="blog-card-footer">
-                        <div class="blog-card-meta">
-                            <i class="bi bi-calendar3"></i>
-                            {{ blog.updated_at.strftime('%b %d, %Y') if blog.updated_at else 'Recently' }}
-                        </div>
-                        <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}" class="blog-card-link">
-                            Read <i class="bi bi-arrow-right"></i>
-                        </a>
-                    </div>
+                    <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}" class="blog-card-link">
+                        Read Article <i class="bi bi-arrow-right"></i>
+                    </a>
                 </div>
             </article>
             {% endfor %}
@@ -78,7 +92,7 @@
 
         <!-- Pagination -->
         {% if total_pages > 1 %}
-        <nav class="pagination">
+        <nav class="blog-pagination">
             {% if current_page > 1 %}
             <a href="{{ url_for('site_bp.site_blog', user_id=user_id, page=current_page-1, category=current_category) }}" class="pagination-btn">
                 <i class="bi bi-chevron-left"></i>
@@ -108,12 +122,14 @@
         {% endif %}
 
         {% else %}
-        <div class="empty-state">
-            <i class="bi bi-journal-x"></i>
+        <div class="blog-empty-state">
+            <div class="empty-state-icon">
+                <i class="bi bi-journal-x"></i>
+            </div>
             <h3>No articles found</h3>
             <p>{% if current_category %}No articles in this category yet.{% else %}Check back soon for new content!{% endif %}</p>
             {% if current_category %}
-            <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="btn-primary">
+            <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="btn-back">
                 <i class="bi bi-arrow-left"></i> View All Articles
             </a>
             {% endif %}
@@ -124,80 +140,72 @@
     <!-- Sidebar -->
     <aside class="blog-sidebar">
         <!-- Categories -->
-        <div class="sidebar-card">
-            <h3><i class="bi bi-folder"></i> Categories</h3>
-            <ul class="category-list">
+        <div class="sidebar-widget">
+            <h3 class="sidebar-widget-title">Categories</h3>
+            <ul class="sidebar-categories">
                 <li>
                     <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="{% if not current_category %}active{% endif %}">
+                        <span class="category-bullet"></span>
                         All Posts
-                        <span class="count">{{ total_posts }}</span>
                     </a>
                 </li>
                 {% for cat in categories %}
                 <li>
                     <a href="{{ url_for('site_bp.site_blog', user_id=user_id, category=cat.name) }}"
                        class="{% if current_category and current_category|lower == cat.name|lower %}active{% endif %}">
+                        <span class="category-bullet"></span>
                         {{ cat.name }}
-                        <span class="count">{{ cat.count if cat.count else 0 }}</span>
                     </a>
                 </li>
                 {% endfor %}
             </ul>
         </div>
 
-        <!-- Newsletter -->
-        <div class="sidebar-card sidebar-newsletter">
-            <h3><i class="bi bi-envelope"></i> Newsletter</h3>
-            <p>Get the latest articles delivered to your inbox.</p>
-            <form id="sidebar-newsletter-form">
-                <input type="email" name="email" placeholder="Your email" required>
-                <button type="submit">Subscribe</button>
-            </form>
+        <!-- Newsletter Promo -->
+        <div class="sidebar-promo">
+            <div class="sidebar-promo-content">
+                <div class="sidebar-promo-icon">
+                    <i class="bi bi-pen"></i>
+                </div>
+                <h3>{{ settings.sidebar_promo_title or 'Weekly Drafting' }}</h3>
+                <p>{{ settings.sidebar_promo_text or 'Get exclusive writing tips and insights delivered to your inbox every week.' }}</p>
+                <button class="sidebar-promo-btn" id="sidebar-subscribe-btn">Subscribe Now</button>
+            </div>
+        </div>
+
+        <!-- Trending Now -->
+        <div class="sidebar-widget">
+            <h3 class="sidebar-widget-title">Trending Now</h3>
+            <ul class="sidebar-trending">
+                {% if blogs %}
+                    {% for blog in blogs[:4] %}
+                    <li>
+                        <span class="trending-number">{{ loop.index }}</span>
+                        <div class="trending-content">
+                            <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}" class="trending-title">
+                                {{ blog.title|truncate(45) }}
+                            </a>
+                            <span class="trending-meta">
+                                {{ blog.updated_at.strftime('%b %d, %Y') if blog.updated_at else 'Recently' }}
+                            </span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <li class="trending-empty">No trending posts yet</li>
+                {% endif %}
+            </ul>
         </div>
     </aside>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<script src="{{ url_for('static', filename='js/site/blog.js') }}"></script>
 <script>
-    // Search Filter
-    function filterBlogs() {
-        const searchTerm = document.getElementById('blog-search').value.toLowerCase();
-        const cards = document.querySelectorAll('.blog-card');
-
-        cards.forEach(card => {
-            const title = card.dataset.title;
-            if (title.includes(searchTerm)) {
-                card.style.display = '';
-            } else {
-                card.style.display = 'none';
-            }
-        });
+    // Initialize blog page with subscribe URL
+    if (typeof initBlogPage === 'function') {
+        initBlogPage('{{ url_for("site_bp.site_subscribe", user_id=user_id) }}');
     }
-
-    // Sort Functionality
-    document.getElementById('sort-select').addEventListener('change', function() {
-        const grid = document.getElementById('blog-grid');
-        const cards = Array.from(grid.querySelectorAll('.blog-card'));
-
-        cards.sort((a, b) => {
-            switch(this.value) {
-                case 'oldest':
-                    return parseFloat(a.dataset.date) - parseFloat(b.dataset.date);
-                case 'title':
-                    return a.dataset.title.localeCompare(b.dataset.title);
-                default: // latest
-                    return parseFloat(b.dataset.date) - parseFloat(a.dataset.date);
-            }
-        });
-
-        cards.forEach(card => grid.appendChild(card));
-    });
-
-    // Sidebar Newsletter Form
-    document.getElementById('sidebar-newsletter-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        handleNewsletterSubmit(this, '{{ url_for("site_bp.site_subscribe", user_id=user_id) }}');
-    });
 </script>
 {% endblock %}
