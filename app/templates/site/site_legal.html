@@ -1,0 +1,219 @@
+{% extends "site/site_base.html" %}
+
+{% block title %}{{ page_title }} | {{ settings.site_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==================== LEGAL PAGE STYLES ==================== */
+    .legal-hero {
+        padding: 3rem 2rem;
+        margin: -2rem -2rem 3rem -2rem;
+        background: linear-gradient(135deg, rgba(67, 24, 255, 0.03) 0%, rgba(99, 102, 241, 0.08) 50%, rgba(139, 92, 246, 0.05) 100%);
+        position: relative;
+        text-align: center;
+    }
+
+    .legal-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(67, 24, 255, 0.06) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .legal-hero-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 10px 40px rgba(67, 24, 255, 0.3);
+    }
+
+    .legal-hero-icon i {
+        font-size: 2rem;
+        color: white;
+    }
+
+    .legal-hero h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .legal-hero h1 span {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .legal-hero-meta {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ==================== LEGAL CONTENT ==================== */
+    .legal-content-wrapper {
+        max-width: 850px;
+        margin: 0 auto;
+    }
+
+    .legal-card {
+        background: var(--bg-card);
+        border-radius: var(--radius-lg);
+        padding: 3rem;
+        box-shadow: var(--shadow-card);
+    }
+
+    .legal-content {
+        font-size: 1.05rem;
+        line-height: 1.85;
+        color: var(--text-secondary);
+    }
+
+    .legal-content h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 2.5rem 0 1rem 0;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--primary-light);
+    }
+
+    .legal-content h2:first-child {
+        margin-top: 0;
+    }
+
+    .legal-content h3 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 2rem 0 0.75rem 0;
+    }
+
+    .legal-content p {
+        margin-bottom: 1.25rem;
+    }
+
+    .legal-content ul, .legal-content ol {
+        margin-bottom: 1.25rem;
+        padding-left: 1.5rem;
+    }
+
+    .legal-content li {
+        margin-bottom: 0.5rem;
+    }
+
+    .legal-content strong {
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    .legal-content a {
+        color: var(--primary-color);
+        text-decoration: none;
+        transition: var(--transition-base);
+    }
+
+    .legal-content a:hover {
+        text-decoration: underline;
+    }
+
+    /* ==================== BACK LINK ==================== */
+    .legal-back {
+        margin-top: 2rem;
+        text-align: center;
+    }
+
+    .legal-back a {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 0.95rem;
+        transition: var(--transition-base);
+    }
+
+    .legal-back a:hover {
+        color: var(--primary-color);
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 768px) {
+        .legal-hero {
+            padding: 2rem 1.5rem;
+            margin: -1.5rem -1.5rem 2rem -1.5rem;
+        }
+
+        .legal-hero h1 {
+            font-size: 1.75rem;
+        }
+
+        .legal-hero-icon {
+            width: 60px;
+            height: 60px;
+        }
+
+        .legal-hero-icon i {
+            font-size: 1.5rem;
+        }
+
+        .legal-card {
+            padding: 1.5rem;
+        }
+
+        .legal-content {
+            font-size: 1rem;
+        }
+
+        .legal-content h2 {
+            font-size: 1.25rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Legal Hero -->
+<section class="legal-hero" data-animate="fade-up">
+    <div class="legal-hero-icon">
+        {% if 'privacy' in page_title|lower %}
+        <i class="bi bi-shield-lock"></i>
+        {% else %}
+        <i class="bi bi-file-earmark-text"></i>
+        {% endif %}
+    </div>
+    <h1><span>{{ page_title }}</span></h1>
+    <p class="legal-hero-meta">
+        Last updated: {{ last_updated or 'Recently' }}
+    </p>
+</section>
+
+<!-- Legal Content -->
+<div class="legal-content-wrapper">
+    <div class="legal-card" data-animate="fade-up">
+        <div class="legal-content">
+            {{ page_content|safe }}
+        </div>
+    </div>
+
+    <div class="legal-back">
+        <a href="{{ url_for('site_bp.site_home', site_identifier=settings.site_slug|default(user_id, true)) }}">
+            <i class="bi bi-arrow-left"></i> Back to Home
+        </a>
+    </div>
+</div>
+{% endblock %}

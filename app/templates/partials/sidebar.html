@@ -1,8 +1,12 @@
 <!-- Shared Sidebar Component -->
 <nav class="dashboard-sidebar">
     <div class="sidebar-logo" onclick="this.closest('.dashboard-sidebar').classList.toggle('expanded')">
+        {% if app_config and app_config.app_logo %}
+        <img src="{{ app_config.app_logo }}" alt="Logo" style="width: 28px; height: 28px; border-radius: 6px; object-fit: cover;">
+        {% else %}
         <i class="bi bi-robot"></i>
-        <span>ScriptlyAI</span>
+        {% endif %}
+        <span>{{ app_config.app_name if app_config else 'ScriptlyAI' }}</span>
     </div>
 
     <div class="sidebar-menu">

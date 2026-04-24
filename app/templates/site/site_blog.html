@@ -568,16 +568,17 @@
 <!-- Blog Hero -->
 <section class="blog-hero">
     <div class="blog-hero-content" data-animate="fade-up">
-        <h1>Our Blog</h1>
-        <p>Explore our collection of articles, tutorials, and insights</p>
+        <h1>{{ settings.hero_blog.title | default('Our Blog') }}</h1>
+        {% set subtitle_text = settings.hero_blog.subtitle | default('Explore our collection of articles, tutorials, and insights') %}
+        <p>{{ subtitle_text | replace('{site_description}', settings.site_description | default('')) | replace('{site_name}', settings.site_name | default('')) }}</p>
         <div class="blog-hero-stats">
             <div class="blog-hero-stat">
                 <i class="bi bi-journal-text"></i>
-                <strong>{{ total_posts }}</strong> Articles
+                <strong>{{ total_posts }}</strong> {{ settings.hero_home.stats_label_1 if settings.hero_home else 'Articles' }}
             </div>
             <div class="blog-hero-stat">
                 <i class="bi bi-folder"></i>
-                <strong>{{ categories|length }}</strong> Categories
+                <strong>{{ categories|length }}</strong> {{ settings.hero_home.stats_label_2 if settings.hero_home else 'Categories' }}
             </div>
         </div>
     </div>
@@ -655,7 +656,7 @@
                 </div>
                 <div class="blog-card-body">
                     <h2 class="blog-card-title">
-                        <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}">
+                        <a href="{{ url_for('site_bp.site_post', site_identifier=settings.site_slug|default(user_id, true), slug_or_id=blog.slug or blog.id) }}">
                             {{ blog.title }}
                         </a>
                     </h2>
@@ -671,7 +672,7 @@
                             <i class="bi bi-calendar3"></i>
                             {{ blog.updated_at.strftime('%b %d, %Y') if blog.updated_at else 'Recently' }}
                         </div>
-                        <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}" class="blog-card-link">
+                        <a href="{{ url_for('site_bp.site_post', site_identifier=settings.site_slug|default(user_id, true), slug_or_id=blog.slug or blog.id) }}" class="blog-card-link">
                             Read <i class="bi bi-arrow-right"></i>
                         </a>
                     </div>
@@ -684,7 +685,7 @@
         {% if total_pages > 1 %}
         <nav class="pagination">
             {% if current_page > 1 %}
-            <a href="{{ url_for('site_bp.site_blog', user_id=user_id, page=current_page-1, category=current_category) }}" class="pagination-btn">
+            <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true), page=current_page-1, category=current_category) }}" class="pagination-btn">
                 <i class="bi bi-chevron-left"></i>
             </a>
             {% else %}
@@ -695,14 +696,14 @@
                 {% if page_num == current_page %}
                     <span class="pagination-btn active">{{ page_num }}</span>
                 {% elif page_num == 1 or page_num == total_pages or (page_num >= current_page - 2 and page_num <= current_page + 2) %}
-                    <a href="{{ url_for('site_bp.site_blog', user_id=user_id, page=page_num, category=current_category) }}" class="pagination-btn">{{ page_num }}</a>
+                    <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true), page=page_num, category=current_category) }}" class="pagination-btn">{{ page_num }}</a>
                 {% elif page_num == current_page - 3 or page_num == current_page + 3 %}
                     <span class="pagination-ellipsis">...</span>
                 {% endif %}
             {% endfor %}
 
             {% if current_page < total_pages %}
-            <a href="{{ url_for('site_bp.site_blog', user_id=user_id, page=current_page+1, category=current_category) }}" class="pagination-btn">
+            <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true), page=current_page+1, category=current_category) }}" class="pagination-btn">
                 <i class="bi bi-chevron-right"></i>
             </a>
             {% else %}
@@ -717,7 +718,7 @@
             <h3>No articles found</h3>
             <p>{% if current_category %}No articles in this category yet.{% else %}Check back soon for new content!{% endif %}</p>
             {% if current_category %}
-            <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="btn-primary">
+            <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}" class="btn-primary">
                 <i class="bi bi-arrow-left"></i> View All Articles
             </a>
             {% endif %}
@@ -732,14 +733,14 @@
             <h3><i class="bi bi-folder"></i> Categories</h3>
             <ul class="category-list">
                 <li>
-                    <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="{% if not current_category %}active{% endif %}">
+                    <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}" class="{% if not current_category %}active{% endif %}">
                         All Posts
                         <span class="count">{{ total_posts }}</span>
                     </a>
                 </li>
                 {% for cat in categories %}
                 <li>
-                    <a href="{{ url_for('site_bp.site_blog', user_id=user_id, category=cat.name) }}"
+                    <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true), category=cat.name) }}"
                        class="{% if current_category and current_category|lower == cat.name|lower %}active{% endif %}">
                         {{ cat.name }}
                         <span class="count">{{ cat.count if cat.count else 0 }}</span>
@@ -809,7 +810,7 @@
         button.disabled = true;
 
         try {
-            const response = await fetch('{{ url_for("site_bp.site_subscribe", user_id=user_id) }}', {
+            const response = await fetch('{{ url_for("site_bp.site_subscribe", site_identifier=settings.site_slug|default(user_id, true)) }}', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `email=${encodeURIComponent(email)}`

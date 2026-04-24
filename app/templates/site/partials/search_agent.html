@@ -27,7 +27,7 @@
                     class="search-agent-input"
                     id="search-agent-input"
                     placeholder="Ask me anything about the blog..."
-                    data-search-url="{{ url_for('site_bp.site_semantic_search', user_id=user_id) }}"
+                    data-search-url="{{ url_for('site_bp.site_semantic_search', site_identifier=settings.site_slug|default(user_id, true)) }}"
                     autocomplete="off"
                 >
             </div>

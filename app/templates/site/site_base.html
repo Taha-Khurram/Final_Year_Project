@@ -7,26 +7,46 @@
 
     <!-- SEO Meta Tags -->
     <meta name="description" content="{{ settings.meta_description or settings.site_description }}">
-    {% if settings.site_visibility == 'unlisted' %}
+    {% if settings.site_visibility == 'unlisted' or (settings.seo and not settings.seo.indexing_enabled) %}
     <meta name="robots" content="noindex, nofollow">
     {% endif %}
 
+    <!-- Site Verification -->
+    {% if settings.seo and settings.seo.google_site_verification %}
+    <meta name="google-site-verification" content="{{ settings.seo.google_site_verification }}">
+    {% endif %}
+    {% if settings.seo and settings.seo.bing_site_verification %}
+    <meta name="msvalidate.01" content="{{ settings.seo.bing_site_verification }}">
+    {% endif %}
+
     <!-- Open Graph / Social Sharing -->
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="{{ settings.meta_title or settings.site_name }}">
-    <meta property="og:description" content="{{ settings.meta_description or settings.site_description }}">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}{{ settings.meta_title or settings.site_name }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ settings.meta_description or settings.site_description }}{% endblock %}">
+    {% block og_image %}
     {% if settings.og_image_url %}
     <meta property="og:image" content="{{ settings.og_image_url }}">
+    {% elif settings.seo and settings.seo.og_default_image %}
+    <meta property="og:image" content="{{ settings.seo.og_default_image }}">
     {% endif %}
-    <meta property="og:site_name" content="{{ settings.site_name }}">
+    {% endblock %}
+    <meta property="og:site_name" content="{{ settings.seo.og_site_name if settings.seo and settings.seo.og_site_name else settings.site_name }}">
+    <meta property="og:url" content="{{ request.url }}">
 
     <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ settings.meta_title or settings.site_name }}">
-    <meta name="twitter:description" content="{{ settings.meta_description or settings.site_description }}">
+    <meta name="twitter:card" content="{{ settings.seo.twitter_card if settings.seo and settings.seo.twitter_card else 'summary_large_image' }}">
+    {% if settings.seo and settings.seo.twitter_site %}
+    <meta name="twitter:site" content="{{ settings.seo.twitter_site }}">
+    {% endif %}
+    <meta name="twitter:title" content="{% block twitter_title %}{{ settings.meta_title or settings.site_name }}{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}{{ settings.meta_description or settings.site_description }}{% endblock %}">
+    {% block twitter_image %}
     {% if settings.og_image_url %}
     <meta name="twitter:image" content="{{ settings.og_image_url }}">
+    {% elif settings.seo and settings.seo.og_default_image %}
+    <meta name="twitter:image" content="{{ settings.seo.og_default_image }}">
     {% endif %}
+    {% endblock %}
 
     <!-- Favicon -->
     {% if settings.favicon_url %}
@@ -93,6 +113,109 @@
     <script src="{{ url_for('static', filename='js/site/search-agent.js') }}"></script>
 
     {% block extra_js %}{% endblock %}
+
+    <!-- Cookie Consent Banner -->
+    {% if settings.legal and settings.legal.cookie_consent_enabled %}
+    <div class="cookie-consent-banner" id="cookie-consent" style="display: none;">
+        <div class="cookie-consent-content">
+            <div class="cookie-consent-text">
+                <i class="bi bi-shield-check"></i>
+                <span>{{ settings.legal.cookie_consent_text or 'We use cookies to enhance your browsing experience and analyze site traffic.' }}</span>
+            </div>
+            <div class="cookie-consent-actions">
+                <a href="{{ url_for('site_bp.site_privacy_policy', site_identifier=settings.site_slug|default(user_id, true)) }}" class="cookie-learn-more">
+                    {{ settings.legal.cookie_consent_link_text or 'Learn more' }}
+                </a>
+                <button class="cookie-accept-btn" onclick="acceptCookies()">
+                    {{ settings.legal.cookie_consent_button or 'Accept' }}
+                </button>
+            </div>
+        </div>
+    </div>
+    <style>
+        .cookie-consent-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border-top: 1px solid rgba(0,0,0,0.08);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+            padding: 1rem 2rem;
+            z-index: 9999;
+            animation: slideUp 0.4s ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .cookie-consent-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .cookie-consent-text {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        .cookie-consent-text i {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+        }
+        .cookie-consent-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+        .cookie-learn-more {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+        .cookie-learn-more:hover {
+            color: var(--primary-color);
+        }
+        .cookie-accept-btn {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .cookie-accept-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(67, 24, 255, 0.3);
+        }
+        @media (max-width: 768px) {
+            .cookie-consent-banner { padding: 1rem; }
+            .cookie-consent-content { flex-direction: column; gap: 1rem; text-align: center; }
+            .cookie-consent-text { flex-direction: column; gap: 0.5rem; }
+        }
+    </style>
+    <script>
+        (function() {
+            if (!localStorage.getItem('cookieConsent')) {
+                document.getElementById('cookie-consent').style.display = 'block';
+            }
+        })();
+        function acceptCookies() {
+            localStorage.setItem('cookieConsent', 'accepted');
+            document.getElementById('cookie-consent').style.display = 'none';
+        }
+    </script>
+    {% endif %}
 
     <!-- Instant.page - prefetches links on hover for faster navigation -->
     <script src="https://cdn.jsdelivr.net/npm/instant.page@5.2.0/instantpage.min.js" type="module" integrity="sha384-jnZyxPjiipYXnU4qVToe8hoZXOGmrJvPy8o+4+Uk8WRADclK8bTdYxO8LPLXR3iv" crossorigin="anonymous"></script>

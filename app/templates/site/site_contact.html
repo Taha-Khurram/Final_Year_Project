@@ -459,8 +459,9 @@
         <div class="contact-hero-icon">
             <i class="bi bi-envelope-paper"></i>
         </div>
-        <h1>Get in Touch</h1>
-        <p>Have questions or feedback? We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+        <h1>{{ settings.hero_contact.title | default('Get in Touch') }}</h1>
+        {% set subtitle_text = settings.hero_contact.subtitle | default("Have questions or feedback? We'd love to hear from you. Send us a message and we'll respond as soon as possible.") %}
+        <p>{{ subtitle_text | replace('{site_description}', settings.site_description | default('')) | replace('{site_name}', settings.site_name | default('')) }}</p>
     </div>
 
     <div class="contact-hero-illustration">
@@ -557,8 +558,8 @@
 <div class="contact-layout">
     <!-- Contact Form -->
     <div class="contact-form-card" data-animate="fade-up">
-        <h2>Send a Message</h2>
-        <p class="subtitle">Fill out the form below and we'll get back to you shortly.</p>
+        <h2>{{ settings.hero_contact.form_title if settings.hero_contact else 'Send a Message' }}</h2>
+        <p class="subtitle">{{ settings.hero_contact.form_subtitle if settings.hero_contact else "Fill out the form below and we'll get back to you shortly." }}</p>
 
         {% if request.args.get('success') %}
         <div class="alert alert-success">
@@ -574,7 +575,7 @@
         </div>
         {% endif %}
 
-        <form action="{{ url_for('site_bp.site_contact_submit', user_id=user_id) }}" method="POST" id="contact-form">
+        <form action="{{ url_for('site_bp.site_contact_submit', site_identifier=settings.site_slug|default(user_id, true)) }}" method="POST" id="contact-form">
             <div class="form-row">
                 <div class="form-group">
                     <label for="name">Name <span>*</span></label>
@@ -636,7 +637,7 @@
                 </div>
                 <div class="contact-info-content">
                     <h4>Website</h4>
-                    <p><a href="{{ url_for('site_bp.site_home', user_id=user_id) }}">{{ settings.site_name }}</a></p>
+                    <p><a href="{{ url_for('site_bp.site_home', site_identifier=settings.site_slug|default(user_id, true)) }}">{{ settings.site_name }}</a></p>
                 </div>
             </div>
         </div>
@@ -673,20 +674,20 @@
     <h2>Frequently Asked Questions</h2>
     <div class="faq-grid" data-animate-stagger>
         <div class="faq-card">
-            <h4><i class="bi bi-question-circle"></i> How quickly will I get a response?</h4>
-            <p>We aim to respond to all inquiries within 24-48 hours during business days.</p>
+            <h4><i class="bi bi-question-circle"></i> {{ settings.hero_contact.faq_1_q if settings.hero_contact else 'How quickly will I get a response?' }}</h4>
+            <p>{{ settings.hero_contact.faq_1_a if settings.hero_contact else 'We aim to respond to all inquiries within 24-48 hours during business days.' }}</p>
         </div>
         <div class="faq-card">
-            <h4><i class="bi bi-question-circle"></i> Can I contribute to the blog?</h4>
-            <p>We welcome guest contributions! Reach out with your ideas and we'll discuss collaboration opportunities.</p>
+            <h4><i class="bi bi-question-circle"></i> {{ settings.hero_contact.faq_2_q if settings.hero_contact else 'Can I contribute to the blog?' }}</h4>
+            <p>{{ settings.hero_contact.faq_2_a if settings.hero_contact else "We welcome guest contributions! Reach out with your ideas and we'll discuss collaboration opportunities." }}</p>
         </div>
         <div class="faq-card">
-            <h4><i class="bi bi-question-circle"></i> How can I stay updated?</h4>
-            <p>Subscribe to our newsletter or follow us on social media to never miss new content.</p>
+            <h4><i class="bi bi-question-circle"></i> {{ settings.hero_contact.faq_3_q if settings.hero_contact else 'How can I stay updated?' }}</h4>
+            <p>{{ settings.hero_contact.faq_3_a if settings.hero_contact else 'Subscribe to our newsletter or follow us on social media to never miss new content.' }}</p>
         </div>
         <div class="faq-card">
-            <h4><i class="bi bi-question-circle"></i> Do you offer partnerships?</h4>
-            <p>Yes! We're open to collaborations and partnerships. Let us know what you have in mind.</p>
+            <h4><i class="bi bi-question-circle"></i> {{ settings.hero_contact.faq_4_q if settings.hero_contact else 'Do you offer partnerships?' }}</h4>
+            <p>{{ settings.hero_contact.faq_4_a if settings.hero_contact else "Yes! We're open to collaborations and partnerships. Let us know what you have in mind." }}</p>
         </div>
     </div>
 </section>

@@ -41,19 +41,29 @@ class FirestoreService:
             return None
 
     def create_draft(self, blog_data, user_id):
-        """Saves blog as DRAFT and increments category count."""
+        """Saves blog as DRAFT, increments category count, and generates unique slug."""
         try:
+            from app.utils.slug_utils import generate_slug, ensure_unique_slug
+
             blog_data['created_at'] = firestore.SERVER_TIMESTAMP
             blog_data['updated_at'] = datetime.utcnow()
             blog_data['author_id'] = user_id
             blog_data['site_owner_id'] = self.get_site_owner_for_user(user_id)
             blog_data['status'] = blog_data.get('status', 'DRAFT').upper()
 
+            # Generate unique slug from title
+            site_owner = blog_data['site_owner_id']
+            title = blog_data.get('title', 'Untitled')
+            base_slug = generate_slug(title)
+            existing_slugs = self._get_user_slugs(site_owner)
+            blog_data['slug'] = ensure_unique_slug(base_slug, existing_slugs)
+            blog_data['old_slugs'] = []
+            blog_data['numeric_id'] = self._get_next_numeric_id(site_owner)
+
             doc_ref = self.db.collection(self.collection_name).add(blog_data)
             blog_id = doc_ref[1].id
 
             # Use site_owner_id for category management
-            site_owner = blog_data['site_owner_id']
             category_name = blog_data.get('category')
             if category_name:
                 self.update_category_count(category_name, 1, site_owner)
@@ -63,16 +73,64 @@ class FirestoreService:
             print(f"❌ Firestore Error creating draft: {e}")
             return None
 
-    def update_blog_content(self, blog_id, title, content):
-        """Updates the title and body content of a blog post."""
+    def update_blog_content(self, blog_id, title, content, new_slug=None, seo_title=None, seo_description=None):
+        """
+        Updates the title and body content of a blog post.
+        If new_slug is provided and different from current, updates slug and tracks old one.
+        If title changes and no new_slug provided, auto-generates new slug from title.
+        Also handles SEO meta title and description fields.
+        """
         try:
+            from app.utils.slug_utils import generate_slug, ensure_unique_slug
+
             doc_ref = self.db.collection(self.collection_name).document(blog_id)
-            # Save content as a string to match TinyMCE output
-            doc_ref.update({
+            doc = doc_ref.get()
+
+            if not doc.exists:
+                return False
+
+            current_data = doc.to_dict()
+            current_slug = current_data.get('slug', '')
+            current_title = current_data.get('title', '')
+
+            update_data = {
                 'title': title,
-                'content': content, 
+                'content': content,
                 'updated_at': datetime.utcnow()
-            })
+            }
+
+            # Update SEO fields if provided
+            if seo_title is not None:
+                update_data['seo_title'] = seo_title
+            if seo_description is not None:
+                update_data['seo_description'] = seo_description
+
+            # Determine slug to use
+            slug_to_set = new_slug
+
+            # If no explicit slug provided and title changed, auto-generate new slug
+            if not slug_to_set and title != current_title:
+                base_slug = generate_slug(title)
+                user_id = current_data.get('site_owner_id') or current_data.get('author_id')
+                if user_id:
+                    existing_slugs = self._get_user_slugs(user_id)
+                    # Remove current slug from existing to allow keeping it
+                    existing_slugs.discard(current_slug)
+                    slug_to_set = ensure_unique_slug(base_slug, existing_slugs)
+                else:
+                    slug_to_set = base_slug
+
+            # Update slug if we have a new one different from current
+            if slug_to_set and slug_to_set != current_slug:
+                # Store old slug for 301 redirects
+                old_slugs = current_data.get('old_slugs', [])
+                if current_slug and current_slug not in old_slugs:
+                    old_slugs.append(current_slug)
+                # Keep only last 10 old slugs
+                update_data['old_slugs'] = old_slugs[-10:]
+                update_data['slug'] = slug_to_set
+
+            doc_ref.update(update_data)
             return True
         except Exception as e:
             print(f"❌ Error updating blog content: {e}")
@@ -680,6 +738,63 @@ class FirestoreService:
                 "recent_activity": [],
             }
 
+    # ---------------- APP SETTINGS METHODS ----------------
+
+    def _get_app_settings_defaults(self):
+        """Returns default app-level settings schema."""
+        return {
+            "app_name": "Scriptly",
+            "tagline": "Create, Manage & Publish Beautiful Blogs",
+            "app_logo": "",
+            "app_favicon": "",
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }
+
+    def get_app_settings(self):
+        """Fetches app-level settings from Firestore."""
+        try:
+            cache_key = "app_settings"
+            cached = cache.get(cache_key)
+            if cached:
+                return cached
+
+            doc = self.db.collection("app_config").document("general").get()
+            defaults = self._get_app_settings_defaults()
+
+            if doc.exists:
+                stored_data = doc.to_dict()
+                merged = {**defaults, **stored_data}
+                cache.set(cache_key, merged, ttl=300)
+                return merged
+
+            # Initialize with defaults if not exists
+            self.db.collection("app_config").document("general").set(defaults)
+            cache.set(cache_key, defaults, ttl=300)
+            return defaults
+
+        except Exception as e:
+            print(f"❌ Error fetching app settings: {e}")
+            return self._get_app_settings_defaults()
+
+    def update_app_settings(self, settings_data):
+        """Updates app-level settings in Firestore."""
+        try:
+            settings_data['updated_at'] = datetime.utcnow()
+
+            self.db.collection("app_config").document("general").set(
+                settings_data,
+                merge=True
+            )
+
+            # Clear cache
+            cache.delete("app_settings")
+
+            return True
+        except Exception as e:
+            print(f"❌ Error updating app settings: {e}")
+            return False
+
     # ---------------- SITE SETTINGS METHODS ----------------
 
     def _get_site_settings_defaults(self, user_id):
@@ -687,6 +802,7 @@ class FirestoreService:
         return {
             "id": user_id,
             "owner_id": user_id,
+            "site_slug": "",  # URL-friendly slug for clean URLs (e.g., 'my-blog' -> /site/my-blog)
             # General
             "site_name": "My Blog",
             "site_description": "Welcome to my blog",
@@ -716,7 +832,180 @@ class FirestoreService:
             "contact_email": "",
             "about_content": "",
             # Behavior
-            "site_visibility": "public"
+            "site_visibility": "public",
+            # Locale & Timezone
+            "timezone": "UTC",
+            "date_format": "MMM DD, YYYY",
+            "time_format": "12h",
+            "locale": "en",
+            # Header Settings
+            "header": {
+                "nav_home": "Home",
+                "nav_blog": "Blog",
+                "nav_about": "About",
+                "nav_contact": "Contact",
+                "cta_text": "Subscribe",
+                "show_search": True
+            },
+            # Footer Settings
+            "footer": {
+                "copyright": "2024 {site_name}. All rights reserved.",
+                "col1_title": "Navigation",
+                "col2_title": "Support",
+                "col3_title": "Legal & Social",
+                "show_newsletter": True,
+                "newsletter_title": "Stay Updated",
+                "newsletter_description": "Get the latest posts delivered to your inbox."
+            },
+            # Hero Sections
+            "hero_home": {
+                "badge": "{niche}",
+                "title": "Welcome to {site_name}",
+                "subtitle": "{site_description}",
+                "cta_primary": "Explore Articles",
+                "cta_secondary": "Learn More",
+                "stats_label_1": "Articles",
+                "stats_label_2": "Categories",
+                "stats_label_3": "Readers"
+            },
+            "hero_about": {
+                "title": "About {site_name}",
+                "subtitle": "{site_description}",
+                "story_title": "Our Story",
+                "values_title": "What We Stand For",
+                "value_1_title": "Quality Content",
+                "value_1_desc": "Every article is crafted with care and attention to detail.",
+                "value_2_title": "Community First",
+                "value_2_desc": "We believe in building meaningful connections.",
+                "value_3_title": "Authenticity",
+                "value_3_desc": "Real experiences, honest opinions, genuine insights.",
+                "stats_title": "By the Numbers",
+                "cta_title": "Ready to Explore?",
+                "cta_subtitle": "Dive into our articles and join the conversation."
+            },
+            "hero_blog": {
+                "title": "Our Blog",
+                "subtitle": "Explore our collection of articles, guides, and insights."
+            },
+            "hero_contact": {
+                "title": "Get in Touch",
+                "subtitle": "Have questions or feedback? We would love to hear from you.",
+                "form_title": "Send a Message",
+                "form_subtitle": "Fill out the form and we will get back to you.",
+                "faq_1_q": "How quickly do you respond?",
+                "faq_1_a": "We typically respond within 24-48 hours.",
+                "faq_2_q": "Can I contribute articles?",
+                "faq_2_a": "Yes! We welcome guest contributions.",
+                "faq_3_q": "Do you offer sponsorships?",
+                "faq_3_a": "Contact us to discuss partnership opportunities.",
+                "faq_4_q": "How do I report an issue?",
+                "faq_4_a": "Use the contact form or email us directly."
+            },
+
+            # Permalink settings
+            "permalinks": {
+                "structure": "post-name",     # post-name, date-post-name, category-post-name, numeric
+                "category_base": "category",  # URL base for categories (e.g., /category/tech)
+                "tag_base": "tag",            # URL base for tags (e.g., /tag/python)
+            },
+
+            # SEO & Search Visibility
+            "seo": {
+                "indexing_enabled": True,     # Enable/disable search engine indexing
+                "robots_txt_custom": "",      # Custom robots.txt content (if empty, auto-generate)
+                "og_site_name": "",           # Open Graph site name
+                "og_default_image": "",       # Default OG image for posts without cover
+                "twitter_card": "summary_large_image",  # summary, summary_large_image
+                "twitter_site": "",           # @username for site
+                "google_site_verification": "",  # Google Search Console verification
+                "bing_site_verification": "",    # Bing Webmaster verification
+            },
+
+            # RSS Feed Settings
+            "rss": {
+                "enabled": True,              # Enable/disable RSS feed
+                "posts_count": 20,            # Number of posts in feed
+                "content_type": "summary",    # 'full' or 'summary'
+                "include_featured_image": True,  # Include cover images in feed
+            },
+
+            # Legal Pages & Cookie Consent
+            "legal": {
+                "contact_email": "",  # Specific email for legal pages, falls back to main contact_email
+                "privacy_policy_enabled": True,
+                "privacy_policy_content": """## Privacy Policy
+
+**Last updated: {date}**
+
+### Introduction
+Welcome to {site_name}. We respect your privacy and are committed to protecting your personal data.
+
+### Information We Collect
+We may collect information you provide directly, including:
+- Name and email address when you subscribe to our newsletter
+- Contact information when you reach out via our contact form
+- Comments and feedback you submit
+
+### How We Use Your Information
+We use the information we collect to:
+- Send you newsletters and updates (if subscribed)
+- Respond to your inquiries
+- Improve our content and services
+
+### Cookies
+We use cookies to enhance your browsing experience. You can control cookie preferences through your browser settings.
+
+### Third-Party Services
+We may use third-party services like Google Analytics to understand how visitors use our site.
+
+### Your Rights
+You have the right to:
+- Access your personal data
+- Request correction of your data
+- Request deletion of your data
+- Unsubscribe from communications
+
+### Contact Us
+If you have questions about this Privacy Policy, please contact us at {contact_email}.
+""",
+                "terms_of_service_enabled": True,
+                "terms_of_service_content": """## Terms of Service
+
+**Last updated: {date}**
+
+### Agreement to Terms
+By accessing {site_name}, you agree to be bound by these Terms of Service.
+
+### Intellectual Property
+All content on this site, including text, images, and graphics, is owned by {site_name} and protected by copyright laws.
+
+### User Conduct
+You agree not to:
+- Use the site for any unlawful purpose
+- Attempt to gain unauthorized access
+- Interfere with the site's operation
+- Copy or reproduce content without permission
+
+### Comments and Submissions
+By submitting comments or content, you grant us a non-exclusive license to use, modify, and display that content.
+
+### Disclaimer
+The content on this site is provided "as is" without warranties of any kind. We do not guarantee the accuracy or completeness of any information.
+
+### Limitation of Liability
+{site_name} shall not be liable for any damages arising from your use of this site.
+
+### Changes to Terms
+We reserve the right to modify these terms at any time. Continued use of the site constitutes acceptance of updated terms.
+
+### Contact
+For questions about these Terms, contact us at {contact_email}.
+""",
+                "cookie_consent_enabled": True,
+                "cookie_consent_text": "We use cookies to enhance your browsing experience and analyze site traffic.",
+                "cookie_consent_button": "Accept",
+                "cookie_consent_link_text": "Learn more",
+            }
         }
 
     def get_site_settings(self, user_id):
@@ -740,10 +1029,13 @@ class FirestoreService:
                 merged = {**defaults, **stored_data}
                 merged['id'] = doc.id
 
-                # Handle nested social_links merge
-                default_social = defaults.get('social_links', {})
-                stored_social = stored_data.get('social_links', {})
-                merged['social_links'] = {**default_social, **stored_social}
+                # Handle nested object merges
+                nested_fields = ['social_links', 'header', 'footer',
+                               'hero_home', 'hero_about', 'hero_blog', 'hero_contact', 'permalinks', 'seo', 'rss', 'legal']
+                for field in nested_fields:
+                    default_obj = defaults.get(field, {})
+                    stored_obj = stored_data.get(field, {})
+                    merged[field] = {**default_obj, **stored_obj}
 
                 cache.set(cache_key, merged, ttl=120)
                 return merged
@@ -754,6 +1046,97 @@ class FirestoreService:
             print(f"❌ Error fetching site settings: {e}")
             return self._get_site_settings_defaults(user_id)
 
+    def resolve_site_identifier(self, identifier):
+        """
+        Resolves a site identifier (slug or user_id) to the actual user_id.
+        Returns tuple: (user_id, settings) or (None, None) if not found.
+        Supports both clean slug URLs and legacy user_id URLs for backwards compatibility.
+        """
+        try:
+            # Check cache first for slug resolution
+            cache_key = f"slug_resolve:{identifier}"
+            cached = cache.get(cache_key)
+            if cached:
+                return cached, self.get_site_settings(cached)
+
+            # Try direct user_id lookup first (for backwards compatibility)
+            doc = self.db.collection("site_settings").document(identifier).get()
+            if doc.exists:
+                cache.set(cache_key, identifier, ttl=300)
+                return identifier, self.get_site_settings(identifier)
+
+            # Try slug lookup
+            query = self.db.collection("site_settings").where(
+                filter=FieldFilter('site_slug', '==', identifier)
+            ).limit(1)
+            docs = list(query.stream())
+
+            if docs:
+                user_id = docs[0].id
+                cache.set(cache_key, user_id, ttl=300)
+                return user_id, self.get_site_settings(user_id)
+
+            return None, None
+
+        except Exception as e:
+            print(f"❌ Error resolving site identifier: {e}")
+            return None, None
+
+    def is_slug_available(self, slug, exclude_user_id=None):
+        """
+        Check if a site slug is available.
+        Returns True if available, False if taken.
+        """
+        try:
+            if not slug:
+                return False
+
+            query = self.db.collection("site_settings").where(
+                filter=FieldFilter('site_slug', '==', slug)
+            ).limit(1)
+            docs = list(query.stream())
+
+            if not docs:
+                return True
+
+            # If excluding a user (for updates), check if the found doc belongs to them
+            if exclude_user_id and docs[0].id == exclude_user_id:
+                return True
+
+            return False
+
+        except Exception as e:
+            print(f"❌ Error checking slug availability: {e}")
+            return False
+
+    def generate_unique_site_slug(self, base_slug, exclude_user_id=None):
+        """
+        Generate a unique site slug from a base slug.
+        Appends numbers if slug is taken: my-blog -> my-blog-2 -> my-blog-3
+        """
+        from app.utils.slug_utils import generate_slug
+
+        # Clean the base slug
+        slug = generate_slug(base_slug)
+        if not slug:
+            slug = "my-site"
+
+        # Check if available
+        if self.is_slug_available(slug, exclude_user_id):
+            return slug
+
+        # Try with numbers
+        counter = 2
+        while counter < 100:  # Reasonable limit
+            new_slug = f"{slug}-{counter}"
+            if self.is_slug_available(new_slug, exclude_user_id):
+                return new_slug
+            counter += 1
+
+        # Fallback to timestamp-based slug
+        import time
+        return f"{slug}-{int(time.time())}"
+
     def _validate_site_settings(self, settings):
         """Validates and sanitizes site settings input."""
         validated = {}
@@ -761,6 +1144,7 @@ class FirestoreService:
         # String fields with max lengths
         string_fields = {
             'site_name': 100,
+            'site_slug': 50,
             'site_description': 500,
             'niche': 50,
             'logo_url': 500,
@@ -774,6 +1158,10 @@ class FirestoreService:
             'analytics_id': 50,
             'contact_email': 100,
             'about_content': 5000,
+            'timezone': 50,
+            'date_format': 20,
+            'time_format': 5,
+            'locale': 10,
         }
 
         for field, max_len in string_fields.items():
@@ -816,6 +1204,73 @@ class FirestoreService:
                 'github': str(settings['social_links'].get('github', '')).strip()[:200],
             }
 
+        # Header settings (nested object)
+        if 'header' in settings and isinstance(settings['header'], dict):
+            h = settings['header']
+            validated['header'] = {
+                'nav_home': str(h.get('nav_home', 'Home')).strip()[:50],
+                'nav_blog': str(h.get('nav_blog', 'Blog')).strip()[:50],
+                'nav_about': str(h.get('nav_about', 'About')).strip()[:50],
+                'nav_contact': str(h.get('nav_contact', 'Contact')).strip()[:50],
+                'cta_text': str(h.get('cta_text', 'Subscribe')).strip()[:50],
+                'show_search': bool(h.get('show_search', True)),
+            }
+
+        # Footer settings (nested object)
+        if 'footer' in settings and isinstance(settings['footer'], dict):
+            f = settings['footer']
+            validated['footer'] = {
+                'copyright': str(f.get('copyright', '')).strip()[:200],
+                'col1_title': str(f.get('col1_title', 'Navigation')).strip()[:50],
+                'col2_title': str(f.get('col2_title', 'Support')).strip()[:50],
+                'col3_title': str(f.get('col3_title', 'Legal & Social')).strip()[:50],
+                'show_newsletter': bool(f.get('show_newsletter', True)),
+                'newsletter_title': str(f.get('newsletter_title', '')).strip()[:100],
+                'newsletter_description': str(f.get('newsletter_description', '')).strip()[:300],
+            }
+
+        # Hero sections (nested objects)
+        hero_sections = ['hero_home', 'hero_about', 'hero_blog', 'hero_contact']
+        for section in hero_sections:
+            if section in settings and isinstance(settings[section], dict):
+                validated[section] = {}
+                for key, val in settings[section].items():
+                    if isinstance(val, str):
+                        validated[section][key] = val.strip()[:500]
+                    elif isinstance(val, bool):
+                        validated[section][key] = val
+
+        # Permalink settings (nested object)
+        if 'permalinks' in settings and isinstance(settings['permalinks'], dict):
+            p = settings['permalinks']
+            valid_structures = ['post-name', 'date-post-name', 'category-post-name', 'numeric']
+            structure = str(p.get('structure', 'post-name')).strip().lower()
+            validated['permalinks'] = {
+                'structure': structure if structure in valid_structures else 'post-name',
+                'category_base': str(p.get('category_base', 'category')).strip().lower()[:50],
+                'tag_base': str(p.get('tag_base', 'tag')).strip().lower()[:50],
+            }
+            # Sanitize URL bases (only alphanumeric and hyphens)
+            import re
+            validated['permalinks']['category_base'] = re.sub(r'[^a-z0-9-]', '', validated['permalinks']['category_base']) or 'category'
+            validated['permalinks']['tag_base'] = re.sub(r'[^a-z0-9-]', '', validated['permalinks']['tag_base']) or 'tag'
+
+        # SEO settings (nested object)
+        if 'seo' in settings and isinstance(settings['seo'], dict):
+            s = settings['seo']
+            valid_twitter_cards = ['summary', 'summary_large_image']
+            twitter_card = str(s.get('twitter_card', 'summary_large_image')).strip().lower()
+            validated['seo'] = {
+                'indexing_enabled': bool(s.get('indexing_enabled', True)),
+                'robots_txt_custom': str(s.get('robots_txt_custom', '')).strip()[:2000],
+                'og_site_name': str(s.get('og_site_name', '')).strip()[:100],
+                'og_default_image': str(s.get('og_default_image', '')).strip()[:500],
+                'twitter_card': twitter_card if twitter_card in valid_twitter_cards else 'summary_large_image',
+                'twitter_site': str(s.get('twitter_site', '')).strip()[:50],
+                'google_site_verification': str(s.get('google_site_verification', '')).strip()[:100],
+                'bing_site_verification': str(s.get('bing_site_verification', '')).strip()[:100],
+            }
+
         return validated
 
     def update_site_settings(self, user_id, settings):
@@ -846,6 +1301,7 @@ class FirestoreService:
         Filters by site_owner_id to include blogs from all team members.
         Falls back to author_id for backwards compatibility with older blogs.
         Uses in-memory cache with 2-minute TTL to reduce Firestore queries.
+        Auto-generates slugs for existing blogs that don't have them.
         """
         cache_key = f"published_blogs:{user_id}:{limit}"
         cached = cache.get(cache_key)
@@ -871,6 +1327,8 @@ class FirestoreService:
                     data['content'] = raw_content
                 else:
                     data['content'] = {'body': str(raw_content) if raw_content else ''}
+                # Ensure slug exists (auto-migrate if needed)
+                data = self._ensure_blog_slug(data, doc.id)
                 blogs.append(data)
 
             # Fallback: also fetch by author_id for older blogs without site_owner_id
@@ -887,6 +1345,8 @@ class FirestoreService:
                         data['content'] = raw_content
                     else:
                         data['content'] = {'body': str(raw_content) if raw_content else ''}
+                    # Ensure slug exists (auto-migrate if needed)
+                    data = self._ensure_blog_slug(data, doc.id)
                     blogs.append(data)
 
             # Sort combined results by updated_at in Python (newest first)
@@ -903,6 +1363,7 @@ class FirestoreService:
         """
         Fetches a single published blog by ID.
         Returns None if blog doesn't exist or is not published.
+        Auto-generates slug if missing.
         """
         try:
             doc = self.db.collection(self.collection_name).document(blog_id).get()
@@ -918,11 +1379,144 @@ class FirestoreService:
                     data['content'] = raw_content
                 else:
                     data['content'] = {'body': str(raw_content) if raw_content else ''}
+                # Ensure slug exists (auto-migrate if needed)
+                data = self._ensure_blog_slug(data, doc.id)
                 return data
             return None
         except Exception as e:
             print(f"❌ Error fetching published blog {blog_id}: {e}")
             return None
+
+    def get_published_blog_by_slug(self, user_id, slug):
+        """
+        Fetches a published blog by slug.
+        Also checks old_slugs for 301 redirect handling.
+        Returns dict with 'blog', 'redirect' (bool), and 'new_slug' (if redirect).
+        """
+        try:
+            # Try current slug first
+            query = self.db.collection(self.collection_name)\
+                .where(filter=FieldFilter('site_owner_id', '==', user_id))\
+                .where(filter=FieldFilter('slug', '==', slug))\
+                .where(filter=FieldFilter('status', '==', 'PUBLISHED'))\
+                .limit(1)
+            docs = list(query.stream())
+            if docs:
+                data = docs[0].to_dict()
+                data['id'] = docs[0].id
+                # Process content for display
+                raw_content = data.get('content', '')
+                if isinstance(raw_content, dict):
+                    data['content'] = raw_content
+                else:
+                    data['content'] = {'body': str(raw_content) if raw_content else ''}
+                return {'blog': data, 'redirect': False}
+
+            # Check old_slugs for 301 redirect
+            query = self.db.collection(self.collection_name)\
+                .where(filter=FieldFilter('site_owner_id', '==', user_id))\
+                .where(filter=FieldFilter('old_slugs', 'array_contains', slug))\
+                .where(filter=FieldFilter('status', '==', 'PUBLISHED'))\
+                .limit(1)
+            docs = list(query.stream())
+            if docs:
+                data = docs[0].to_dict()
+                data['id'] = docs[0].id
+                # Process content for display
+                raw_content = data.get('content', '')
+                if isinstance(raw_content, dict):
+                    data['content'] = raw_content
+                else:
+                    data['content'] = {'body': str(raw_content) if raw_content else ''}
+                return {'blog': data, 'redirect': True, 'new_slug': data.get('slug')}
+
+            return None
+        except Exception as e:
+            print(f"❌ Error fetching blog by slug {slug}: {e}")
+            return None
+
+    def _get_user_slugs(self, user_id):
+        """
+        Gets all existing slugs for a user's blogs (for uniqueness check).
+        Returns a set of slugs.
+        """
+        try:
+            slugs = set()
+            query = self.db.collection(self.collection_name)\
+                .where(filter=FieldFilter('site_owner_id', '==', user_id))\
+                .select(['slug'])
+            for doc in query.stream():
+                data = doc.to_dict()
+                if data.get('slug'):
+                    slugs.add(data['slug'])
+            return slugs
+        except Exception as e:
+            print(f"❌ Error fetching user slugs: {e}")
+            return set()
+
+    def _get_next_numeric_id(self, user_id):
+        """
+        Gets the next numeric ID for a user's blogs (for numeric permalink structure).
+        Returns the next available integer ID.
+        """
+        try:
+            query = self.db.collection(self.collection_name)\
+                .where(filter=FieldFilter('site_owner_id', '==', user_id))\
+                .order_by('numeric_id', direction=firestore.Query.DESCENDING)\
+                .limit(1)
+            docs = list(query.stream())
+            if docs:
+                data = docs[0].to_dict()
+                return (data.get('numeric_id') or 0) + 1
+            return 1
+        except Exception as e:
+            # If query fails (e.g., no index), fallback to count
+            try:
+                count = len(list(self.db.collection(self.collection_name)
+                    .where(filter=FieldFilter('site_owner_id', '==', user_id))
+                    .select([]).stream()))
+                return count + 1
+            except:
+                return 1
+
+    def _ensure_blog_slug(self, blog_data, blog_id):
+        """
+        Ensures a blog has a slug. If not, generates one from the title and saves it.
+        This handles migration of existing blogs that don't have slugs.
+        Returns the blog data with slug guaranteed to be set.
+        """
+        if blog_data.get('slug'):
+            return blog_data
+
+        try:
+            from app.utils.slug_utils import generate_slug, ensure_unique_slug
+
+            title = blog_data.get('title', 'Untitled')
+            base_slug = generate_slug(title)
+
+            # Get existing slugs for this user
+            user_id = blog_data.get('site_owner_id') or blog_data.get('author_id')
+            if user_id:
+                existing_slugs = self._get_user_slugs(user_id)
+                slug = ensure_unique_slug(base_slug, existing_slugs)
+            else:
+                slug = base_slug
+
+            # Save the slug to the database
+            self.db.collection(self.collection_name).document(blog_id).update({
+                'slug': slug,
+                'old_slugs': []
+            })
+
+            blog_data['slug'] = slug
+            blog_data['old_slugs'] = []
+
+        except Exception as e:
+            print(f"❌ Error ensuring blog slug for {blog_id}: {e}")
+            # Fallback: use the document ID as slug
+            blog_data['slug'] = blog_id
+
+        return blog_data
 
     # ---------------- CONTACT & NEWSLETTER METHODS ----------------
 

@@ -4,6 +4,11 @@ from app.agents.category_agent import CategoryAgent
 from app.agents.seo_agent import SEOAgent
 from app.agents.formatting_agent import FormattingAgent
 from app.firebase.firestore_service import FirestoreService
+from app.utils.date_utils import (
+    COMMON_TIMEZONES, DATE_FORMATS, TIME_FORMATS, LOCALES,
+    get_current_time_preview
+)
+from app.utils.slug_utils import PERMALINK_STRUCTURES
 from datetime import datetime
 import math
 import markdown
@@ -277,11 +282,23 @@ def get_blog(blog_id):
 @blog_bp.route('/api/update_blog/<blog_id>', methods=['POST'])
 def update_blog(blog_id):
     try:
+        from app.utils.slug_utils import validate_slug
+
         data = request.get_json()
         title = data.get('title')
         content = data.get('content')
+        new_slug = data.get('slug', '')
+        seo_title = data.get('seo_title', '').strip()
+        seo_description = data.get('seo_description', '').strip()
 
-        success = db_service.update_blog_content(blog_id, title, content)
+        # Validate and sanitize slug if provided
+        if new_slug:
+            new_slug = validate_slug(new_slug)
+
+        success = db_service.update_blog_content(
+            blog_id, title, content, new_slug,
+            seo_title=seo_title, seo_description=seo_description
+        )
 
         if success:
             db_service.log_activity(
@@ -948,6 +965,13 @@ def site_settings_page():
     categories = db_service.get_all_categories(user_id=user_id)
     pending = db_service.get_blogs_by_status("UNDER_REVIEW", user_id=user_id)
 
+    # Get time preview based on current settings
+    time_preview = get_current_time_preview(
+        timezone=settings.get('timezone', 'UTC'),
+        date_format=settings.get('date_format', 'MMM DD, YYYY'),
+        time_format=settings.get('time_format', '12h')
+    )
+
     return render_template(
         'site_settings.html',
         settings=settings,
@@ -955,7 +979,15 @@ def site_settings_page():
         published_count=len(published_blogs),
         categories_count=len(categories),
         pending_count=len(pending),
-        username=session.get('user_name', 'User')
+        username=session.get('user_name', 'User'),
+        # Locale & timezone data
+        timezones=COMMON_TIMEZONES,
+        date_formats=DATE_FORMATS,
+        time_formats=TIME_FORMATS,
+        locales=LOCALES,
+        time_preview=time_preview,
+        # Permalink structures
+        permalink_structures=PERMALINK_STRUCTURES
     )
 
 
@@ -984,11 +1016,13 @@ def update_site_settings():
             'show_reading_time': data.get('show_reading_time', True),
             'show_author': data.get('show_author', True),
             'featured_post_id': data.get('featured_post_id', '').strip(),
-            # SEO
+            # SEO (basic)
             'meta_title': data.get('meta_title', '').strip(),
             'meta_description': data.get('meta_description', '').strip(),
             'og_image_url': data.get('og_image_url', '').strip(),
             'analytics_id': data.get('analytics_id', '').strip(),
+            # SEO (advanced) - nested object
+            'seo': data.get('seo', {}),
             # Social
             'social_links': {
                 'twitter': data.get('social_twitter', '').strip(),
@@ -998,7 +1032,34 @@ def update_site_settings():
             'contact_email': data.get('contact_email', '').strip(),
             'about_content': data.get('about_content', '').strip(),
             # Behavior
-            'site_visibility': data.get('site_visibility', 'public')
+            'site_visibility': data.get('site_visibility', 'public'),
+
+            # Locale & Time
+            'timezone': data.get('timezone', 'UTC'),
+            'date_format': data.get('date_format', 'MMM DD, YYYY'),
+            'time_format': data.get('time_format', '12h'),
+            'locale': data.get('locale', 'en'),
+
+            # Header Settings
+            'header': data.get('header', {}),
+
+            # Footer Settings
+            'footer': data.get('footer', {}),
+
+            # Hero Sections
+            'hero_home': data.get('hero_home', {}),
+            'hero_about': data.get('hero_about', {}),
+            'hero_blog': data.get('hero_blog', {}),
+            'hero_contact': data.get('hero_contact', {}),
+
+            # Permalink Settings
+            'permalinks': data.get('permalinks', {}),
+
+            # RSS Feed Settings
+            'rss': data.get('rss', {}),
+
+            # Legal Pages Settings
+            'legal': data.get('legal', {})
         }
 
         # Handle boolean values that come as strings from form
@@ -1025,6 +1086,29 @@ def update_site_settings():
 
     except Exception as e:
         print(f"Site Settings Error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@blog_bp.route('/api/time-preview', methods=['POST'])
+@admin_required
+def get_time_preview():
+    """Get formatted time preview for locale settings"""
+    try:
+        data = request.get_json()
+        timezone = data.get('timezone', 'UTC')
+        date_format = data.get('date_format', 'MMM DD, YYYY')
+        time_format = data.get('time_format', '12h')
+
+        preview = get_current_time_preview(timezone, date_format, time_format)
+
+        return jsonify({
+            "success": True,
+            "date": preview['date'],
+            "time": preview['time'],
+            "full": preview['full']
+        })
+
+    except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
 

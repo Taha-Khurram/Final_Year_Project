@@ -4,7 +4,7 @@
         <!-- Left Side: Logo + Navigation -->
         <div class="header-left">
             <!-- Logo -->
-            <a href="{{ url_for('site_bp.site_home', user_id=user_id) }}" class="site-logo">
+            <a href="{{ url_for('site_bp.site_home', site_identifier=settings.site_slug|default(user_id, true)) }}" class="site-logo">
                 {% if settings.logo_url %}
                 <img src="{{ settings.logo_url }}" alt="{{ settings.site_name }}" class="logo-image">
                 {% endif %}
@@ -13,23 +13,25 @@
 
             <!-- Desktop Navigation -->
             <nav class="site-nav">
-                <a href="{{ url_for('site_bp.site_home', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_home' and not current_category %}active{% endif %}">Home</a>
-                <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_blog' %}active{% endif %}">Blog</a>
-                <a href="{{ url_for('site_bp.site_about', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_about' %}active{% endif %}">About</a>
-                <a href="{{ url_for('site_bp.site_contact', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_contact' %}active{% endif %}">Contact</a>
+                <a href="{{ url_for('site_bp.site_home', site_identifier=settings.site_slug|default(user_id, true)) }}" class="{% if request.endpoint == 'site_bp.site_home' and not current_category %}active{% endif %}">{{ settings.header.nav_home if settings.header else 'Home' }}</a>
+                <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}" class="{% if request.endpoint == 'site_bp.site_blog' %}active{% endif %}">{{ settings.header.nav_blog if settings.header else 'Blog' }}</a>
+                <a href="{{ url_for('site_bp.site_about', site_identifier=settings.site_slug|default(user_id, true)) }}" class="{% if request.endpoint == 'site_bp.site_about' %}active{% endif %}">{{ settings.header.nav_about if settings.header else 'About' }}</a>
+                <a href="{{ url_for('site_bp.site_contact', site_identifier=settings.site_slug|default(user_id, true)) }}" class="{% if request.endpoint == 'site_bp.site_contact' %}active{% endif %}">{{ settings.header.nav_contact if settings.header else 'Contact' }}</a>
             </nav>
         </div>
 
         <!-- Header Actions -->
         <div class="header-actions">
             <!-- Search -->
+            {% if not settings.header or settings.header.show_search %}
             <div class="header-search">
                 <i class="bi bi-search"></i>
-                <input type="text" placeholder="Search posts..." id="header-search-input" data-search-url="{{ url_for('site_bp.site_blog', user_id=user_id) }}" value="{{ search_query or '' }}">
+                <input type="text" placeholder="Search posts..." id="header-search-input" data-search-url="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}" value="{{ search_query or '' }}">
             </div>
+            {% endif %}
 
             <!-- Subscribe Button -->
-            <button class="header-subscribe-btn" id="header-subscribe-btn">Subscribe</button>
+            <button class="header-subscribe-btn" id="header-subscribe-btn">{{ settings.header.cta_text if settings.header else 'Subscribe' }}</button>
         </div>
 
         <!-- Mobile Menu Toggle -->
@@ -42,15 +44,17 @@
 
     <!-- Mobile Navigation -->
     <nav class="mobile-nav">
-        <a href="{{ url_for('site_bp.site_home', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_home' and not current_category %}active{% endif %}">Home</a>
-        <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_blog' %}active{% endif %}">Blog</a>
-        <a href="{{ url_for('site_bp.site_about', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_about' %}active{% endif %}">About</a>
-        <a href="{{ url_for('site_bp.site_contact', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_contact' %}active{% endif %}">Contact</a>
+        <a href="{{ url_for('site_bp.site_home', site_identifier=settings.site_slug|default(user_id, true)) }}" class="{% if request.endpoint == 'site_bp.site_home' and not current_category %}active{% endif %}">{{ settings.header.nav_home if settings.header else 'Home' }}</a>
+        <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}" class="{% if request.endpoint == 'site_bp.site_blog' %}active{% endif %}">{{ settings.header.nav_blog if settings.header else 'Blog' }}</a>
+        <a href="{{ url_for('site_bp.site_about', site_identifier=settings.site_slug|default(user_id, true)) }}" class="{% if request.endpoint == 'site_bp.site_about' %}active{% endif %}">{{ settings.header.nav_about if settings.header else 'About' }}</a>
+        <a href="{{ url_for('site_bp.site_contact', site_identifier=settings.site_slug|default(user_id, true)) }}" class="{% if request.endpoint == 'site_bp.site_contact' %}active{% endif %}">{{ settings.header.nav_contact if settings.header else 'Contact' }}</a>
+        {% if not settings.header or settings.header.show_search %}
         <div class="mobile-search">
             <i class="bi bi-search"></i>
-            <input type="text" placeholder="Search posts..." data-search-url="{{ url_for('site_bp.site_blog', user_id=user_id) }}" value="{{ search_query or '' }}">
+            <input type="text" placeholder="Search posts..." data-search-url="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}" value="{{ search_query or '' }}">
         </div>
-        <button class="mobile-subscribe-btn" id="mobile-subscribe-btn">Subscribe</button>
+        {% endif %}
+        <button class="mobile-subscribe-btn" id="mobile-subscribe-btn">{{ settings.header.cta_text if settings.header else 'Subscribe' }}</button>
     </nav>
 </header>
 
@@ -67,7 +71,7 @@
         <p class="subscribe-modal-message">
             Get the latest posts delivered directly to your inbox. No spam, unsubscribe anytime.
         </p>
-        <form class="subscribe-modal-form" id="subscribe-modal-form" data-subscribe-url="{{ url_for('site_bp.site_subscribe', user_id=user_id) }}">
+        <form class="subscribe-modal-form" id="subscribe-modal-form" data-subscribe-url="{{ url_for('site_bp.site_subscribe', site_identifier=settings.site_slug|default(user_id, true)) }}">
             <input type="email" name="email" placeholder="Enter your email" required>
             <button type="submit">Subscribe</button>
         </form>

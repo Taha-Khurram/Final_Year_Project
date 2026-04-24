@@ -5,6 +5,20 @@
 let currentEditingId = null;
 let currentViewingId = null;
 
+/**
+ * Generate URL-friendly slug from title
+ */
+function generateSlug(title) {
+  if (!title) return '';
+  return title.toLowerCase()
+    .replace(/[^\w\s-]/g, '')      // Remove non-word chars
+    .replace(/[\s_]+/g, '-')        // Replace spaces/underscores with hyphens
+    .replace(/-+/g, '-')            // Remove multiple hyphens
+    .trim()
+    .replace(/^-|-$/g, '')          // Remove leading/trailing hyphens
+    .substring(0, 100);             // Max 100 chars
+}
+
 // Check if there are remaining drafts and show empty state if needed
 function checkEmptyState() {
   const container = document.querySelector('.drafts-container');
@@ -154,6 +168,15 @@ async function openEditModal(id) {
     const data = await res.json();
     if (data.success) {
       document.getElementById('modal-title').value = data.blog.title;
+
+      // Set slug field
+      document.getElementById('modal-slug').value = data.blog.slug || '';
+
+      // Set SEO fields
+      document.getElementById('modal-seo-title').value = data.blog.seo_title || '';
+      document.getElementById('modal-seo-description').value = data.blog.seo_description || '';
+      updateSeoCounters();
+
       const modalElement = document.getElementById('editModal');
       const editModal = new bootstrap.Modal(modalElement);
       editModal.show();
@@ -167,6 +190,36 @@ async function openEditModal(id) {
         content = blogContent || '';
       }
       initEditor(content);
+
+      // Setup slug event listeners
+      const titleInput = document.getElementById('modal-title');
+      const slugInput = document.getElementById('modal-slug');
+      const regenerateBtn = document.getElementById('regenerate-slug');
+
+      // Remove old event listeners by cloning
+      const newTitleInput = titleInput.cloneNode(true);
+      titleInput.parentNode.replaceChild(newTitleInput, titleInput);
+
+      const newRegenerateBtn = regenerateBtn.cloneNode(true);
+      regenerateBtn.parentNode.replaceChild(newRegenerateBtn, regenerateBtn);
+
+      // Auto-generate slug from title on blur (only if slug is empty)
+      newTitleInput.addEventListener('blur', function() {
+        const slugField = document.getElementById('modal-slug');
+        if (!slugField.value) {
+          slugField.value = generateSlug(this.value);
+        }
+      });
+
+      // Regenerate slug button
+      newRegenerateBtn.addEventListener('click', function() {
+        const title = document.getElementById('modal-title').value;
+        document.getElementById('modal-slug').value = generateSlug(title);
+      });
+
+      // Setup SEO toggle
+      setupSeoToggle();
+
     } else {
       showToast({
         type: 'error',
@@ -185,11 +238,55 @@ async function openEditModal(id) {
   }
 }
 
+/**
+ * Setup SEO section toggle and character counters
+ */
+function setupSeoToggle() {
+  const toggleBtn = document.getElementById('seo-toggle-btn');
+  const seoFields = document.getElementById('seo-fields');
+  const seoTitle = document.getElementById('modal-seo-title');
+  const seoDesc = document.getElementById('modal-seo-description');
+
+  // Remove old listener by cloning
+  const newToggleBtn = toggleBtn.cloneNode(true);
+  toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
+
+  newToggleBtn.addEventListener('click', function() {
+    const isVisible = seoFields.style.display !== 'none';
+    seoFields.style.display = isVisible ? 'none' : 'block';
+    this.classList.toggle('active', !isVisible);
+  });
+
+  // Character counters
+  seoTitle.addEventListener('input', updateSeoCounters);
+  seoDesc.addEventListener('input', updateSeoCounters);
+}
+
+/**
+ * Update SEO character counters
+ */
+function updateSeoCounters() {
+  const seoTitle = document.getElementById('modal-seo-title');
+  const seoDesc = document.getElementById('modal-seo-description');
+  document.getElementById('seo-title-count').textContent = seoTitle.value.length;
+  document.getElementById('seo-desc-count').textContent = seoDesc.value.length;
+}
+
 async function saveModalChanges() {
   const updatedTitle = document.getElementById('modal-title').value;
   const editor = tinymce.get('editor-canvas');
   if (!editor) return;
   const updatedContent = editor.getContent();
+
+  // Get slug (auto-generate if empty)
+  let slug = document.getElementById('modal-slug').value.trim();
+  if (!slug) {
+    slug = generateSlug(updatedTitle);
+  }
+
+  // Get SEO fields
+  const seoTitle = document.getElementById('modal-seo-title').value.trim();
+  const seoDescription = document.getElementById('modal-seo-description').value.trim();
 
   const saveBtn = document.getElementById('save-changes-btn');
   const originalContent = saveBtn.innerHTML;
@@ -200,7 +297,13 @@ async function saveModalChanges() {
     const res = await fetch(`/api/update_blog/${currentEditingId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: updatedTitle, content: updatedContent })
+      body: JSON.stringify({
+        title: updatedTitle,
+        content: updatedContent,
+        slug: slug,
+        seo_title: seoTitle,
+        seo_description: seoDescription
+      })
     });
 
     const data = await res.json();

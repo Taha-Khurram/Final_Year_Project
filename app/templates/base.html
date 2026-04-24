@@ -4,7 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Scriptly AI{% endblock %}</title>
+    <title>{% block title %}{{ app_config.app_name if app_config else 'Scriptly' }}{% endblock %}</title>
+
+    <!-- Favicon -->
+    {% if app_config and app_config.app_favicon %}
+    <link rel="icon" href="{{ app_config.app_favicon }}">
+    {% endif %}
 
     <!-- Fonts - Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

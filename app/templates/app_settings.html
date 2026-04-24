@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+
+{% block title %}App Settings | {{ app_config.app_name if app_config else 'Scriptly' }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .app-settings-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1.5rem;
+    }
+
+    .app-settings-card h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .app-settings-card h3 i {
+        color: var(--primary-color);
+        padding: 0.5rem;
+        background: rgba(67, 24, 255, 0.08);
+        border-radius: 10px;
+    }
+
+    .app-settings-card p.text-muted {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #1a1a2e;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-control {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.1);
+    }
+
+    .form-hint {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-top: 0.35rem;
+    }
+
+    .preview-box {
+        background: linear-gradient(135deg, rgba(67, 24, 255, 0.03) 0%, rgba(99, 102, 241, 0.08) 100%);
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        margin-top: 1.5rem;
+    }
+
+    .preview-box .preview-logo {
+        width: 80px;
+        height: 80px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        box-shadow: 0 8px 25px rgba(67, 24, 255, 0.3);
+    }
+
+    .preview-box .preview-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 16px;
+    }
+
+    .preview-box .preview-logo i {
+        font-size: 2rem;
+        color: white;
+    }
+
+    .preview-box .preview-name {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #1a1a2e;
+    }
+
+    .preview-box .preview-tagline {
+        color: #64748b;
+        font-size: 1rem;
+        margin-top: 0.25rem;
+    }
+
+    .btn-save {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        color: white;
+        border: none;
+        padding: 0.85rem 2rem;
+        border-radius: 25px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(67, 24, 255, 0.35);
+        color: white;
+    }
+
+    .btn-save:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .image-input-group {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .image-preview {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+
+    .image-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .image-preview i {
+        color: #94a3b8;
+        font-size: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    {% include 'partials/sidebar.html' %}
+
+    <main class="dashboard-main">
+        <header class="dashboard-header">
+            <div>
+                <div class="header-welcome-text">Application Configuration</div>
+                <h1 class="header-title">App Settings</h1>
+            </div>
+        </header>
+
+        <!-- Site Identity Card -->
+        <div class="app-settings-card animate-fade-up">
+            <h3><i class="bi bi-building"></i> Site Identity</h3>
+            <p class="text-muted">Configure your application name and branding that appears throughout the platform.</p>
+
+            <form id="app-settings-form">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">App Name *</label>
+                            <input type="text" class="form-control" id="app_name" name="app_name"
+                                   value="{{ settings.app_name }}" placeholder="e.g., ScriptlyAI" required
+                                   oninput="updatePreview()">
+                            <p class="form-hint">The name of your application displayed in headers and titles</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Tagline</label>
+                            <input type="text" class="form-control" id="tagline" name="tagline"
+                                   value="{{ settings.tagline }}" placeholder="e.g., Create & Publish Beautiful Blogs"
+                                   oninput="updatePreview()">
+                            <p class="form-hint">A short description or slogan for your app</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">App Logo URL</label>
+                            <div class="image-input-group">
+                                <div class="image-preview" id="logo-preview">
+                                    {% if settings.app_logo %}
+                                    <img src="{{ settings.app_logo }}" alt="Logo">
+                                    {% else %}
+                                    <i class="bi bi-image"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <input type="url" class="form-control" id="app_logo" name="app_logo"
+                                           value="{{ settings.app_logo }}" placeholder="https://example.com/logo.png"
+                                           oninput="updateLogoPreview()">
+                                    <p class="form-hint">Square image (e.g., 200x200px)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Favicon URL</label>
+                            <div class="image-input-group">
+                                <div class="image-preview" id="favicon-preview">
+                                    {% if settings.app_favicon %}
+                                    <img src="{{ settings.app_favicon }}" alt="Favicon">
+                                    {% else %}
+                                    <i class="bi bi-image"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <input type="url" class="form-control" id="app_favicon" name="app_favicon"
+                                           value="{{ settings.app_favicon }}" placeholder="https://example.com/favicon.ico"
+                                           oninput="updateFaviconPreview()">
+                                    <p class="form-hint">ICO or PNG (32x32px recommended)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Preview -->
+                <div class="preview-box">
+                    <div class="preview-logo" id="preview-logo-box">
+                        {% if settings.app_logo %}
+                        <img src="{{ settings.app_logo }}" alt="Logo" id="preview-logo-img">
+                        {% else %}
+                        <i class="bi bi-robot" id="preview-logo-icon"></i>
+                        {% endif %}
+                    </div>
+                    <div class="preview-name" id="preview-name">{{ settings.app_name }}</div>
+                    <div class="preview-tagline" id="preview-tagline">{{ settings.tagline }}</div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn-save" id="save-btn">
+                        <i class="bi bi-check-lg"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </main>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+
+<script>
+function updatePreview() {
+    const appName = document.getElementById('app_name').value || 'ScriptlyAI';
+    const tagline = document.getElementById('tagline').value || '';
+
+    document.getElementById('preview-name').textContent = appName;
+    document.getElementById('preview-tagline').textContent = tagline;
+}
+
+function updateLogoPreview() {
+    const logoUrl = document.getElementById('app_logo').value;
+    const previewBox = document.getElementById('logo-preview');
+    const mainPreviewBox = document.getElementById('preview-logo-box');
+
+    if (logoUrl) {
+        previewBox.innerHTML = `<img src="${logoUrl}" alt="Logo" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'bi bi-image\\'></i>';">`;
+        mainPreviewBox.innerHTML = `<img src="${logoUrl}" alt="Logo" id="preview-logo-img" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'bi bi-robot\\'></i>';">`;
+    } else {
+        previewBox.innerHTML = '<i class="bi bi-image"></i>';
+        mainPreviewBox.innerHTML = '<i class="bi bi-robot"></i>';
+    }
+}
+
+function updateFaviconPreview() {
+    const faviconUrl = document.getElementById('app_favicon').value;
+    const previewBox = document.getElementById('favicon-preview');
+
+    if (faviconUrl) {
+        previewBox.innerHTML = `<img src="${faviconUrl}" alt="Favicon" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'bi bi-image\\'></i>';">`;
+    } else {
+        previewBox.innerHTML = '<i class="bi bi-image"></i>';
+    }
+}
+
+function showToast(type, title, message) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast show align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <strong>${title}</strong><br>${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.closest('.toast').remove()"></button>
+        </div>
+    `;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+}
+
+document.getElementById('app-settings-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const saveBtn = document.getElementById('save-btn');
+    const originalContent = saveBtn.innerHTML;
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Saving...';
+
+    try {
+        const response = await fetch('/settings/general', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                app_name: document.getElementById('app_name').value.trim(),
+                tagline: document.getElementById('tagline').value.trim(),
+                app_logo: document.getElementById('app_logo').value.trim(),
+                app_favicon: document.getElementById('app_favicon').value.trim()
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showToast('success', 'Settings Saved', 'Application settings updated successfully.');
+            // Update sidebar logo text if changed
+            const sidebarLogo = document.querySelector('.sidebar-logo span');
+            if (sidebarLogo) {
+                sidebarLogo.textContent = document.getElementById('app_name').value.trim() || 'ScriptlyAI';
+            }
+        } else {
+            showToast('error', 'Error', data.error || 'Failed to save settings.');
+        }
+    } catch (err) {
+        console.error(err);
+        showToast('error', 'Error', 'Could not connect to server.');
+    }
+
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = originalContent;
+});
+</script>
+{% endblock %}

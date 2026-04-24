@@ -2,6 +2,27 @@
 
 {% block title %}{{ blog.title }} | {{ settings.site_name }}{% endblock %}
 
+{% block og_type %}article{% endblock %}
+{% block og_title %}{{ blog.seo_title or blog.title }}{% endblock %}
+{% block og_description %}{{ blog.seo_description or blog.excerpt or (blog.content.body[:160] if blog.content is mapping else blog.content[:160] if blog.content else settings.meta_description) }}{% endblock %}
+{% block og_image %}
+{% if blog.cover_image %}
+<meta property="og:image" content="{{ blog.cover_image }}">
+{% elif settings.seo and settings.seo.og_default_image %}
+<meta property="og:image" content="{{ settings.seo.og_default_image }}">
+{% endif %}
+{% endblock %}
+
+{% block twitter_title %}{{ blog.seo_title or blog.title }}{% endblock %}
+{% block twitter_description %}{{ blog.seo_description or blog.excerpt or (blog.content.body[:160] if blog.content is mapping else blog.content[:160] if blog.content else settings.meta_description) }}{% endblock %}
+{% block twitter_image %}
+{% if blog.cover_image %}
+<meta name="twitter:image" content="{{ blog.cover_image }}">
+{% elif settings.seo and settings.seo.og_default_image %}
+<meta name="twitter:image" content="{{ settings.seo.og_default_image }}">
+{% endif %}
+{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/site/post.css') }}">
 {% endblock %}
@@ -118,7 +139,7 @@
             {% if blog.tags or blog.category %}
             <div class="post-tags">
                 {% if blog.category %}
-                <a href="{{ url_for('site_bp.site_blog', user_id=user_id, category=blog.category) }}" class="post-tag">{{ blog.category }}</a>
+                <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true), category=blog.category) }}" class="post-tag">{{ blog.category }}</a>
                 {% endif %}
                 {% if blog.tags %}
                     {% for tag in blog.tags[:3] %}
@@ -136,7 +157,7 @@
 <section class="related-section">
     <div class="related-header">
         <h2 class="related-title">Related Posts</h2>
-        <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="related-view-all">
+        <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}" class="related-view-all">
             View all <i class="bi bi-arrow-right"></i>
         </a>
     </div>
@@ -158,7 +179,7 @@
                 <div class="related-card-category">{{ related.category }}</div>
                 {% endif %}
                 <h3 class="related-card-title">
-                    <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=related.id) }}">
+                    <a href="{{ url_for('site_bp.site_post', site_identifier=settings.site_slug|default(user_id, true), slug_or_id=related.slug or related.id) }}">
                         {{ related.title|truncate(60) }}
                     </a>
                 </h3>

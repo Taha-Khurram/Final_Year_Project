@@ -763,7 +763,7 @@
             {% if settings.niche %}
             <div class="hero-badge">
                 <i class="bi bi-stars"></i>
-                {{ settings.niche }}
+                {{ (settings.hero_home.badge | default(settings.niche)) | replace('{niche}', settings.niche) }}
             </div>
             {% endif %}
 
@@ -772,30 +772,31 @@
             </h1>
 
             <p class="hero-subtitle">
-                {{ settings.site_description or 'Discover insightful articles, tips, and stories that inspire and inform. Join our community of readers today.' }}
+                {% set subtitle_text = settings.hero_home.subtitle | default(settings.site_description) | default('Discover insightful articles, tips, and stories that inspire and inform. Join our community of readers today.') %}
+                {{ subtitle_text | replace('{site_description}', settings.site_description | default('')) | replace('{site_name}', settings.site_name | default('')) }}
             </p>
 
             <div class="hero-cta">
-                <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="btn-primary">
-                    <i class="bi bi-journal-text"></i> Explore Articles
+                <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}" class="btn-primary">
+                    <i class="bi bi-journal-text"></i> {{ settings.hero_home.cta_primary | default('Explore Articles') }}
                 </a>
-                <a href="{{ url_for('site_bp.site_about', user_id=user_id) }}" class="btn-outline">
-                    <i class="bi bi-info-circle"></i> Learn More
+                <a href="{{ url_for('site_bp.site_about', site_identifier=settings.site_slug|default(user_id, true)) }}" class="btn-outline">
+                    <i class="bi bi-info-circle"></i> {{ settings.hero_home.cta_secondary | default('Learn More') }}
                 </a>
             </div>
 
             <div class="hero-stats">
                 <div class="hero-stat">
                     <span class="hero-stat-number">{{ blogs|length if blogs else 0 }}</span>
-                    <span class="hero-stat-label">Articles</span>
+                    <span class="hero-stat-label">{{ settings.hero_home.stats_label_1 | default('Articles') }}</span>
                 </div>
                 <div class="hero-stat">
                     <span class="hero-stat-number">{{ categories|length if categories else 0 }}</span>
-                    <span class="hero-stat-label">Categories</span>
+                    <span class="hero-stat-label">{{ settings.hero_home.stats_label_2 | default('Categories') }}</span>
                 </div>
                 <div class="hero-stat">
                     <span class="hero-stat-number">{{ (blogs|length * 50) if blogs else 0 }}+</span>
-                    <span class="hero-stat-label">Readers</span>
+                    <span class="hero-stat-label">{{ settings.hero_home.stats_label_3 | default('Readers') }}</span>
                 </div>
             </div>
         </div>
@@ -891,7 +892,7 @@
 <section class="featured-section">
     <div class="section-header">
         <h2><i class="bi bi-bookmark-star"></i> Featured Posts</h2>
-        <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="view-all">
+        <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}" class="view-all">
             View All <i class="bi bi-arrow-right"></i>
         </a>
     </div>
@@ -909,7 +910,7 @@
                 </div>
                 <div class="featured-card-body">
                     <h3 class="featured-card-title">
-                        <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=main_post.id) }}">
+                        <a href="{{ url_for('site_bp.site_post', site_identifier=settings.site_slug|default(user_id, true), slug_or_id=main_post.slug or main_post.id) }}">
                             {{ main_post.title }}
                         </a>
                     </h3>
@@ -940,7 +941,7 @@
                 </div>
                 <div class="featured-card-body">
                     <h3 class="featured-card-title">
-                        <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}">
+                        <a href="{{ url_for('site_bp.site_post', site_identifier=settings.site_slug|default(user_id, true), slug_or_id=blog.slug or blog.id) }}">
                             {{ blog.title }}
                         </a>
                     </h3>
@@ -972,11 +973,11 @@
     <!-- Category Filter -->
     {% if categories %}
     <div class="category-filter">
-        <a href="{{ url_for('site_bp.site_home', user_id=user_id) }}" class="category-pill {% if not current_category %}active{% endif %}">
+        <a href="{{ url_for('site_bp.site_home', site_identifier=settings.site_slug|default(user_id, true)) }}" class="category-pill {% if not current_category %}active{% endif %}">
             All Posts
         </a>
         {% for cat in categories %}
-        <a href="{{ url_for('site_bp.site_category', user_id=user_id, category_name=cat.name) }}"
+        <a href="{{ url_for('site_bp.site_category', site_identifier=settings.site_slug|default(user_id, true), category_name=cat.name) }}"
            class="category-pill {% if current_category and current_category|lower == cat.name|lower %}active{% endif %}">
             {{ cat.name }}
         </a>
@@ -995,7 +996,7 @@
             </div>
             <div class="blog-card-body">
                 <h2 class="blog-card-title">
-                    <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}">
+                    <a href="{{ url_for('site_bp.site_post', site_identifier=settings.site_slug|default(user_id, true), slug_or_id=blog.slug or blog.id) }}">
                         {{ blog.title }}
                     </a>
                 </h2>
@@ -1011,7 +1012,7 @@
                         <i class="bi bi-calendar3"></i>
                         {{ blog.updated_at.strftime('%b %d, %Y') if blog.updated_at else 'Recently' }}
                     </div>
-                    <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}" class="blog-card-link">
+                    <a href="{{ url_for('site_bp.site_post', site_identifier=settings.site_slug|default(user_id, true), slug_or_id=blog.slug or blog.id) }}" class="blog-card-link">
                         Read More <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
@@ -1021,7 +1022,7 @@
     </div>
 
     <div class="view-all-btn">
-        <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="btn-primary">
+        <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}" class="btn-primary">
             <i class="bi bi-grid-3x3-gap"></i> View All Posts
         </a>
     </div>
@@ -1099,7 +1100,7 @@
         button.disabled = true;
 
         try {
-            const response = await fetch('{{ url_for("site_bp.site_subscribe", user_id=user_id) }}', {
+            const response = await fetch('{{ url_for("site_bp.site_subscribe", site_identifier=settings.site_slug|default(user_id, true)) }}', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `email=${encodeURIComponent(email)}`

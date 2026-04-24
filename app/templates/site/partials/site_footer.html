@@ -1,16 +1,18 @@
 <!-- Newsletter Section -->
+{% if not settings.footer or settings.footer.show_newsletter %}
 <section class="footer-newsletter-section">
     <div class="footer-newsletter-container">
         <div class="footer-newsletter-content">
-            <h3>Subscribe to our newsletter</h3>
-            <p>Stay updated with the latest in scriptwriting technology, professional workflows, and industry insights.</p>
+            <h3>{{ settings.footer.newsletter_title if settings.footer else 'Subscribe to our newsletter' }}</h3>
+            <p>{{ settings.footer.newsletter_description if settings.footer else 'Stay updated with the latest in scriptwriting technology, professional workflows, and industry insights.' }}</p>
         </div>
-        <form class="footer-newsletter-form" id="footer-newsletter-form" data-subscribe-url="{{ url_for('site_bp.site_subscribe', user_id=user_id) }}">
+        <form class="footer-newsletter-form" id="footer-newsletter-form" data-subscribe-url="{{ url_for('site_bp.site_subscribe', site_identifier=settings.site_slug|default(user_id, true)) }}">
             <input type="email" name="email" placeholder="Enter your email" required>
             <button type="submit">Subscribe Now</button>
         </form>
     </div>
 </section>
+{% endif %}
 
 <!-- Main Footer -->
 <footer class="site-footer">
@@ -18,7 +20,7 @@
         <div class="footer-container">
             <!-- Brand Column -->
             <div class="footer-brand">
-                <a href="{{ url_for('site_bp.site_home', user_id=user_id) }}" class="footer-logo">
+                <a href="{{ url_for('site_bp.site_home', site_identifier=settings.site_slug|default(user_id, true)) }}" class="footer-logo">
                     {% if settings.logo_url %}
                     <img src="{{ settings.logo_url }}" alt="{{ settings.site_name }}">
                     {% endif %}
@@ -43,7 +45,7 @@
                         <i class="bi bi-github"></i>
                     </a>
                     {% endif %}
-                    <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" title="RSS Feed">
+                    <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}" title="RSS Feed">
                         <i class="bi bi-rss"></i>
                     </a>
                 </div>
@@ -51,24 +53,24 @@
 
             <!-- Navigation Column -->
             <div class="footer-links-column">
-                <h4>NAVIGATION</h4>
+                <h4>{{ (settings.footer.col1_title if settings.footer else 'Navigation') | upper }}</h4>
                 <ul>
-                    <li><a href="{{ url_for('site_bp.site_home', user_id=user_id) }}">Home</a></li>
-                    <li><a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}">Blog</a></li>
-                    <li><a href="{{ url_for('site_bp.site_about', user_id=user_id) }}">About</a></li>
+                    <li><a href="{{ url_for('site_bp.site_home', site_identifier=settings.site_slug|default(user_id, true)) }}">{{ settings.header.nav_home if settings.header else 'Home' }}</a></li>
+                    <li><a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}">{{ settings.header.nav_blog if settings.header else 'Blog' }}</a></li>
+                    <li><a href="{{ url_for('site_bp.site_about', site_identifier=settings.site_slug|default(user_id, true)) }}">{{ settings.header.nav_about if settings.header else 'About' }}</a></li>
                     {% for cat in categories[:3] if categories %}
-                    <li><a href="{{ url_for('site_bp.site_blog', user_id=user_id, category=cat.name) }}">{{ cat.name }}</a></li>
+                    <li><a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true), category=cat.name) }}">{{ cat.name }}</a></li>
                     {% endfor %}
                 </ul>
             </div>
 
             <!-- Support Column -->
             <div class="footer-links-column">
-                <h4>SUPPORT</h4>
+                <h4>{{ (settings.footer.col2_title if settings.footer else 'Support') | upper }}</h4>
                 <ul>
-                    <li><a href="{{ url_for('site_bp.site_contact', user_id=user_id) }}">Contact Support</a></li>
-                    <li><a href="{{ url_for('site_bp.site_about', user_id=user_id) }}">About Us</a></li>
-                    <li><a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}">Documentation</a></li>
+                    <li><a href="{{ url_for('site_bp.site_contact', site_identifier=settings.site_slug|default(user_id, true)) }}">Contact Support</a></li>
+                    <li><a href="{{ url_for('site_bp.site_about', site_identifier=settings.site_slug|default(user_id, true)) }}">About Us</a></li>
+                    <li><a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}">Documentation</a></li>
                     {% if settings.contact_email %}
                     <li><a href="mailto:{{ settings.contact_email }}">Email Us</a></li>
                     {% endif %}
@@ -77,11 +79,17 @@
 
             <!-- Legal & Social Column -->
             <div class="footer-links-column">
-                <h4>LEGAL & SOCIAL</h4>
+                <h4>{{ (settings.footer.col3_title if settings.footer else 'Legal & Social') | upper }}</h4>
                 <ul>
-                    <li><a href="#">Privacy Policy</a></li>
-                    <li><a href="#">Terms of Service</a></li>
-                    <li><a href="#">Cookies</a></li>
+                    {% if not settings.legal or settings.legal.privacy_policy_enabled %}
+                    <li><a href="{{ url_for('site_bp.site_privacy_policy', site_identifier=settings.site_slug|default(user_id, true)) }}">Privacy Policy</a></li>
+                    {% endif %}
+                    {% if not settings.legal or settings.legal.terms_of_service_enabled %}
+                    <li><a href="{{ url_for('site_bp.site_terms_of_service', site_identifier=settings.site_slug|default(user_id, true)) }}">Terms of Service</a></li>
+                    {% endif %}
+                    {% if settings.legal and settings.legal.cookie_consent_enabled %}
+                    <li><a href="{{ url_for('site_bp.site_privacy_policy', site_identifier=settings.site_slug|default(user_id, true)) }}#cookies">Cookies</a></li>
+                    {% endif %}
                     {% if settings.social_links and settings.social_links.github %}
                     <li><a href="{{ settings.social_links.github }}" target="_blank">GitHub</a></li>
                     {% endif %}
@@ -97,12 +105,16 @@
     <div class="footer-bottom">
         <div class="footer-bottom-container">
             <div class="footer-copyright">
-                &copy; {{ now().year if now else '2024' }} {{ settings.site_name }}. All rights reserved.
+                {% set copyright_text = settings.footer.copyright if settings.footer else '2024 {site_name}. All rights reserved.' %}
+                &copy; {{ copyright_text | replace('{site_name}', settings.site_name) | replace('2024', now().year|string if now else '2024') }}
             </div>
             <div class="footer-bottom-links">
-                <a href="#">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
-                <a href="#">Cookies</a>
+                {% if not settings.legal or settings.legal.privacy_policy_enabled %}
+                <a href="{{ url_for('site_bp.site_privacy_policy', site_identifier=settings.site_slug|default(user_id, true)) }}">Privacy Policy</a>
+                {% endif %}
+                {% if not settings.legal or settings.legal.terms_of_service_enabled %}
+                <a href="{{ url_for('site_bp.site_terms_of_service', site_identifier=settings.site_slug|default(user_id, true)) }}">Terms of Service</a>
+                {% endif %}
                 <a href="/" class="footer-status-link">
                     <i class="bi bi-lightning-charge-fill"></i> Powered by ScriptlyAI
                 </a>

@@ -104,6 +104,40 @@
       </div>
       <div class="custom-modal-body">
         <input type="text" id="modal-title" class="edit-title-input" placeholder="Enter blog title...">
+
+        <!-- Slug Field -->
+        <div class="slug-field">
+          <label class="slug-label">URL Slug</label>
+          <div class="slug-input-group">
+            <span class="slug-prefix">/post/</span>
+            <input type="text" class="slug-input" id="modal-slug" placeholder="auto-generated-from-title">
+            <button type="button" class="slug-regenerate-btn" id="regenerate-slug" title="Regenerate from title">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+          </div>
+          <small class="slug-hint">Leave blank to auto-generate from title. Changing slug will create a 301 redirect.</small>
+        </div>
+
+        <!-- SEO Settings -->
+        <div class="seo-settings-section">
+          <button type="button" class="seo-toggle-btn" id="seo-toggle-btn">
+            <i class="bi bi-search"></i> SEO Settings
+            <i class="bi bi-chevron-down seo-chevron"></i>
+          </button>
+          <div class="seo-fields" id="seo-fields" style="display: none;">
+            <div class="seo-field">
+              <label class="seo-label">Meta Title</label>
+              <input type="text" class="seo-input" id="modal-seo-title" placeholder="Custom title for search engines (default: blog title)" maxlength="60">
+              <small class="seo-hint">Recommended: 50-60 characters. <span id="seo-title-count">0</span>/60</small>
+            </div>
+            <div class="seo-field">
+              <label class="seo-label">Meta Description</label>
+              <textarea class="seo-textarea" id="modal-seo-description" placeholder="Brief description for search results and social sharing" maxlength="160" rows="2"></textarea>
+              <small class="seo-hint">Recommended: 150-160 characters. <span id="seo-desc-count">0</span>/160</small>
+            </div>
+          </div>
+        </div>
+
         <textarea id="editor-canvas"></textarea>
       </div>
       <div class="custom-modal-footer">

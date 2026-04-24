@@ -4,6 +4,7 @@ from flask_compress import Compress
 from config import Config
 from app.firebase.firebase_admin import FirebaseLoader
 from app.firebase.firestore_service import FirestoreService
+from app.utils.date_utils import format_date, format_time, format_datetime
 from whitenoise import WhiteNoise
 from werkzeug.middleware.proxy_fix import ProxyFix
 from functools import wraps
@@ -35,6 +36,53 @@ def create_app(config_class=Config):
     # Initialize Firebase
     FirebaseLoader.get_instance(app.config['FIREBASE_SERVICE_ACCOUNT'])
 
+    # Register Jinja2 template filters for date/time formatting
+    @app.template_filter('localized_date')
+    def localized_date_filter(dt, settings=None):
+        """Format date with user's timezone and date format settings."""
+        if settings is None:
+            return format_date(dt)
+        return format_date(
+            dt,
+            settings.get('date_format', 'MMM DD, YYYY'),
+            settings.get('timezone', 'UTC')
+        )
+
+    @app.template_filter('localized_time')
+    def localized_time_filter(dt, settings=None):
+        """Format time with user's timezone and time format settings."""
+        if settings is None:
+            return format_time(dt)
+        return format_time(
+            dt,
+            settings.get('time_format', '12h'),
+            settings.get('timezone', 'UTC')
+        )
+
+    @app.template_filter('localized_datetime')
+    def localized_datetime_filter(dt, settings=None):
+        """Format full datetime with user's settings."""
+        if settings is None:
+            return format_datetime(dt)
+        return format_datetime(
+            dt,
+            settings.get('date_format', 'MMM DD, YYYY'),
+            settings.get('time_format', '12h'),
+            settings.get('timezone', 'UTC')
+        )
+
+    # Context processor to inject app settings into all templates
+    @app.context_processor
+    def inject_app_settings():
+        """Make app settings available to all templates."""
+        from app.firebase.firestore_service import FirestoreService
+        try:
+            db_service = FirestoreService()
+            app_settings = db_service.get_app_settings()
+            return {'app_config': app_settings}
+        except Exception:
+            return {'app_config': {'app_name': 'Scriptly', 'tagline': ''}}
+
     @app.route('/')
     def index():
         if not session.get('logged_in'):
@@ -56,11 +104,13 @@ def create_app(config_class=Config):
     from app.routes.user_mgmt import user_bp
     from app.routes.site_routes import site_bp
     from app.routes.newsletter_routes import newsletter_bp
+    from app.routes.settings_routes import settings_bp
 
     app.register_blueprint(blog_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(site_bp)
     app.register_blueprint(newsletter_bp)
+    app.register_blueprint(settings_bp)
 
     # FIX: Register with url_prefix to match your JS calls (/users/list, etc.)
     app.register_blueprint(user_bp, url_prefix='/users')

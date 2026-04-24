@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Signup | ScriptlyAI{% endblock %}
+{% block title %}Sign Up | {{ app_config.app_name if app_config else 'Scriptly' }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">

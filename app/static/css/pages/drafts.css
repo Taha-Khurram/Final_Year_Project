@@ -317,3 +317,174 @@
 .edit-title-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.1); }
 
 .tox-tinymce { border: 1px solid #e2e8f0 !important; border-radius: 8px !important; }
+
+/* Slug Field */
+.slug-field {
+  margin-bottom: 1.25rem;
+}
+
+.slug-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.slug-input-group {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.slug-input-group:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.1);
+}
+
+.slug-prefix {
+  display: flex;
+  align-items: center;
+  padding: 0 0.75rem;
+  background: #f8fafc;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  border-right: 1px solid #e2e8f0;
+}
+
+.slug-input {
+  flex: 1;
+  padding: 0.6rem 0.75rem;
+  border: none;
+  font-size: 0.9rem;
+  color: #334155;
+}
+
+.slug-input:focus {
+  outline: none;
+}
+
+.slug-input::placeholder {
+  color: #cbd5e1;
+}
+
+.slug-regenerate-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  border: none;
+  background: #f8fafc;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-left: 1px solid #e2e8f0;
+}
+
+.slug-regenerate-btn:hover {
+  background: #f1f5f9;
+  color: var(--primary-color);
+}
+
+.slug-hint {
+  display: block;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 0.4rem;
+}
+
+/* SEO Settings Section */
+.seo-settings-section {
+  margin-bottom: 1.25rem;
+}
+
+.seo-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.seo-toggle-btn:hover {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.seo-toggle-btn i:first-child {
+  color: var(--primary-color);
+}
+
+.seo-chevron {
+  margin-left: auto;
+  transition: transform 0.2s;
+}
+
+.seo-toggle-btn.active .seo-chevron {
+  transform: rotate(180deg);
+}
+
+.seo-fields {
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  background: #fafbfc;
+}
+
+.seo-field {
+  margin-bottom: 1rem;
+}
+
+.seo-field:last-child {
+  margin-bottom: 0;
+}
+
+.seo-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 0.4rem;
+}
+
+.seo-input,
+.seo-textarea {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  color: #334155;
+  transition: all 0.2s;
+}
+
+.seo-input:focus,
+.seo-textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.1);
+}
+
+.seo-textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.seo-hint {
+  display: block;
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin-top: 0.3rem;
+}
