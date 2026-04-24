@@ -9,29 +9,35 @@ class FirebaseLoader:
     @classmethod
     def get_instance(cls, cert_path_or_json=None):
         if cls._instance is None:
-            if cert_path_or_json is None:
-                raise ValueError("Firebase certificate path or JSON required for first-time initialization.")
+            # Try multiple sources for Firebase credentials
+            firebase_creds = cert_path_or_json or os.getenv('FIREBASE_SERVICE_ACCOUNT')
+
+            if not firebase_creds:
+                print("ERROR: No Firebase credentials found!")
+                print(f"FIREBASE_SERVICE_ACCOUNT env: {os.getenv('FIREBASE_SERVICE_ACCOUNT', 'NOT SET')[:50] if os.getenv('FIREBASE_SERVICE_ACCOUNT') else 'NOT SET'}")
+                raise ValueError("Firebase credentials not found. Set FIREBASE_SERVICE_ACCOUNT environment variable.")
 
             cred = None
 
             # Check if it's a file path that exists
-            if isinstance(cert_path_or_json, str) and os.path.exists(cert_path_or_json):
-                cred = credentials.Certificate(cert_path_or_json)
+            if isinstance(firebase_creds, str) and os.path.exists(firebase_creds):
+                print(f"Loading Firebase from file: {firebase_creds}")
+                cred = credentials.Certificate(firebase_creds)
             else:
                 # Try to parse as JSON
                 try:
-                    # Handle if it's already a dict
-                    if isinstance(cert_path_or_json, dict):
-                        cert_dict = cert_path_or_json
+                    if isinstance(firebase_creds, dict):
+                        cert_dict = firebase_creds
                     else:
-                        # Clean up the string and parse
-                        json_str = cert_path_or_json.strip()
+                        json_str = firebase_creds.strip()
                         cert_dict = json.loads(json_str)
+                    print(f"Loading Firebase from JSON (project: {cert_dict.get('project_id', 'unknown')})")
                     cred = credentials.Certificate(cert_dict)
                 except json.JSONDecodeError as e:
                     print(f"JSON Parse Error: {e}")
-                    print(f"First 100 chars: {cert_path_or_json[:100] if cert_path_or_json else 'None'}")
-                    raise ValueError(f"Invalid Firebase certificate JSON: {e}")
+                    print(f"Value type: {type(firebase_creds)}")
+                    print(f"First 100 chars: {str(firebase_creds)[:100]}")
+                    raise ValueError(f"Invalid Firebase JSON: {e}")
                 except Exception as e:
                     print(f"Firebase Error: {e}")
                     raise ValueError(f"Invalid Firebase certificate: {e}")
