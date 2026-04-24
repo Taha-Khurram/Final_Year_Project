@@ -44,6 +44,7 @@
 
     <!-- Site Styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/site/site.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/site/footer.css') }}">
 
     <!-- Dynamic Primary Color -->
     <style>
@@ -109,140 +110,12 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="site-footer">
-        <div class="footer-container">
-            <div class="footer-grid">
-                <!-- Brand Column -->
-                <div class="footer-column footer-brand">
-                    <a href="{{ url_for('site_bp.site_home', user_id=user_id) }}" class="footer-logo">
-                        {% if settings.logo_url %}
-                        <img src="{{ settings.logo_url }}" alt="{{ settings.site_name }}">
-                        {% else %}
-                        <i class="bi bi-journal-richtext"></i>
-                        {% endif %}
-                        <span class="footer-logo-text">{{ settings.site_name }}</span>
-                    </a>
-                    <p>{{ settings.site_description or 'Discover insightful articles, tips, and stories that inspire and inform.' }}</p>
-                    {% if settings.social_links and (settings.social_links.twitter or settings.social_links.linkedin or settings.social_links.github) %}
-                    <div class="footer-social">
-                        {% if settings.social_links.twitter %}
-                        <a href="{{ settings.social_links.twitter }}" target="_blank" rel="noopener noreferrer" title="Twitter">
-                            <i class="bi bi-twitter-x"></i>
-                        </a>
-                        {% endif %}
-                        {% if settings.social_links.linkedin %}
-                        <a href="{{ settings.social_links.linkedin }}" target="_blank" rel="noopener noreferrer" title="LinkedIn">
-                            <i class="bi bi-linkedin"></i>
-                        </a>
-                        {% endif %}
-                        {% if settings.social_links.github %}
-                        <a href="{{ settings.social_links.github }}" target="_blank" rel="noopener noreferrer" title="GitHub">
-                            <i class="bi bi-github"></i>
-                        </a>
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                </div>
-
-                <!-- Quick Links -->
-                <div class="footer-column">
-                    <h4>Quick Links</h4>
-                    <ul class="footer-links">
-                        <li><a href="{{ url_for('site_bp.site_home', user_id=user_id) }}"><i class="bi bi-chevron-right"></i> Home</a></li>
-                        <li><a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}"><i class="bi bi-chevron-right"></i> Blog</a></li>
-                        <li><a href="{{ url_for('site_bp.site_about', user_id=user_id) }}"><i class="bi bi-chevron-right"></i> About</a></li>
-                        <li><a href="{{ url_for('site_bp.site_contact', user_id=user_id) }}"><i class="bi bi-chevron-right"></i> Contact</a></li>
-                    </ul>
-                </div>
-
-                <!-- Connect -->
-                <div class="footer-column">
-                    <h4>Connect</h4>
-                    <ul class="footer-links">
-                        {% if settings.contact_email %}
-                        <li><a href="mailto:{{ settings.contact_email }}"><i class="bi bi-envelope"></i> Email Us</a></li>
-                        {% endif %}
-                        {% if settings.social_links and settings.social_links.twitter %}
-                        <li><a href="{{ settings.social_links.twitter }}" target="_blank"><i class="bi bi-twitter-x"></i> Twitter</a></li>
-                        {% endif %}
-                        {% if settings.social_links and settings.social_links.linkedin %}
-                        <li><a href="{{ settings.social_links.linkedin }}" target="_blank"><i class="bi bi-linkedin"></i> LinkedIn</a></li>
-                        {% endif %}
-                        {% if settings.social_links and settings.social_links.github %}
-                        <li><a href="{{ settings.social_links.github }}" target="_blank"><i class="bi bi-github"></i> GitHub</a></li>
-                        {% endif %}
-                    </ul>
-                </div>
-
-                <!-- Newsletter -->
-                <div class="footer-column footer-newsletter">
-                    <h4>Newsletter</h4>
-                    <p>Subscribe to get the latest articles delivered to your inbox.</p>
-                    <form class="newsletter-form" id="footer-newsletter-form">
-                        <input type="email" name="email" placeholder="Enter your email" required>
-                        <button type="submit"><i class="bi bi-send"></i></button>
-                    </form>
-                    <p class="newsletter-disclaimer">No spam, unsubscribe anytime.</p>
-                </div>
-            </div>
-
-            <!-- Footer Bottom -->
-            <div class="footer-bottom">
-                <div class="footer-copyright">
-                    &copy; {{ settings.site_name }} {{ now().year if now else '2024' }}. All rights reserved.
-                </div>
-                <div class="powered-by">
-                    <i class="bi bi-lightning-charge-fill" style="color: var(--primary-color);"></i>
-                    Powered by <a href="/">ScriptlyAI</a>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Newsletter Success Modal -->
-    <div class="newsletter-modal-overlay" id="newsletter-modal">
-        <div class="newsletter-modal">
-            <button class="newsletter-modal-close" onclick="closeNewsletterModal()">
-                <i class="bi bi-x-lg"></i>
-            </button>
-            <div class="newsletter-modal-icon">
-                <i class="bi bi-envelope-check"></i>
-            </div>
-            <h3 class="newsletter-modal-title">Thank You for Subscribing!</h3>
-            <p class="newsletter-modal-message">
-                You've successfully joined our newsletter. We'll send you the latest updates and articles directly to your inbox.
-            </p>
-            <button class="newsletter-modal-btn" onclick="closeNewsletterModal()">Got it!</button>
-        </div>
-    </div>
-
-    <!-- Already Subscribed Modal -->
-    <div class="newsletter-modal-overlay" id="already-subscribed-modal">
-        <div class="newsletter-modal">
-            <button class="newsletter-modal-close" onclick="closeAlreadySubscribedModal()">
-                <i class="bi bi-x-lg"></i>
-            </button>
-            <div class="newsletter-modal-icon already-subscribed-icon">
-                <i class="bi bi-envelope-heart"></i>
-            </div>
-            <h3 class="newsletter-modal-title">You're Already Subscribed!</h3>
-            <p class="newsletter-modal-message">
-                Great news! This email is already on our newsletter list. You'll continue receiving our latest updates and articles.
-            </p>
-            <button class="newsletter-modal-btn" onclick="closeAlreadySubscribedModal()">Awesome!</button>
-        </div>
-    </div>
+    <!-- Footer Partial -->
+    {% include 'site/partials/site_footer.html' %}
 
     <!-- Site JavaScript -->
     <script src="{{ url_for('static', filename='js/site/site.js') }}"></script>
-    <script>
-        // Footer Newsletter Form
-        document.getElementById('footer-newsletter-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            handleNewsletterSubmit(this, '{{ url_for("site_bp.site_subscribe", user_id=user_id) }}');
-        });
-    </script>
+    <script src="{{ url_for('static', filename='js/site/footer.js') }}"></script>
 
     {% block extra_js %}{% endblock %}
 

@@ -1,0 +1,146 @@
+<!-- Newsletter Section -->
+<section class="footer-newsletter-section">
+    <div class="footer-newsletter-container">
+        <div class="footer-newsletter-content">
+            <h3>Subscribe to our newsletter</h3>
+            <p>Stay updated with the latest in scriptwriting technology, professional workflows, and industry insights.</p>
+        </div>
+        <form class="footer-newsletter-form" id="footer-newsletter-form" data-subscribe-url="{{ url_for('site_bp.site_subscribe', user_id=user_id) }}">
+            <input type="email" name="email" placeholder="Enter your email" required>
+            <button type="submit">Subscribe Now</button>
+        </form>
+    </div>
+</section>
+
+<!-- Main Footer -->
+<footer class="site-footer">
+    <div class="footer-main">
+        <div class="footer-container">
+            <!-- Brand Column -->
+            <div class="footer-brand">
+                <a href="{{ url_for('site_bp.site_home', user_id=user_id) }}" class="footer-logo">
+                    {% if settings.logo_url %}
+                    <img src="{{ settings.logo_url }}" alt="{{ settings.site_name }}">
+                    {% endif %}
+                    <span>{{ settings.site_name }}</span>
+                </a>
+                <p class="footer-description">
+                    {{ settings.site_description or 'Empowering creators with the world\'s most intuitive platform. From first draft to final cut, we handle the technicalities so you can focus on the story.' }}
+                </p>
+                <div class="footer-social-icons">
+                    {% if settings.social_links and settings.social_links.twitter %}
+                    <a href="{{ settings.social_links.twitter }}" target="_blank" rel="noopener noreferrer" title="Twitter">
+                        <i class="bi bi-twitter-x"></i>
+                    </a>
+                    {% endif %}
+                    {% if settings.social_links and settings.social_links.linkedin %}
+                    <a href="{{ settings.social_links.linkedin }}" target="_blank" rel="noopener noreferrer" title="LinkedIn">
+                        <i class="bi bi-linkedin"></i>
+                    </a>
+                    {% endif %}
+                    {% if settings.social_links and settings.social_links.github %}
+                    <a href="{{ settings.social_links.github }}" target="_blank" rel="noopener noreferrer" title="GitHub">
+                        <i class="bi bi-github"></i>
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" title="RSS Feed">
+                        <i class="bi bi-rss"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Navigation Column -->
+            <div class="footer-links-column">
+                <h4>NAVIGATION</h4>
+                <ul>
+                    <li><a href="{{ url_for('site_bp.site_home', user_id=user_id) }}">Home</a></li>
+                    <li><a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}">Blog</a></li>
+                    <li><a href="{{ url_for('site_bp.site_about', user_id=user_id) }}">About</a></li>
+                    {% for cat in categories[:3] if categories %}
+                    <li><a href="{{ url_for('site_bp.site_blog', user_id=user_id, category=cat.name) }}">{{ cat.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Support Column -->
+            <div class="footer-links-column">
+                <h4>SUPPORT</h4>
+                <ul>
+                    <li><a href="{{ url_for('site_bp.site_contact', user_id=user_id) }}">Contact Support</a></li>
+                    <li><a href="{{ url_for('site_bp.site_about', user_id=user_id) }}">About Us</a></li>
+                    <li><a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}">Documentation</a></li>
+                    {% if settings.contact_email %}
+                    <li><a href="mailto:{{ settings.contact_email }}">Email Us</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <!-- Legal & Social Column -->
+            <div class="footer-links-column">
+                <h4>LEGAL & SOCIAL</h4>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Cookies</a></li>
+                    {% if settings.social_links and settings.social_links.github %}
+                    <li><a href="{{ settings.social_links.github }}" target="_blank">GitHub</a></li>
+                    {% endif %}
+                    {% if settings.social_links and settings.social_links.twitter %}
+                    <li><a href="{{ settings.social_links.twitter }}" target="_blank">Twitter (X)</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Bottom -->
+    <div class="footer-bottom">
+        <div class="footer-bottom-container">
+            <div class="footer-copyright">
+                &copy; {{ now().year if now else '2024' }} {{ settings.site_name }}. All rights reserved.
+            </div>
+            <div class="footer-bottom-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Cookies</a>
+                <a href="/" class="footer-status-link">
+                    <i class="bi bi-lightning-charge-fill"></i> Powered by ScriptlyAI
+                </a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Newsletter Success Modal -->
+<div class="newsletter-modal-overlay" id="newsletter-modal">
+    <div class="newsletter-modal">
+        <button class="newsletter-modal-close" onclick="closeNewsletterModal()">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div class="newsletter-modal-icon">
+            <i class="bi bi-envelope-check"></i>
+        </div>
+        <h3 class="newsletter-modal-title">Thank You for Subscribing!</h3>
+        <p class="newsletter-modal-message">
+            You've successfully joined our newsletter. We'll send you the latest updates and articles directly to your inbox.
+        </p>
+        <button class="newsletter-modal-btn" onclick="closeNewsletterModal()">Got it!</button>
+    </div>
+</div>
+
+<!-- Already Subscribed Modal -->
+<div class="newsletter-modal-overlay" id="already-subscribed-modal">
+    <div class="newsletter-modal">
+        <button class="newsletter-modal-close" onclick="closeAlreadySubscribedModal()">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div class="newsletter-modal-icon already-subscribed-icon">
+            <i class="bi bi-envelope-heart"></i>
+        </div>
+        <h3 class="newsletter-modal-title">You're Already Subscribed!</h3>
+        <p class="newsletter-modal-message">
+            Great news! This email is already on our newsletter list. You'll continue receiving our latest updates and articles.
+        </p>
+        <button class="newsletter-modal-btn" onclick="closeAlreadySubscribedModal()">Awesome!</button>
+    </div>
+</div>
