@@ -685,6 +685,23 @@
         </div>
     </div>
 
+    <!-- Already Subscribed Modal -->
+    <div class="newsletter-modal-overlay" id="already-subscribed-modal">
+        <div class="newsletter-modal">
+            <button class="newsletter-modal-close" onclick="closeAlreadySubscribedModal()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            <div class="newsletter-modal-icon already-subscribed-icon">
+                <i class="bi bi-envelope-heart"></i>
+            </div>
+            <h3 class="newsletter-modal-title">You're Already Subscribed!</h3>
+            <p class="newsletter-modal-message">
+                Great news! This email is already on our newsletter list. You'll continue receiving our latest updates and articles.
+            </p>
+            <button class="newsletter-modal-btn" onclick="closeAlreadySubscribedModal()">Awesome!</button>
+        </div>
+    </div>
+
     <style>
         /* Newsletter Success Modal */
         .newsletter-modal-overlay {
@@ -760,6 +777,11 @@
             box-shadow: 0 10px 30px rgba(67, 24, 255, 0.3);
         }
 
+        .newsletter-modal-icon.already-subscribed-icon {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+
         .newsletter-modal-icon i {
             font-size: 2.5rem;
             color: white;
@@ -810,17 +832,34 @@
             document.body.style.overflow = '';
         }
 
-        // Close modal on overlay click
+        function showAlreadySubscribedModal() {
+            document.getElementById('already-subscribed-modal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAlreadySubscribedModal() {
+            document.getElementById('already-subscribed-modal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close modals on overlay click
         document.getElementById('newsletter-modal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeNewsletterModal();
             }
         });
 
-        // Close modal on Escape key
+        document.getElementById('already-subscribed-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAlreadySubscribedModal();
+            }
+        });
+
+        // Close modals on Escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeNewsletterModal();
+                closeAlreadySubscribedModal();
             }
         });
 
@@ -860,7 +899,11 @@
                     this.querySelector('input').value = '';
                     button.innerHTML = originalHTML;
                     button.disabled = false;
-                    showNewsletterModal();
+                    if (data.is_new) {
+                        showNewsletterModal();
+                    } else {
+                        showAlreadySubscribedModal();
+                    }
                 } else {
                     button.innerHTML = '<i class="bi bi-x-lg"></i>';
                     setTimeout(() => { button.innerHTML = originalHTML; button.disabled = false; }, 2000);

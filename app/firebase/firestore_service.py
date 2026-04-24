@@ -921,22 +921,41 @@ class FirestoreService:
         """
         Saves a newsletter subscriber to Firestore.
         Uses email as part of doc ID to prevent duplicates.
+        Returns tuple: (doc_id, is_new_subscriber)
         """
         try:
             email_clean = email.strip().lower()
+            # Create unique doc ID to prevent duplicates
+            doc_id = f"{user_id}_{email_clean.replace('@', '_at_').replace('.', '_')}"
+
+            # Check if subscriber already exists
+            doc_ref = self.db.collection('newsletter_subscribers').document(doc_id)
+            existing_doc = doc_ref.get()
+
+            if existing_doc.exists:
+                existing_data = existing_doc.to_dict()
+                # If already active subscriber, return as existing
+                if existing_data.get('active', False):
+                    return (doc_id, False)  # Already subscribed
+                # If was unsubscribed, resubscribe them
+                doc_ref.update({
+                    'active': True,
+                    'resubscribed_at': firestore.SERVER_TIMESTAMP
+                })
+                return (doc_id, True)  # Resubscribed
+
+            # New subscriber
             subscriber = {
                 'site_owner_id': user_id,
                 'email': email_clean,
                 'subscribed_at': firestore.SERVER_TIMESTAMP,
                 'active': True
             }
-            # Create unique doc ID to prevent duplicates
-            doc_id = f"{user_id}_{email_clean.replace('@', '_at_').replace('.', '_')}"
-            self.db.collection('newsletter_subscribers').document(doc_id).set(subscriber, merge=True)
-            return doc_id
+            doc_ref.set(subscriber)
+            return (doc_id, True)  # New subscriber
         except Exception as e:
             print(f"❌ Error saving newsletter subscriber: {e}")
-            return None
+            return (None, False)
 
     def get_contact_submissions(self, user_id, limit=50):
         """

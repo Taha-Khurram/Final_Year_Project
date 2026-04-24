@@ -247,8 +247,13 @@ def site_subscribe(user_id):
     try:
         email = request.form.get('email', '').strip()
         if email and '@' in email:
-            db_service.save_newsletter_subscriber(user_id, email)
-            return jsonify({'success': True, 'message': 'Subscribed successfully!'})
+            doc_id, is_new = db_service.save_newsletter_subscriber(user_id, email)
+            if doc_id:
+                if is_new:
+                    return jsonify({'success': True, 'is_new': True, 'message': 'Subscribed successfully!'})
+                else:
+                    return jsonify({'success': True, 'is_new': False, 'message': 'Already subscribed!'})
+            return jsonify({'success': False, 'message': 'Subscription failed'}), 500
         return jsonify({'success': False, 'message': 'Invalid email'}), 400
     except Exception as e:
         print(f"Subscribe Error: {e}")

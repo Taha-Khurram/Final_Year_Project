@@ -946,7 +946,11 @@
                 this.querySelector('input').value = '';
                 button.innerHTML = originalHTML;
                 button.disabled = false;
-                showNewsletterModal();
+                if (data.is_new) {
+                    showNewsletterModal();
+                } else {
+                    showAlreadySubscribedModal();
+                }
             } else {
                 button.innerHTML = '<i class="bi bi-x-lg"></i> Failed';
                 setTimeout(() => { button.innerHTML = originalHTML; button.disabled = false; }, 2000);

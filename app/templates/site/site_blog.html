@@ -748,7 +748,11 @@
                 this.querySelector('input').value = '';
                 button.textContent = originalText;
                 button.disabled = false;
-                showNewsletterModal();
+                if (data.is_new) {
+                    showNewsletterModal();
+                } else {
+                    showAlreadySubscribedModal();
+                }
             } else {
                 button.textContent = 'Failed';
                 setTimeout(() => { button.textContent = originalText; button.disabled = false; }, 2000);
