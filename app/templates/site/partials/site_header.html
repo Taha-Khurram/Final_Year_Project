@@ -1,0 +1,72 @@
+<!-- Site Header -->
+<header class="site-header">
+    <div class="header-container">
+        <!-- Logo -->
+        <a href="{{ url_for('site_bp.site_home', user_id=user_id) }}" class="site-logo">
+            {% if settings.logo_url %}
+            <img src="{{ settings.logo_url }}" alt="{{ settings.site_name }}" class="logo-image">
+            {% endif %}
+            <span class="site-logo-text">{{ settings.site_name }}</span>
+        </a>
+
+        <!-- Desktop Navigation -->
+        <nav class="site-nav">
+            <a href="{{ url_for('site_bp.site_home', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_home' and not current_category %}active{% endif %}">Home</a>
+            <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_blog' %}active{% endif %}">Blog</a>
+            <a href="{{ url_for('site_bp.site_about', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_about' %}active{% endif %}">About</a>
+            <a href="{{ url_for('site_bp.site_contact', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_contact' %}active{% endif %}">Contact</a>
+        </nav>
+
+        <!-- Header Actions -->
+        <div class="header-actions">
+            <!-- Search -->
+            <div class="header-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search posts..." id="header-search-input" data-search-url="{{ url_for('site_bp.site_blog', user_id=user_id) }}">
+            </div>
+
+            <!-- Subscribe Button -->
+            <button class="header-subscribe-btn" id="header-subscribe-btn">Subscribe</button>
+        </div>
+
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" aria-label="Toggle menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav">
+        <a href="{{ url_for('site_bp.site_home', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_home' and not current_category %}active{% endif %}">Home</a>
+        <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_blog' %}active{% endif %}">Blog</a>
+        <a href="{{ url_for('site_bp.site_about', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_about' %}active{% endif %}">About</a>
+        <a href="{{ url_for('site_bp.site_contact', user_id=user_id) }}" class="{% if request.endpoint == 'site_bp.site_contact' %}active{% endif %}">Contact</a>
+        <div class="mobile-search">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Search posts..." data-search-url="{{ url_for('site_bp.site_blog', user_id=user_id) }}">
+        </div>
+        <button class="mobile-subscribe-btn" id="mobile-subscribe-btn">Subscribe</button>
+    </nav>
+</header>
+
+<!-- Subscribe Modal -->
+<div class="subscribe-modal-overlay" id="subscribe-modal">
+    <div class="subscribe-modal">
+        <button class="subscribe-modal-close" id="subscribe-modal-close">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div class="subscribe-modal-icon">
+            <i class="bi bi-envelope-paper"></i>
+        </div>
+        <h3 class="subscribe-modal-title">Subscribe to Newsletter</h3>
+        <p class="subscribe-modal-message">
+            Get the latest posts delivered directly to your inbox. No spam, unsubscribe anytime.
+        </p>
+        <form class="subscribe-modal-form" id="subscribe-modal-form" data-subscribe-url="{{ url_for('site_bp.site_subscribe', user_id=user_id) }}">
+            <input type="email" name="email" placeholder="Enter your email" required>
+            <button type="submit">Subscribe</button>
+        </form>
+    </div>
+</div>

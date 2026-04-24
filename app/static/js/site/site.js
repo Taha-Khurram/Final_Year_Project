@@ -91,25 +91,6 @@ function showErrorState(button, isIconButton, originalHTML, originalText) {
 // ==================== INITIALIZATION ====================
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Mobile Menu Toggle
-    const mobileToggle = document.querySelector('.mobile-menu-toggle');
-    const mobileNav = document.querySelector('.mobile-nav');
-
-    if (mobileToggle && mobileNav) {
-        mobileToggle.addEventListener('click', function() {
-            this.classList.toggle('active');
-            mobileNav.classList.toggle('active');
-        });
-
-        // Close mobile menu when clicking a link
-        document.querySelectorAll('.mobile-nav a').forEach(link => {
-            link.addEventListener('click', () => {
-                mobileToggle.classList.remove('active');
-                mobileNav.classList.remove('active');
-            });
-        });
-    }
-
     // Close modals on overlay click
     const newsletterModal = document.getElementById('newsletter-modal');
     const alreadySubscribedModal = document.getElementById('already-subscribed-modal');
