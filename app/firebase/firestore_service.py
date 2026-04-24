@@ -45,15 +45,18 @@ class FirestoreService:
         try:
             blog_data['created_at'] = firestore.SERVER_TIMESTAMP
             blog_data['updated_at'] = datetime.utcnow()
-            blog_data['author_id'] = user_id 
+            blog_data['author_id'] = user_id
+            blog_data['site_owner_id'] = self.get_site_owner_for_user(user_id)
             blog_data['status'] = blog_data.get('status', 'DRAFT').upper()
 
             doc_ref = self.db.collection(self.collection_name).add(blog_data)
             blog_id = doc_ref[1].id
 
+            # Use site_owner_id for category management
+            site_owner = blog_data['site_owner_id']
             category_name = blog_data.get('category')
             if category_name:
-                self.update_category_count(category_name, 1, user_id)
+                self.update_category_count(category_name, 1, site_owner)
 
             return blog_id
         except Exception as e:
@@ -481,14 +484,48 @@ class FirestoreService:
             print(f"❌ Error fetching sub-users: {e}")
             return []
 
-    def get_published_count(self, user_id):
+    def get_site_owner_for_user(self, user_id):
+        """
+        Gets the site owner for a user.
+        - If user is an ADMIN or has no created_by, they are their own site owner
+        - If user was created by an admin, that admin is the site owner
+        """
         try:
+            user = self.get_user_by_id(user_id)
+            if not user:
+                return user_id  # Fallback to self
+
+            # If user is admin or wasn't created by anyone, they own their own site
+            if user.get('role') == 'ADMIN' or not user.get('created_by'):
+                return user_id
+
+            # Return the admin who created this user
+            return user.get('created_by')
+        except Exception as e:
+            print(f"❌ Error getting site owner: {e}")
+            return user_id  # Fallback to self
+
+    def get_published_count(self, user_id):
+        """Get count of published blogs for a site owner (includes team members' blogs)."""
+        try:
+            # Count by site_owner_id
             count_query = self.db.collection(self.collection_name)\
-                                .where(filter=FieldFilter('author_id', '==', user_id))\
+                                .where(filter=FieldFilter('site_owner_id', '==', user_id))\
                                 .where(filter=FieldFilter('status', '==', 'PUBLISHED'))\
                                 .count()
             count_result = count_query.get()
-            return count_result[0][0].value
+            site_owner_count = count_result[0][0].value
+
+            # Also count by author_id for backwards compatibility (older blogs)
+            fallback_query = self.db.collection(self.collection_name)\
+                                .where(filter=FieldFilter('author_id', '==', user_id))\
+                                .where(filter=FieldFilter('status', '==', 'PUBLISHED'))\
+                                .count()
+            fallback_result = fallback_query.get()
+            author_count = fallback_result[0][0].value
+
+            # Return max to avoid double counting (site_owner_id blogs are also author_id blogs for admins)
+            return max(site_owner_count, author_count)
         except Exception as e:
             print(f"❌ Error getting published blogs count: {e}")
             return 0
@@ -783,20 +820,23 @@ class FirestoreService:
         """
         Fetches published blogs for the public site.
         Returns blogs ordered by updated_at descending.
+        Filters by site_owner_id to include blogs from all team members.
+        Falls back to author_id for backwards compatibility with older blogs.
+        Note: Sorting done in Python to avoid composite index requirement.
         """
         try:
-            query = self.db.collection(self.collection_name)\
-                .where(filter=FieldFilter('author_id', '==', user_id))\
-                .where(filter=FieldFilter('status', '==', 'PUBLISHED'))\
-                .order_by('updated_at', direction=firestore.Query.DESCENDING)
-
-            if limit:
-                query = query.limit(limit)
-
             blogs = []
-            for doc in query.stream():
+            blog_ids = set()
+
+            # Fetch by site_owner_id (no order_by to avoid composite index)
+            site_owner_query = self.db.collection(self.collection_name)\
+                .where(filter=FieldFilter('site_owner_id', '==', user_id))\
+                .where(filter=FieldFilter('status', '==', 'PUBLISHED'))
+
+            for doc in site_owner_query.stream():
                 data = doc.to_dict()
                 data['id'] = doc.id
+                blog_ids.add(doc.id)
                 # Process content for display
                 raw_content = data.get('content', '')
                 if isinstance(raw_content, dict):
@@ -804,7 +844,27 @@ class FirestoreService:
                 else:
                     data['content'] = {'body': str(raw_content) if raw_content else ''}
                 blogs.append(data)
-            return blogs
+
+            # Fallback: also fetch by author_id for older blogs without site_owner_id
+            fallback_query = self.db.collection(self.collection_name)\
+                .where(filter=FieldFilter('author_id', '==', user_id))\
+                .where(filter=FieldFilter('status', '==', 'PUBLISHED'))
+
+            for doc in fallback_query.stream():
+                if doc.id not in blog_ids:  # Avoid duplicates
+                    data = doc.to_dict()
+                    data['id'] = doc.id
+                    raw_content = data.get('content', '')
+                    if isinstance(raw_content, dict):
+                        data['content'] = raw_content
+                    else:
+                        data['content'] = {'body': str(raw_content) if raw_content else ''}
+                    blogs.append(data)
+
+            # Sort combined results by updated_at in Python (newest first)
+            blogs.sort(key=lambda x: x.get('updated_at', datetime.min), reverse=True)
+
+            return blogs[:limit] if limit else blogs
         except Exception as e:
             print(f"❌ Error fetching published blogs: {e}")
             return []

@@ -21,9 +21,6 @@
         <a href="{{ url_for('blog.seo_tools_page') }}" class="nav-link" data-page="seo">
             <i class="bi bi-graph-up-arrow"></i> <span>SEO Tools</span>
         </a>
-        <a href="{{ url_for('blog.site_settings_page') }}" class="nav-link" data-page="site-settings">
-            <i class="bi bi-globe"></i> <span>Site Settings</span>
-        </a>
         <a href="{{ url_for('blog.newsletter_page') }}" class="nav-link" data-page="newsletter">
             <i class="bi bi-envelope-paper"></i> <span>Newsletter</span>
         </a>
@@ -34,6 +31,9 @@
             Admin
         </div>
 
+        <a href="{{ url_for('blog.site_settings_page') }}" class="nav-link" data-page="site-settings">
+            <i class="bi bi-globe"></i> <span>Site Settings</span>
+        </a>
         <a href="{{ url_for('blog.approval_page') }}" class="nav-link" data-page="approval">
             <i class="bi bi-check-circle-fill"></i> <span>Approvals</span>
         </a>

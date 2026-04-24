@@ -57,8 +57,8 @@ def site_post(user_id, blog_id):
         if not blog:
             abort(404)
 
-        # Verify blog belongs to this user
-        if blog.get('author_id') != user_id:
+        # Verify blog belongs to this site (by site_owner_id, not author_id)
+        if blog.get('site_owner_id') != user_id and blog.get('author_id') != user_id:
             abort(404)
 
         # Process content for display

@@ -191,6 +191,11 @@ async function saveModalChanges() {
   if (!editor) return;
   const updatedContent = editor.getContent();
 
+  const saveBtn = document.getElementById('save-changes-btn');
+  const originalContent = saveBtn.innerHTML;
+  saveBtn.disabled = true;
+  saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span> Saving...';
+
   try {
     const res = await fetch(`/api/update_blog/${currentEditingId}`, {
       method: 'POST',
@@ -203,6 +208,8 @@ async function saveModalChanges() {
       const row = document.querySelector(`#row-${currentEditingId} .title`);
       if (row) row.innerText = updatedTitle;
       bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = originalContent;
       showToast({
         type: 'success',
         title: 'Changes Saved',
@@ -210,6 +217,8 @@ async function saveModalChanges() {
         duration: 4000
       });
     } else {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = originalContent;
       showToast({
         type: 'error',
         title: 'Save Failed',
@@ -218,6 +227,8 @@ async function saveModalChanges() {
       });
     }
   } catch (err) {
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = originalContent;
     showToast({
       type: 'error',
       title: 'Error',

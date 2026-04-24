@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify, url_for, session, redirect
+from flask import Blueprint, render_template, request, jsonify, url_for, session, redirect, abort
 from app.agents.blog_agent import BlogAgent
 from app.agents.category_agent import CategoryAgent
 from app.agents.seo_agent import SEOAgent
@@ -7,9 +7,27 @@ from app.firebase.firestore_service import FirestoreService
 from datetime import datetime
 import math
 import markdown
+from functools import wraps
 
 blog_bp = Blueprint('blog', __name__)
 db_service = FirestoreService()
+
+
+# ---------------------------------------------------
+# SECURITY DECORATORS
+# ---------------------------------------------------
+
+def admin_required(f):
+    """Decorator to restrict routes to admin users only"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('logged_in'):
+            return redirect(url_for('auth_bp.login'))
+        if session.get('user_role') != 'ADMIN':
+            abort(404)  # Show 404 instead of 403 to hide the existence of the page
+        return f(*args, **kwargs)
+    return decorated_function
+
 
 # ---------------------------------------------------
 # SECURITY MIDDLEWARE
@@ -135,16 +153,13 @@ def drafts_page():
 
 
 @blog_bp.route('/approval')
+@admin_required
 def approval_page():
     user_id = session.get('user_id')
-    user_role = session.get('user_role', 'USER')
     page = request.args.get('page', 1, type=int)
     per_page = 10
 
-    if user_role == 'ADMIN':
-        pending_blogs = db_service.get_approval_queue(admin_id=user_id)
-    else:
-        pending_blogs = db_service.get_blogs_by_status("UNDER_REVIEW", user_id=user_id)
+    pending_blogs = db_service.get_approval_queue(admin_id=user_id)
 
     total_count = len(pending_blogs)
     total_pages = math.ceil(total_count / per_page) if total_count else 1
@@ -909,6 +924,7 @@ def analyze_draft_seo(blog_id):
 # ---------------------------------------------------
 
 @blog_bp.route('/site-settings')
+@admin_required
 def site_settings_page():
     """Site Settings Dashboard"""
     user_id = session.get('user_id')
@@ -916,8 +932,8 @@ def site_settings_page():
     # Get current settings
     settings = db_service.get_site_settings(user_id)
 
-    # Get published blogs for management
-    published_blogs = db_service.get_blogs_by_status("PUBLISHED", user_id=user_id)
+    # Get published blogs for management (includes team members' blogs)
+    published_blogs = db_service.get_published_blogs(user_id, limit=100)
 
     # Get stats for the settings page
     categories = db_service.get_all_categories(user_id=user_id)
@@ -935,12 +951,11 @@ def site_settings_page():
 
 
 @blog_bp.route('/api/site-settings', methods=['POST'])
+@admin_required
 def update_site_settings():
     """Update site settings with all configuration options"""
     try:
         user_id = session.get('user_id')
-        if not user_id:
-            return jsonify({"success": False, "error": "Unauthorized"}), 401
 
         data = request.get_json()
 

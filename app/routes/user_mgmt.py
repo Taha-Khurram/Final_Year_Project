@@ -1,25 +1,37 @@
-from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for
+from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, abort
 from firebase_admin import auth as admin_auth
 from app.firebase.firestore_service import FirestoreService
+from functools import wraps
 
 # We define the blueprint. The 'url_prefix' will be handled in the app factory.
 user_bp = Blueprint('user_bp', __name__)
 db_service = FirestoreService()
 
+
+def admin_required(f):
+    """Decorator to restrict routes to admin users only"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('logged_in'):
+            return redirect(url_for('auth_bp.login'))
+        if session.get('user_role') != 'ADMIN':
+            abort(404)  # Show 404 instead of 403 to hide the existence of the page
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 @user_bp.route('/manage-users')
+@admin_required
 def manage_users():
     """Renders the management dashboard for Admins."""
-    if session.get('user_role') != 'ADMIN':
-        return redirect(url_for('blog.home'))
     return render_template('users.html')
 
+
 @user_bp.route('/list', methods=['GET'])
+@admin_required
 def list_sub_users():
     """Fetches users managed by the logged-in Admin. Accessible at /users/list"""
     try:
-        if session.get('user_role') != 'ADMIN':
-            return jsonify({"error": "Unauthorized"}), 403
-        
         admin_id = session.get('user_id')
         print(f"🔍 Fetching users for admin ID: {admin_id}")
         users = db_service.get_my_sub_users(admin_id)
@@ -42,11 +54,9 @@ def list_sub_users():
         return jsonify({"success": False, "error": str(e)}), 500
 
 @user_bp.route('/create', methods=['POST'])
+@admin_required
 def create_sub_user():
     """Creates Auth & Firestore records. Accessible at /users/create"""
-    if session.get('user_role') != 'ADMIN':
-        return jsonify({"error": "Unauthorized"}), 403
-
     data = request.json
     try:
         # 1. Create in Firebase Auth
@@ -68,12 +78,11 @@ def create_sub_user():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
+
 @user_bp.route('/update-role', methods=['POST'])
+@admin_required
 def update_user_role():
     """Updates user role. Accessible at /users/update-role"""
-    if session.get('user_role') != 'ADMIN':
-        return jsonify({"error": "Unauthorized"}), 403
-    
     data = request.json
     user_id = data.get('userId')
     new_role = data.get('role', '').upper()

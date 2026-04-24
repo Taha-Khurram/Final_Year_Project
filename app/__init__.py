@@ -1,10 +1,24 @@
 import os
-from flask import Flask, redirect, url_for, session
+from flask import Flask, redirect, url_for, session, render_template, abort
 from config import Config
 from app.firebase.firebase_admin import FirebaseLoader
 from app.firebase.firestore_service import FirestoreService
 from whitenoise import WhiteNoise
 from werkzeug.middleware.proxy_fix import ProxyFix
+from functools import wraps
+
+
+def admin_required(f):
+    """Decorator to restrict routes to admin users only"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('logged_in'):
+            return redirect(url_for('auth_bp.login'))
+        if session.get('user_role') != 'ADMIN':
+            abort(404)  # Show 404 instead of 403 to hide the existence of the page
+        return f(*args, **kwargs)
+    return decorated_function
+
 
 def create_app(config_class=Config):
     app = Flask(__name__, static_folder='static', template_folder='templates')
@@ -23,6 +37,15 @@ def create_app(config_class=Config):
             return redirect(url_for('auth_bp.login'))
         return redirect(url_for('blog.home'))
 
+    # Error handlers
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template('errors/404.html'), 404
+
+    @app.errorhandler(403)
+    def forbidden(e):
+        return render_template('errors/404.html'), 404  # Show 404 to hide existence
+
     # Blueprint Registration
     from app.routes.blog_routes import blog_bp
     from app.routes.auth import auth_bp
@@ -37,5 +60,5 @@ def create_app(config_class=Config):
 
     # FIX: Register with url_prefix to match your JS calls (/users/list, etc.)
     app.register_blueprint(user_bp, url_prefix='/users')
-        
+
     return app
