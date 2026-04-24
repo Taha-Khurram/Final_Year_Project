@@ -3,268 +3,1121 @@
 {% block title %}{{ settings.site_name }} - Home{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/site/home.css') }}">
+<style>
+    /* ==================== HERO SECTION ==================== */
+    .site-hero {
+        position: relative;
+        min-height: 520px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 4rem 2rem;
+        margin: -2rem -2rem 3rem -2rem;
+        background: linear-gradient(135deg, rgba(67, 24, 255, 0.03) 0%, rgba(99, 102, 241, 0.08) 50%, rgba(139, 92, 246, 0.05) 100%);
+        overflow: hidden;
+    }
+
+    .site-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(67, 24, 255, 0.08) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .site-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .hero-container {
+        position: relative;
+        z-index: 1;
+        max-width: 1200px;
+        margin: 0 auto;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 3rem;
+    }
+
+    .hero-content {
+        flex: 1;
+        text-align: left;
+    }
+
+    .hero-illustration {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .hero-illustration svg {
+        width: 100%;
+        max-width: 450px;
+        height: auto;
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        color: white;
+        padding: 0.5rem 1.25rem;
+        border-radius: 30px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 1.75rem;
+    }
+
+    .hero-badge i {
+        font-size: 0.9rem;
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: 1.5rem;
+        line-height: 1.2;
+    }
+
+    .hero-title span {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-subtitle {
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        max-width: 600px;
+        margin: 0 auto 3.5rem;
+        line-height: 1.7;
+        padding-bottom: 20px;
+    }
+
+    .hero-cta {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 3.5rem;
+    }
+
+    .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1rem;
+        transition: var(--transition-base);
+        box-shadow: 0 4px 15px rgba(67, 24, 255, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(67, 24, 255, 0.4);
+    }
+
+    .btn-outline {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: white;
+        color: var(--text-primary);
+        padding: 1rem 2rem;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1rem;
+        border: 2px solid rgba(0, 0, 0, 0.1);
+        transition: var(--transition-base);
+    }
+
+    .btn-outline:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        transform: translateY(-3px);
+    }
+
+    .hero-stats {
+        display: flex;
+        gap: 4rem;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .hero-stat {
+        text-align: center;
+        min-width: 80px;
+    }
+
+    .hero-stat-number {
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        display: block;
+        line-height: 1.2;
+    }
+
+    .hero-stat-label {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    /* ==================== FEATURED SECTION ==================== */
+    .featured-section {
+        margin-bottom: 3rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .section-header h2 i {
+        color: var(--primary-color);
+        font-size: 1.25rem;
+    }
+
+    .section-header .view-all {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        transition: var(--transition-base);
+    }
+
+    .section-header .view-all:hover {
+        gap: 0.6rem;
+    }
+
+    .featured-grid {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .featured-main {
+        grid-row: span 2;
+    }
+
+    .featured-secondary {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .featured-card {
+        background: var(--bg-card);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-card);
+        transition: var(--transition-base);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .featured-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .featured-card-image {
+        position: relative;
+        height: 280px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .featured-main .featured-card-image {
+        height: 100%;
+        min-height: 320px;
+    }
+
+    .featured-secondary .featured-card-image {
+        height: 140px;
+    }
+
+    .featured-card-image i {
+        font-size: 4rem;
+        color: rgba(255, 255, 255, 0.2);
+        transition: var(--transition-smooth);
+    }
+
+    .featured-card:hover .featured-card-image i {
+        transform: scale(1.1);
+    }
+
+    .featured-card-category {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        background: white;
+        color: var(--primary-color);
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .featured-card-body {
+        padding: 1.5rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .featured-card-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+        line-height: 1.4;
+    }
+
+    .featured-main .featured-card-title {
+        font-size: 1.5rem;
+    }
+
+    .featured-card-title a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .featured-card-title a:hover {
+        color: var(--primary-color);
+    }
+
+    .featured-card-excerpt {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.7;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        flex: 1;
+    }
+
+    .featured-secondary .featured-card-excerpt {
+        -webkit-line-clamp: 2;
+    }
+
+    .featured-card-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin-top: 1rem;
+    }
+
+    /* ==================== BLOG GRID ==================== */
+    .blog-section {
+        margin-bottom: 3rem;
+    }
+
+    .category-filter {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+
+    .category-pill {
+        padding: 0.5rem 1.25rem;
+        border-radius: 30px;
+        background: var(--bg-card);
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        transition: var(--transition-base);
+    }
+
+    .category-pill:hover, .category-pill.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .blog-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .blog-card {
+        background: var(--bg-card);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-card);
+        transition: var(--transition-base);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .blog-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .blog-card-image {
+        height: 180px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .blog-card-image i {
+        font-size: 3rem;
+        color: rgba(255, 255, 255, 0.25);
+        transition: var(--transition-smooth);
+    }
+
+    .blog-card:hover .blog-card-image i {
+        transform: scale(1.15);
+    }
+
+    .blog-card-category {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        background: rgba(255, 255, 255, 0.95);
+        color: var(--primary-color);
+        padding: 0.35rem 1rem;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .blog-card-body {
+        padding: 1.5rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .blog-card-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .blog-card-title a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .blog-card-title a:hover {
+        color: var(--primary-color);
+    }
+
+    .blog-card-excerpt {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        line-height: 1.6;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        flex: 1;
+    }
+
+    .blog-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1.25rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .blog-card-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+    }
+
+    .blog-card-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        transition: var(--transition-base);
+    }
+
+    .blog-card-link:hover {
+        gap: 0.6rem;
+    }
+
+    .view-all-btn {
+        display: flex;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    /* ==================== NEWSLETTER SECTION ==================== */
+    .newsletter-section {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        border-radius: var(--radius-lg);
+        padding: 3rem;
+        text-align: center;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .newsletter-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    .newsletter-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .newsletter-icon {
+        width: 70px;
+        height: 70px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+    }
+
+    .newsletter-icon i {
+        font-size: 2rem;
+    }
+
+    .newsletter-section h2 {
+        font-size: 1.75rem;
+        font-weight: 800;
+        margin-bottom: 0.75rem;
+    }
+
+    .newsletter-section p {
+        font-size: 1rem;
+        opacity: 0.9;
+        max-width: 500px;
+        margin: 0 auto 1.5rem;
+    }
+
+    .newsletter-form-lg {
+        display: flex;
+        gap: 0.75rem;
+        max-width: 450px;
+        margin: 0 auto;
+    }
+
+    .newsletter-form-lg input {
+        flex: 1;
+        padding: 1rem 1.25rem;
+        border: none;
+        border-radius: 30px;
+        font-size: 1rem;
+        background: white;
+        color: var(--text-primary);
+    }
+
+    .newsletter-form-lg input::placeholder {
+        color: var(--text-secondary);
+    }
+
+    .newsletter-form-lg button {
+        padding: 1rem 2rem;
+        background: var(--bg-dark);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: var(--transition-base);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .newsletter-form-lg button:hover {
+        background: var(--bg-darker);
+        transform: translateY(-2px);
+    }
+
+    .newsletter-disclaimer {
+        font-size: 0.85rem;
+        opacity: 0.7;
+        margin-top: 1rem;
+        padding-top:20px;
+    }
+
+    /* ==================== EMPTY STATE ==================== */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--bg-card);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-card);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: var(--text-secondary);
+        opacity: 0.3;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        font-size: 1.25rem;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        color: var(--text-secondary);
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 900px) {
+        .hero-container {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .hero-content {
+            text-align: center;
+        }
+
+        .hero-illustration {
+            order: -1;
+        }
+
+        .hero-illustration svg {
+            max-width: 320px;
+        }
+
+        .hero-stats {
+            justify-content: center;
+        }
+
+        .featured-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .featured-main {
+            grid-row: span 1;
+        }
+
+        .featured-secondary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            flex-direction: unset;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .site-hero {
+            min-height: auto;
+            padding: 3rem 1.5rem;
+            margin: -1.5rem -1.5rem 2rem -1.5rem;
+        }
+
+        .hero-illustration svg {
+            max-width: 260px;
+        }
+
+        .hero-title {
+            font-size: 2.25rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .hero-cta {
+            margin-bottom: 2.5rem;
+            justify-content: center;
+        }
+
+        .hero-stats {
+            gap: 2.5rem;
+            max-width: 100%;
+        }
+
+        .hero-stat-number {
+            font-size: 1.75rem;
+        }
+
+        .hero-stat-label {
+            font-size: 0.85rem;
+        }
+
+        .featured-secondary {
+            grid-template-columns: 1fr;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .blog-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .newsletter-section {
+            padding: 2rem 1.5rem;
+        }
+
+        .newsletter-form-lg {
+            flex-direction: column;
+        }
+
+        .newsletter-form-lg button {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
-<section class="home-hero">
-    <div class="home-hero-container">
-        <div class="home-hero-content">
-            <h1 class="home-hero-title">
-                {{ settings.hero_title_line1 or 'Transform Your Ideas into' }}
-                <span class="highlight">{{ settings.hero_title_highlight or 'Powerful Scripts' }}</span>
-            </h1>
-            <p class="home-hero-subtitle">
-                {{ settings.hero_subtitle or 'Create professional scripts in minutes with our AI-powered platform. From concept to final draft, we make scriptwriting effortless.' }}
-            </p>
-            <div class="home-hero-buttons">
-                <a href="{{ settings.hero_cta_primary_url or url_for('site_bp.site_blog', user_id=user_id) }}" class="btn-hero-primary">
-                    {{ settings.hero_cta_primary_text or 'Start Writing Free' }}
-                </a>
-                <a href="{{ settings.hero_cta_secondary_url or url_for('site_bp.site_about', user_id=user_id) }}" class="btn-hero-secondary">
-                    <i class="bi bi-play-circle"></i>
-                    {{ settings.hero_cta_secondary_text or 'Watch Demo' }}
-                </a>
+<section class="site-hero">
+    <div class="hero-container">
+        <div class="hero-content">
+            {% if settings.niche %}
+            <div class="hero-badge">
+                <i class="bi bi-stars"></i>
+                {{ settings.niche }}
             </div>
-            <div class="home-hero-social-proof">
-                <div class="home-hero-avatars">
-                    <img src="{{ settings.avatar_1_url or url_for('static', filename='images/site/avatar-1.jpg') }}" alt="User" class="hero-avatar">
-                    <img src="{{ settings.avatar_2_url or url_for('static', filename='images/site/avatar-2.jpg') }}" alt="User" class="hero-avatar">
-                    <img src="{{ settings.avatar_3_url or url_for('static', filename='images/site/avatar-3.jpg') }}" alt="User" class="hero-avatar">
-                    <img src="{{ settings.avatar_4_url or url_for('static', filename='images/site/avatar-4.jpg') }}" alt="User" class="hero-avatar">
-                </div>
-                <span class="home-hero-join-text">{{ settings.hero_social_proof_text or 'Join 10,000+ writers' }}</span>
-            </div>
-        </div>
-        <div class="home-hero-image">
-            <img src="{{ settings.hero_image_url or url_for('static', filename='images/site/hero-illustration.png') }}" alt="Hero Illustration">
-        </div>
-    </div>
-</section>
-
-<!-- Features Section -->
-<section class="home-features">
-    <div class="home-features-container">
-        <div class="home-features-header">
-            <h2 class="home-features-title">
-                {{ settings.features_title_line1 or 'Everything You Need to' }}
-                <span class="highlight">{{ settings.features_title_highlight or 'Create Amazing Scripts' }}</span>
-            </h2>
-            <p class="home-features-subtitle">
-                {{ settings.features_subtitle or 'Our platform provides all the tools and features you need to write, edit, and perfect your scripts.' }}
-            </p>
-        </div>
-        <div class="home-features-grid">
-            <!-- Feature 1 -->
-            <div class="home-feature-card">
-                <div class="home-feature-icon" style="background: {{ settings.feature_1_color or 'rgba(67, 24, 255, 0.1)' }};">
-                    <i class="bi {{ settings.feature_1_icon or 'bi-lightning-charge' }}" style="color: {{ settings.feature_1_icon_color or '#4318FF' }};"></i>
-                </div>
-                <h3 class="home-feature-title">{{ settings.feature_1_title or 'AI-Powered Writing' }}</h3>
-                <p class="home-feature-description">{{ settings.feature_1_description or 'Let our advanced AI help you generate ideas, dialogue, and scene descriptions in seconds.' }}</p>
-            </div>
-            <!-- Feature 2 -->
-            <div class="home-feature-card">
-                <div class="home-feature-icon" style="background: {{ settings.feature_2_color or 'rgba(5, 205, 153, 0.1)' }};">
-                    <i class="bi {{ settings.feature_2_icon or 'bi-pencil-square' }}" style="color: {{ settings.feature_2_icon_color or '#05CD99' }};"></i>
-                </div>
-                <h3 class="home-feature-title">{{ settings.feature_2_title or 'Smart Formatting' }}</h3>
-                <p class="home-feature-description">{{ settings.feature_2_description or 'Automatic screenplay formatting that follows industry standards. Focus on creativity, not margins.' }}</p>
-            </div>
-            <!-- Feature 3 -->
-            <div class="home-feature-card">
-                <div class="home-feature-icon" style="background: {{ settings.feature_3_color or 'rgba(255, 181, 71, 0.1)' }};">
-                    <i class="bi {{ settings.feature_3_icon or 'bi-people' }}" style="color: {{ settings.feature_3_icon_color or '#FFB547' }};"></i>
-                </div>
-                <h3 class="home-feature-title">{{ settings.feature_3_title or 'Real-time Collaboration' }}</h3>
-                <p class="home-feature-description">{{ settings.feature_3_description or 'Work together with your team in real-time. Share, comment, and edit scripts seamlessly.' }}</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Trusted By Section -->
-<section class="home-trusted">
-    <div class="home-trusted-container">
-        <h2 class="home-trusted-title">{{ settings.trusted_title or 'Trusted by Industry Leaders' }}</h2>
-        <div class="home-trusted-logos">
-            <img src="{{ settings.logo_1_url or url_for('static', filename='images/site/logo-1.png') }}" alt="Company" class="trusted-logo">
-            <img src="{{ settings.logo_2_url or url_for('static', filename='images/site/logo-2.png') }}" alt="Company" class="trusted-logo">
-            <img src="{{ settings.logo_3_url or url_for('static', filename='images/site/logo-3.png') }}" alt="Company" class="trusted-logo">
-            <img src="{{ settings.logo_4_url or url_for('static', filename='images/site/logo-4.png') }}" alt="Company" class="trusted-logo">
-            <img src="{{ settings.logo_5_url or url_for('static', filename='images/site/logo-5.png') }}" alt="Company" class="trusted-logo">
-            <img src="{{ settings.logo_6_url or url_for('static', filename='images/site/logo-6.png') }}" alt="Company" class="trusted-logo">
-        </div>
-    </div>
-</section>
-
-<!-- Testimonials Section -->
-<section class="home-testimonials">
-    <div class="home-testimonials-container">
-        <div class="home-testimonials-header">
-            <h2 class="home-testimonials-title">{{ settings.testimonials_title or 'What Our Users Say' }}</h2>
-        </div>
-        <div class="home-testimonials-grid">
-            <!-- Testimonial 1 -->
-            <div class="home-testimonial-card">
-                <div class="home-testimonial-stars">
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                </div>
-                <p class="home-testimonial-quote">"{{ settings.testimonial_1_quote or 'This platform has completely transformed how I write scripts. The AI suggestions are incredibly helpful and save me hours of work.' }}"</p>
-                <div class="home-testimonial-author">
-                    <img src="{{ settings.testimonial_1_avatar or url_for('static', filename='images/site/testimonial-1.jpg') }}" alt="Author" class="testimonial-avatar">
-                    <div class="testimonial-author-info">
-                        <span class="testimonial-author-name">{{ settings.testimonial_1_name or 'Sarah Johnson' }}</span>
-                        <span class="testimonial-author-role">{{ settings.testimonial_1_role or 'Screenwriter' }}</span>
-                    </div>
-                </div>
-            </div>
-            <!-- Testimonial 2 -->
-            <div class="home-testimonial-card">
-                <div class="home-testimonial-stars">
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                </div>
-                <p class="home-testimonial-quote">"{{ settings.testimonial_2_quote or 'The collaboration features are game-changing. My team can now work on scripts together without any hassle.' }}"</p>
-                <div class="home-testimonial-author">
-                    <img src="{{ settings.testimonial_2_avatar or url_for('static', filename='images/site/testimonial-2.jpg') }}" alt="Author" class="testimonial-avatar">
-                    <div class="testimonial-author-info">
-                        <span class="testimonial-author-name">{{ settings.testimonial_2_name or 'Michael Chen' }}</span>
-                        <span class="testimonial-author-role">{{ settings.testimonial_2_role or 'Film Director' }}</span>
-                    </div>
-                </div>
-            </div>
-            <!-- Testimonial 3 -->
-            <div class="home-testimonial-card">
-                <div class="home-testimonial-stars">
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                </div>
-                <p class="home-testimonial-quote">"{{ settings.testimonial_3_quote or 'From amateur to professional-looking scripts in no time. The formatting tools are simply outstanding.' }}"</p>
-                <div class="home-testimonial-author">
-                    <img src="{{ settings.testimonial_3_avatar or url_for('static', filename='images/site/testimonial-3.jpg') }}" alt="Author" class="testimonial-avatar">
-                    <div class="testimonial-author-info">
-                        <span class="testimonial-author-name">{{ settings.testimonial_3_name or 'Emily Parker' }}</span>
-                        <span class="testimonial-author-role">{{ settings.testimonial_3_role or 'Content Creator' }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Blog Section -->
-<section class="home-blog">
-    <div class="home-blog-container">
-        <div class="home-blog-header">
-            <h2 class="home-blog-title">{{ settings.blog_section_title or 'Latest from Our Blog' }}</h2>
-            <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="home-blog-view-all">
-                View All <i class="bi bi-arrow-right"></i>
-            </a>
-        </div>
-        <div class="home-blog-grid">
-            {% if blogs and blogs|length > 0 %}
-                {% for blog in blogs[:3] %}
-                <article class="home-blog-card">
-                    <div class="home-blog-card-image">
-                        {% if blog.cover_image %}
-                        <img src="{{ blog.cover_image }}" alt="{{ blog.title }}">
-                        {% else %}
-                        <div class="home-blog-card-placeholder">
-                            <i class="bi bi-image"></i>
-                        </div>
-                        {% endif %}
-                        {% if blog.category %}
-                        <span class="home-blog-card-category">{{ blog.category }}</span>
-                        {% endif %}
-                    </div>
-                    <div class="home-blog-card-body">
-                        <h3 class="home-blog-card-title">
-                            <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}">
-                                {{ blog.title }}
-                            </a>
-                        </h3>
-                        <p class="home-blog-card-excerpt">
-                            {% if blog.content is mapping %}
-                                {{ (blog.content.body or blog.content.markdown or blog.content.text or '')|striptags|truncate(120) }}
-                            {% else %}
-                                {{ blog.content|striptags|truncate(120) }}
-                            {% endif %}
-                        </p>
-                        <div class="home-blog-card-meta">
-                            <div class="home-blog-card-author">
-                                <img src="{{ settings.author_avatar or url_for('static', filename='images/site/author-default.jpg') }}" alt="Author" class="blog-author-avatar">
-                                <span>{{ settings.author_name or 'Admin' }}</span>
-                            </div>
-                            <span class="home-blog-card-read-time">
-                                <i class="bi bi-clock"></i> {{ blog.read_time or '5 min read' }}
-                            </span>
-                        </div>
-                    </div>
-                </article>
-                {% endfor %}
-            {% else %}
-                <!-- Empty Blog Cards (Placeholders) -->
-                {% for i in range(3) %}
-                <article class="home-blog-card">
-                    <div class="home-blog-card-image">
-                        <div class="home-blog-card-placeholder">
-                            <i class="bi bi-image"></i>
-                        </div>
-                        <span class="home-blog-card-category">Category</span>
-                    </div>
-                    <div class="home-blog-card-body">
-                        <h3 class="home-blog-card-title">
-                            <a href="#">Blog Post Title Here</a>
-                        </h3>
-                        <p class="home-blog-card-excerpt">
-                            This is a placeholder for blog post excerpt. Add your blog posts to see real content here.
-                        </p>
-                        <div class="home-blog-card-meta">
-                            <div class="home-blog-card-author">
-                                <div class="blog-author-avatar-placeholder"></div>
-                                <span>Author Name</span>
-                            </div>
-                            <span class="home-blog-card-read-time">
-                                <i class="bi bi-clock"></i> 5 min read
-                            </span>
-                        </div>
-                    </div>
-                </article>
-                {% endfor %}
             {% endif %}
+
+            <h1 class="hero-title">
+                Welcome to <span>{{ settings.site_name }}</span>
+            </h1>
+
+            <p class="hero-subtitle">
+                {{ settings.site_description or 'Discover insightful articles, tips, and stories that inspire and inform. Join our community of readers today.' }}
+            </p>
+
+            <div class="hero-cta">
+                <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="btn-primary">
+                    <i class="bi bi-journal-text"></i> Explore Articles
+                </a>
+                <a href="{{ url_for('site_bp.site_about', user_id=user_id) }}" class="btn-outline">
+                    <i class="bi bi-info-circle"></i> Learn More
+                </a>
+            </div>
+
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="hero-stat-number">{{ blogs|length if blogs else 0 }}</span>
+                    <span class="hero-stat-label">Articles</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number">{{ categories|length if categories else 0 }}</span>
+                    <span class="hero-stat-label">Categories</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number">{{ (blogs|length * 50) if blogs else 0 }}+</span>
+                    <span class="hero-stat-label">Readers</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-illustration">
+            <svg viewBox="0 0 500 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Background blob shapes -->
+                <ellipse cx="250" cy="200" rx="180" ry="160" fill="url(#heroGrad1)" opacity="0.15"/>
+                <circle cx="380" cy="100" r="60" fill="url(#heroGrad2)" opacity="0.1"/>
+                <circle cx="100" cy="320" r="50" fill="url(#heroGrad2)" opacity="0.08"/>
+
+                <!-- Laptop/Computer -->
+                <rect x="120" y="140" width="260" height="170" rx="12" fill="#2D3748"/>
+                <rect x="130" y="150" width="240" height="140" rx="6" fill="#1A202C"/>
+                <rect x="140" y="160" width="220" height="120" fill="url(#screenGrad)"/>
+
+                <!-- Screen content - blog lines -->
+                <rect x="155" y="175" width="90" height="8" rx="4" fill="rgba(255,255,255,0.9)"/>
+                <rect x="155" y="190" width="140" height="5" rx="2" fill="rgba(255,255,255,0.4)"/>
+                <rect x="155" y="200" width="120" height="5" rx="2" fill="rgba(255,255,255,0.4)"/>
+                <rect x="155" y="210" width="130" height="5" rx="2" fill="rgba(255,255,255,0.4)"/>
+
+                <!-- Image placeholder on screen -->
+                <rect x="155" y="225" width="80" height="45" rx="4" fill="rgba(99,102,241,0.6)"/>
+                <circle cx="175" cy="242" r="8" fill="rgba(255,255,255,0.5)"/>
+                <polygon points="160,265 195,245 230,265" fill="rgba(255,255,255,0.3)"/>
+
+                <!-- Sidebar on screen -->
+                <rect x="245" y="225" width="60" height="12" rx="3" fill="rgba(255,255,255,0.2)"/>
+                <rect x="245" y="242" width="60" height="12" rx="3" fill="rgba(255,255,255,0.2)"/>
+                <rect x="245" y="259" width="40" height="12" rx="3" fill="rgba(99,102,241,0.8)"/>
+
+                <!-- Keyboard base -->
+                <path d="M100 310 L130 310 L125 330 L105 330 Z" fill="#4A5568"/>
+                <path d="M130 310 L370 310 L375 330 L125 330 Z" fill="#2D3748"/>
+                <path d="M370 310 L400 310 L395 330 L375 330 Z" fill="#4A5568"/>
+
+                <!-- Floating elements -->
+                <!-- Pencil -->
+                <g transform="rotate(-30, 420, 180)">
+                    <rect x="400" y="140" width="40" height="8" rx="2" fill="#F6AD55"/>
+                    <polygon points="400,144 390,144 400,148" fill="#2D3748"/>
+                    <rect x="430" y="140" width="10" height="8" rx="1" fill="#FC8181"/>
+                </g>
+
+                <!-- Coffee cup -->
+                <ellipse cx="85" cy="200" rx="30" ry="8" fill="#CBD5E0"/>
+                <path d="M55 200 L60 250 Q67.5 260 85 260 Q102.5 260 110 250 L115 200" fill="#E2E8F0"/>
+                <ellipse cx="85" cy="200" rx="25" ry="6" fill="#805AD5"/>
+                <path d="M115 210 Q135 210 135 225 Q135 240 115 240" stroke="#CBD5E0" stroke-width="5" fill="none"/>
+                <!-- Steam -->
+                <path d="M75 185 Q70 175 75 165" stroke="#A0AEC0" stroke-width="2" fill="none" opacity="0.6"/>
+                <path d="M85 180 Q80 170 85 160" stroke="#A0AEC0" stroke-width="2" fill="none" opacity="0.6"/>
+                <path d="M95 185 Q90 175 95 165" stroke="#A0AEC0" stroke-width="2" fill="none" opacity="0.6"/>
+
+                <!-- Floating shapes -->
+                <circle cx="430" cy="280" r="15" fill="url(#heroGrad2)" opacity="0.7"/>
+                <rect x="60" y="120" width="20" height="20" rx="4" fill="url(#heroGrad2)" opacity="0.5" transform="rotate(15, 70, 130)"/>
+                <polygon points="420,90 430,110 410,110" fill="#F6AD55" opacity="0.7"/>
+
+                <!-- Notification badges -->
+                <circle cx="340" cy="165" r="10" fill="#FC8181"/>
+                <text x="340" y="169" text-anchor="middle" fill="white" font-size="10" font-weight="bold">3</text>
+
+                <!-- Stars/sparkles -->
+                <g fill="#6366F1" opacity="0.8">
+                    <path d="M450 150 L452 155 L458 155 L454 159 L456 165 L450 161 L444 165 L446 159 L442 155 L448 155 Z"/>
+                    <path d="M70 90 L71.5 94 L76 94 L73 97 L74 102 L70 99 L66 102 L67 97 L64 94 L68.5 94 Z" transform="scale(0.8)"/>
+                </g>
+
+                <!-- Gradients -->
+                <defs>
+                    <linearGradient id="heroGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#6366F1"/>
+                        <stop offset="100%" style="stop-color:#8B5CF6"/>
+                    </linearGradient>
+                    <linearGradient id="heroGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#4318FF"/>
+                        <stop offset="100%" style="stop-color:#6366F1"/>
+                    </linearGradient>
+                    <linearGradient id="screenGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#4318FF"/>
+                        <stop offset="100%" style="stop-color:#6366F1"/>
+                    </linearGradient>
+                </defs>
+            </svg>
         </div>
     </div>
 </section>
 
-<!-- CTA Section -->
-<section class="home-cta">
-    <div class="home-cta-container">
-        <h2 class="home-cta-title">{{ settings.cta_title or 'Ready to Transform Your Writing?' }}</h2>
-        <p class="home-cta-subtitle">{{ settings.cta_subtitle or 'Join thousands of writers who are already creating amazing scripts with our platform.' }}</p>
-        <div class="home-cta-buttons">
-            <a href="{{ settings.cta_primary_url or url_for('site_bp.site_contact', user_id=user_id) }}" class="btn-cta-primary">
-                {{ settings.cta_primary_text or 'Get Started Free' }}
-            </a>
-            <a href="{{ settings.cta_secondary_url or url_for('site_bp.site_about', user_id=user_id) }}" class="btn-cta-secondary">
-                {{ settings.cta_secondary_text or 'Schedule Demo' }}
-            </a>
+{% if blogs and blogs|length > 0 %}
+<!-- Featured Posts Section -->
+<section class="featured-section">
+    <div class="section-header">
+        <h2><i class="bi bi-bookmark-star"></i> Featured Posts</h2>
+        <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="view-all">
+            View All <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+
+    <div class="featured-grid">
+        <!-- Main Featured Post -->
+        {% set main_post = featured_post if featured_post else blogs[0] %}
+        <div class="featured-main">
+            <article class="featured-card">
+                <div class="featured-card-image">
+                    <i class="bi bi-journal-richtext"></i>
+                    {% if main_post.category %}
+                    <span class="featured-card-category">{{ main_post.category }}</span>
+                    {% endif %}
+                </div>
+                <div class="featured-card-body">
+                    <h3 class="featured-card-title">
+                        <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=main_post.id) }}">
+                            {{ main_post.title }}
+                        </a>
+                    </h3>
+                    <p class="featured-card-excerpt">
+                        {% if main_post.content is mapping %}
+                            {{ (main_post.content.body or main_post.content.markdown or main_post.content.text or '')|striptags|truncate(200) }}
+                        {% else %}
+                            {{ main_post.content|striptags|truncate(200) }}
+                        {% endif %}
+                    </p>
+                    <div class="featured-card-meta">
+                        <i class="bi bi-calendar3"></i>
+                        {{ main_post.updated_at.strftime('%B %d, %Y') if main_post.updated_at else 'Recently Published' }}
+                    </div>
+                </div>
+            </article>
         </div>
+
+        <!-- Secondary Featured Posts -->
+        <div class="featured-secondary">
+            {% for blog in blogs[1:3] %}
+            <article class="featured-card">
+                <div class="featured-card-image">
+                    <i class="bi bi-journal-richtext"></i>
+                    {% if blog.category %}
+                    <span class="featured-card-category">{{ blog.category }}</span>
+                    {% endif %}
+                </div>
+                <div class="featured-card-body">
+                    <h3 class="featured-card-title">
+                        <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}">
+                            {{ blog.title }}
+                        </a>
+                    </h3>
+                    <p class="featured-card-excerpt">
+                        {% if blog.content is mapping %}
+                            {{ (blog.content.body or blog.content.markdown or blog.content.text or '')|striptags|truncate(100) }}
+                        {% else %}
+                            {{ blog.content|striptags|truncate(100) }}
+                        {% endif %}
+                    </p>
+                    <div class="featured-card-meta">
+                        <i class="bi bi-calendar3"></i>
+                        {{ blog.updated_at.strftime('%b %d, %Y') if blog.updated_at else 'Recently' }}
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Latest Posts Section -->
+{% if blogs|length > 3 %}
+<section class="blog-section">
+    <div class="section-header">
+        <h2><i class="bi bi-grid"></i> Latest Posts</h2>
+    </div>
+
+    <!-- Category Filter -->
+    {% if categories %}
+    <div class="category-filter">
+        <a href="{{ url_for('site_bp.site_home', user_id=user_id) }}" class="category-pill {% if not current_category %}active{% endif %}">
+            All Posts
+        </a>
+        {% for cat in categories %}
+        <a href="{{ url_for('site_bp.site_category', user_id=user_id, category_name=cat.name) }}"
+           class="category-pill {% if current_category and current_category|lower == cat.name|lower %}active{% endif %}">
+            {{ cat.name }}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="blog-grid">
+        {% for blog in blogs[3:] %}
+        <article class="blog-card">
+            <div class="blog-card-image">
+                <i class="bi bi-journal-richtext"></i>
+                {% if blog.category %}
+                <span class="blog-card-category">{{ blog.category }}</span>
+                {% endif %}
+            </div>
+            <div class="blog-card-body">
+                <h2 class="blog-card-title">
+                    <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}">
+                        {{ blog.title }}
+                    </a>
+                </h2>
+                <p class="blog-card-excerpt">
+                    {% if blog.content is mapping %}
+                        {{ (blog.content.body or blog.content.markdown or blog.content.text or '')|striptags|truncate(150) }}
+                    {% else %}
+                        {{ blog.content|striptags|truncate(150) }}
+                    {% endif %}
+                </p>
+                <div class="blog-card-footer">
+                    <div class="blog-card-meta">
+                        <i class="bi bi-calendar3"></i>
+                        {{ blog.updated_at.strftime('%b %d, %Y') if blog.updated_at else 'Recently' }}
+                    </div>
+                    <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}" class="blog-card-link">
+                        Read More <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    <div class="view-all-btn">
+        <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="btn-primary">
+            <i class="bi bi-grid-3x3-gap"></i> View All Posts
+        </a>
+    </div>
+</section>
+{% endif %}
+{% else %}
+<!-- Empty State -->
+<div class="empty-state">
+    <svg viewBox="0 0 200 160" width="150" height="120" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom: 1.5rem;">
+        <!-- Background circle -->
+        <circle cx="100" cy="80" r="60" fill="rgba(99, 102, 241, 0.1)"/>
+
+        <!-- Notebook/journal -->
+        <rect x="60" y="40" width="80" height="100" rx="6" fill="#E2E8F0"/>
+        <rect x="65" y="45" width="70" height="90" rx="4" fill="white"/>
+
+        <!-- Lines on paper -->
+        <rect x="75" y="60" width="40" height="5" rx="2" fill="#CBD5E0"/>
+        <rect x="75" y="72" width="50" height="4" rx="2" fill="#E2E8F0"/>
+        <rect x="75" y="82" width="45" height="4" rx="2" fill="#E2E8F0"/>
+        <rect x="75" y="92" width="48" height="4" rx="2" fill="#E2E8F0"/>
+
+        <!-- Pencil -->
+        <g transform="rotate(-30, 150, 60)">
+            <rect x="130" y="55" width="35" height="7" rx="2" fill="#F6AD55"/>
+            <polygon points="130,58.5 122,58.5 130,62" fill="#2D3748"/>
+            <rect x="157" y="55" width="8" height="7" rx="1" fill="#FC8181"/>
+        </g>
+
+        <!-- Question marks -->
+        <text x="100" y="115" text-anchor="middle" fill="#A0AEC0" font-size="24" font-weight="bold">?</text>
+        <text x="155" y="95" text-anchor="middle" fill="#CBD5E0" font-size="16">?</text>
+        <text x="45" y="75" text-anchor="middle" fill="#CBD5E0" font-size="14">?</text>
+    </svg>
+    <h3>No posts yet</h3>
+    <p>Check back soon for new content!</p>
+</div>
+{% endif %}
+
+<!-- Newsletter Section -->
+<section class="newsletter-section">
+    <div class="newsletter-content">
+        <div class="newsletter-icon">
+            <svg viewBox="0 0 50 50" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="5" y="15" width="40" height="28" rx="4" fill="rgba(255,255,255,0.2)"/>
+                <path d="M5 19 L25 32 L45 19" stroke="white" stroke-width="2.5" fill="none"/>
+                <path d="M5 43 L18 30 M45 43 L32 30" stroke="rgba(255,255,255,0.5)" stroke-width="2" fill="none"/>
+                <circle cx="38" cy="12" r="8" fill="#FC8181"/>
+                <text x="38" y="15" text-anchor="middle" fill="white" font-size="9" font-weight="bold">1</text>
+            </svg>
+        </div>
+        <h2>Stay Updated</h2>
+        <p>Subscribe to our newsletter and never miss a new article. Get the latest posts delivered right to your inbox.</p>
+        <form class="newsletter-form-lg" id="home-newsletter-form">
+            <input type="email" name="email" placeholder="Enter your email address" required>
+            <button type="submit">
+                Subscribe <i class="bi bi-arrow-right"></i>
+            </button>
+        </form>
+        <p class="newsletter-disclaimer">No spam, unsubscribe anytime.</p>
     </div>
 </section>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/site/home.js') }}"></script>
+<script>
+    // Newsletter Form
+    document.getElementById('home-newsletter-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const email = this.querySelector('input[name="email"]').value;
+        const button = this.querySelector('button');
+        const originalHTML = button.innerHTML;
+
+        button.innerHTML = '<i class="bi bi-hourglass-split"></i> Subscribing...';
+        button.disabled = true;
+
+        try {
+            const response = await fetch('{{ url_for("site_bp.site_subscribe", user_id=user_id) }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `email=${encodeURIComponent(email)}`
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                button.innerHTML = '<i class="bi bi-check-lg"></i> Subscribed!';
+                this.querySelector('input').value = '';
+                setTimeout(() => { button.innerHTML = originalHTML; button.disabled = false; }, 3000);
+            } else {
+                button.innerHTML = '<i class="bi bi-x-lg"></i> Failed';
+                setTimeout(() => { button.innerHTML = originalHTML; button.disabled = false; }, 2000);
+            }
+        } catch (err) {
+            button.innerHTML = '<i class="bi bi-x-lg"></i> Error';
+            setTimeout(() => { button.innerHTML = originalHTML; button.disabled = false; }, 2000);
+        }
+    });
+</script>
 {% endblock %}

@@ -3,209 +3,702 @@
 {% block title %}Contact | {{ settings.site_name }}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/site/contact.css') }}">
+<style>
+    /* ==================== CONTACT HERO ==================== */
+    .contact-hero {
+        display: flex;
+        align-items: center;
+        gap: 3rem;
+        padding: 3rem 2rem;
+        margin: -2rem -2rem 2rem -2rem;
+        background: linear-gradient(135deg, rgba(67, 24, 255, 0.03) 0%, rgba(99, 102, 241, 0.06) 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .contact-hero-content {
+        flex: 1;
+        text-align: left;
+    }
+
+    .contact-hero-illustration {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .contact-hero-illustration svg {
+        width: 100%;
+        max-width: 350px;
+        height: auto;
+    }
+
+    .contact-hero-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .contact-hero-icon i {
+        font-size: 2rem;
+        color: white;
+    }
+
+    .contact-hero h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+    }
+
+    .contact-hero p {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        max-width: 600px;
+        padding-bottom: 20px;
+    }
+
+    /* ==================== CONTACT LAYOUT ==================== */
+    .contact-layout {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 2rem;
+        align-items: start;
+    }
+
+    /* ==================== CONTACT FORM ==================== */
+    .contact-form-card {
+        background: var(--bg-card);
+        border-radius: var(--radius-lg);
+        padding: 2.5rem;
+        box-shadow: var(--shadow-card);
+    }
+
+    .contact-form-card h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .contact-form-card .subtitle {
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-group label span {
+        color: var(--danger-color);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: var(--radius-md);
+        font-size: 0.95rem;
+        color: var(--text-primary);
+        background: var(--bg-body);
+        transition: var(--transition-base);
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.1);
+        background: white;
+    }
+
+    .form-control::placeholder {
+        color: var(--text-light);
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 150px;
+    }
+
+    .btn-submit {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        color: white;
+        border: none;
+        border-radius: var(--radius-xl);
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: var(--transition-base);
+        box-shadow: 0 4px 15px rgba(67, 24, 255, 0.3);
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(67, 24, 255, 0.4);
+    }
+
+    .btn-submit:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Success/Error Messages */
+    .alert {
+        padding: 1rem 1.25rem;
+        border-radius: var(--radius-md);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .alert-success {
+        background: rgba(5, 205, 153, 0.1);
+        color: var(--success-color);
+        border: 1px solid rgba(5, 205, 153, 0.2);
+    }
+
+    .alert-error {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger-color);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .alert i {
+        font-size: 1.25rem;
+    }
+
+    /* ==================== SIDEBAR ==================== */
+    .contact-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .sidebar-card {
+        background: var(--bg-card);
+        border-radius: var(--radius-lg);
+        padding: 1.75rem;
+        box-shadow: var(--shadow-card);
+    }
+
+    .sidebar-card h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .sidebar-card h3 i {
+        color: var(--primary-color);
+    }
+
+    /* Contact Info */
+    .contact-info-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .contact-info-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .contact-info-item:first-child {
+        padding-top: 0;
+    }
+
+    .contact-info-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--primary-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .contact-info-icon i {
+        color: var(--primary-color);
+        font-size: 1rem;
+    }
+
+    .contact-info-content h4 {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+    }
+
+    .contact-info-content p {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    .contact-info-content a {
+        color: var(--primary-color);
+        text-decoration: none;
+    }
+
+    .contact-info-content a:hover {
+        text-decoration: underline;
+    }
+
+    /* Social Card */
+    .social-card {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        color: white;
+    }
+
+    .social-card h3 {
+        color: white;
+    }
+
+    .social-card h3 i {
+        color: white;
+    }
+
+    .social-card p {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin-bottom: 1rem;
+    }
+
+    .social-links {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .social-link {
+        width: 44px;
+        height: 44px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-decoration: none;
+        font-size: 1.1rem;
+        transition: var(--transition-base);
+    }
+
+    .social-link:hover {
+        background: white;
+        color: var(--primary-color);
+        transform: translateY(-3px);
+    }
+
+    /* ==================== FAQ SECTION ==================== */
+    .faq-section {
+        margin-top: 3rem;
+    }
+
+    .faq-section h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .faq-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .faq-card {
+        background: var(--bg-card);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-card);
+        transition: var(--transition-base);
+    }
+
+    .faq-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .faq-card h4 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .faq-card h4 i {
+        color: var(--primary-color);
+        font-size: 1.1rem;
+    }
+
+    .faq-card p {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 900px) {
+        .contact-hero {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .contact-hero-content {
+            text-align: center;
+        }
+
+        .contact-hero-icon {
+            margin: 0 auto 1.5rem;
+        }
+
+        .contact-hero-illustration {
+            order: -1;
+        }
+
+        .contact-hero-illustration svg {
+            max-width: 280px;
+        }
+
+        .contact-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .contact-sidebar {
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        .contact-sidebar .sidebar-card {
+            flex: 1;
+            min-width: 280px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .contact-hero {
+            padding: 2rem 1.5rem;
+            margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+        }
+
+        .contact-hero h1 {
+            font-size: 1.75rem;
+        }
+
+        .contact-hero-illustration svg {
+            max-width: 220px;
+        }
+
+        .contact-form-card {
+            padding: 1.5rem;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .faq-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .contact-sidebar {
+            flex-direction: column;
+        }
+
+        .contact-sidebar .sidebar-card {
+            min-width: auto;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <!-- Contact Hero -->
 <section class="contact-hero">
-    <div class="contact-hero-container">
-        <h1 class="contact-hero-title">Get in <span class="highlight">Touch</span></h1>
-        <p class="contact-hero-description">
-            {{ settings.contact_description or "Have a question about Scriptly? We're here to help you with any feedback or questions with intellectual assistance." }}
-        </p>
+    <div class="contact-hero-content">
+        <div class="contact-hero-icon">
+            <i class="bi bi-envelope-paper"></i>
+        </div>
+        <h1>Get in Touch</h1>
+        <p>Have questions or feedback? We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+    </div>
+
+    <div class="contact-hero-illustration">
+        <svg viewBox="0 0 400 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Background elements -->
+            <ellipse cx="200" cy="160" rx="150" ry="130" fill="url(#contactGrad1)" opacity="0.1"/>
+            <circle cx="320" cy="60" r="35" fill="url(#contactGrad2)" opacity="0.08"/>
+            <circle cx="60" cy="260" r="30" fill="url(#contactGrad2)" opacity="0.06"/>
+
+            <!-- Main envelope -->
+            <g transform="translate(100, 80)">
+                <!-- Envelope body -->
+                <rect x="0" y="40" width="200" height="130" rx="8" fill="#E2E8F0"/>
+                <rect x="5" y="45" width="190" height="120" rx="5" fill="white"/>
+
+                <!-- Envelope flap -->
+                <path d="M0 48 L100 110 L200 48 L200 40 L0 40 Z" fill="#CBD5E0"/>
+                <path d="M5 50 L100 105 L195 50" stroke="white" stroke-width="2" fill="none"/>
+
+                <!-- Letter inside -->
+                <rect x="25" y="75" width="150" height="80" rx="3" fill="#F7FAFC"/>
+                <rect x="35" y="85" width="80" height="6" rx="3" fill="#6366F1"/>
+                <rect x="35" y="97" width="110" height="4" rx="2" fill="#CBD5E0"/>
+                <rect x="35" y="107" width="95" height="4" rx="2" fill="#CBD5E0"/>
+                <rect x="35" y="117" width="105" height="4" rx="2" fill="#CBD5E0"/>
+                <rect x="35" y="130" width="50" height="15" rx="4" fill="#6366F1" opacity="0.8"/>
+            </g>
+
+            <!-- Flying paper planes -->
+            <g transform="translate(280, 50) rotate(-15)">
+                <path d="M0 20 L50 10 L50 15 L15 20 L50 25 L50 30 L0 20" fill="#8B5CF6" opacity="0.8"/>
+                <path d="M15 20 L50 15 L50 25 L15 20" fill="#6366F1"/>
+            </g>
+
+            <g transform="translate(60, 100) rotate(25) scale(0.6)">
+                <path d="M0 20 L50 10 L50 15 L15 20 L50 25 L50 30 L0 20" fill="#A78BFA" opacity="0.6"/>
+                <path d="M15 20 L50 15 L50 25 L15 20" fill="#8B5CF6"/>
+            </g>
+
+            <!-- Chat bubbles -->
+            <g transform="translate(290, 130)">
+                <rect x="0" y="0" width="70" height="40" rx="10" fill="white" filter="url(#contactShadow)"/>
+                <circle cx="20" cy="20" r="4" fill="#6366F1"/>
+                <circle cx="35" cy="20" r="4" fill="#6366F1"/>
+                <circle cx="50" cy="20" r="4" fill="#6366F1"/>
+                <polygon points="15,40 25,40 20,50" fill="white"/>
+            </g>
+
+            <g transform="translate(30, 170)">
+                <rect x="0" y="0" width="55" height="35" rx="8" fill="#6366F1"/>
+                <rect x="10" y="10" width="25" height="4" rx="2" fill="white" opacity="0.9"/>
+                <rect x="10" y="18" width="35" height="4" rx="2" fill="white" opacity="0.6"/>
+                <polygon points="40,35 50,35 45,45" fill="#6366F1"/>
+            </g>
+
+            <!-- Notification bell -->
+            <g transform="translate(320, 200)">
+                <circle cx="20" cy="20" r="25" fill="#FEF3C7"/>
+                <path d="M20 8 L20 12 M12 28 L28 28 M15 20 C15 14 17 10 20 10 C23 10 25 14 25 20 L25 25 L15 25 L15 20" stroke="#F59E0B" stroke-width="2.5" fill="none"/>
+                <circle cx="20" cy="30" r="3" fill="#F59E0B"/>
+            </g>
+
+            <!-- Stars/sparkles -->
+            <g fill="#6366F1" opacity="0.7">
+                <path d="M350 100 L352 105 L358 105 L353 109 L355 115 L350 111 L345 115 L347 109 L342 105 L348 105 Z"/>
+                <path d="M75 60 L76.5 64 L81 64 L77.5 67 L79 72 L75 69 L71 72 L72.5 67 L69 64 L73.5 64 Z" transform="scale(0.7)"/>
+            </g>
+
+            <!-- Hearts -->
+            <path d="M45 140 C45 132 58 132 58 140 C58 152 45 160 45 160 C45 160 32 152 32 140 C32 132 45 132 45 140" fill="#FC8181" opacity="0.7" transform="scale(0.6) translate(30, 50)"/>
+
+            <!-- Decorative circles -->
+            <circle cx="340" cy="250" r="8" fill="#A78BFA" opacity="0.5"/>
+            <circle cx="50" cy="50" r="6" fill="#6366F1" opacity="0.4"/>
+
+            <defs>
+                <linearGradient id="contactGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#6366F1"/>
+                    <stop offset="100%" style="stop-color:#8B5CF6"/>
+                </linearGradient>
+                <linearGradient id="contactGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#4318FF"/>
+                    <stop offset="100%" style="stop-color:#6366F1"/>
+                </linearGradient>
+                <filter id="contactShadow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.1"/>
+                </filter>
+            </defs>
+        </svg>
     </div>
 </section>
 
-<!-- Contact Section -->
-<section class="contact-section">
-    <div class="contact-container">
-        <div class="contact-layout">
-            <!-- Contact Form -->
-            <div class="contact-form-card fade-in-up">
-                <p class="contact-form-title">Send us a message</p>
+<!-- Contact Layout -->
+<div class="contact-layout">
+    <!-- Contact Form -->
+    <div class="contact-form-card">
+        <h2>Send a Message</h2>
+        <p class="subtitle">Fill out the form below and we'll get back to you shortly.</p>
 
-                {% if request.args.get('success') %}
-                <div class="alert alert-success">
-                    <i class="bi bi-check-circle-fill"></i>
-                    <span>Thank you for your message! We'll get back to you soon.</span>
+        {% if request.args.get('success') %}
+        <div class="alert alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>Thank you for your message! We'll get back to you soon.</span>
+        </div>
+        {% endif %}
+
+        {% if request.args.get('error') %}
+        <div class="alert alert-error">
+            <i class="bi bi-exclamation-circle-fill"></i>
+            <span>Something went wrong. Please try again.</span>
+        </div>
+        {% endif %}
+
+        <form action="{{ url_for('site_bp.site_contact_submit', user_id=user_id) }}" method="POST" id="contact-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name">Name <span>*</span></label>
+                    <input type="text" id="name" name="name" class="form-control" placeholder="Your name" required>
                 </div>
-                {% endif %}
-
-                {% if request.args.get('error') %}
-                <div class="alert alert-error">
-                    <i class="bi bi-exclamation-circle-fill"></i>
-                    <span>Something went wrong. Please try again.</span>
+                <div class="form-group">
+                    <label for="email">Email <span>*</span></label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="your@email.com" required>
                 </div>
-                {% endif %}
-
-                <form action="{{ url_for('site_bp.site_contact_submit', user_id=user_id) }}" method="POST" id="contact-form">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="name">Name <span>*</span></label>
-                            <input type="text" id="name" name="name" class="form-control" placeholder="Your full name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email <span>*</span></label>
-                            <input type="email" id="email" name="email" class="form-control" placeholder="your@example.com" required>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="subject">Subject <span>*</span></label>
-                        <input type="text" id="subject" name="subject" class="form-control" placeholder="General Inquiry" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="message">Message <span>*</span></label>
-                        <textarea id="message" name="message" class="form-control" placeholder="Type your message here..." rows="5" required></textarea>
-                    </div>
-
-                    <button type="submit" class="btn-submit" id="submit-btn">
-                        <i class="bi bi-send"></i> Send Message
-                    </button>
-                </form>
             </div>
 
-            <!-- Sidebar -->
-            <aside class="contact-sidebar">
-                <!-- Contact Info -->
-                <div class="sidebar-card fade-in-up">
-                    <h3 class="sidebar-card-title">Contact Information</h3>
-                    <div class="contact-info-list">
-                        {% if settings.contact_email %}
-                        <div class="contact-info-item">
-                            <div class="contact-info-icon">
-                                <i class="bi bi-envelope"></i>
-                            </div>
-                            <div class="contact-info-content">
-                                <p class="contact-info-label">Email</p>
-                                <p class="contact-info-value">
-                                    <a href="mailto:{{ settings.contact_email }}">{{ settings.contact_email }}</a>
-                                </p>
-                            </div>
-                        </div>
-                        {% endif %}
+            <div class="form-group">
+                <label for="subject">Subject <span>*</span></label>
+                <input type="text" id="subject" name="subject" class="form-control" placeholder="What is this regarding?" required>
+            </div>
 
-                        {% if settings.contact_phone %}
-                        <div class="contact-info-item">
-                            <div class="contact-info-icon">
-                                <i class="bi bi-telephone"></i>
-                            </div>
-                            <div class="contact-info-content">
-                                <p class="contact-info-label">Phone</p>
-                                <p class="contact-info-value">
-                                    <a href="tel:{{ settings.contact_phone }}">{{ settings.contact_phone }}</a>
-                                </p>
-                            </div>
-                        </div>
-                        {% endif %}
+            <div class="form-group">
+                <label for="message">Message <span>*</span></label>
+                <textarea id="message" name="message" class="form-control" placeholder="Your message..." rows="5" required></textarea>
+            </div>
 
-                        {% if settings.contact_address %}
-                        <div class="contact-info-item">
-                            <div class="contact-info-icon">
-                                <i class="bi bi-geo-alt"></i>
-                            </div>
-                            <div class="contact-info-content">
-                                <p class="contact-info-label">Address</p>
-                                <p class="contact-info-value">{{ settings.contact_address }}</p>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        <div class="contact-info-item">
-                            <div class="contact-info-icon">
-                                <i class="bi bi-clock"></i>
-                            </div>
-                            <div class="contact-info-content">
-                                <p class="contact-info-label">Response Time</p>
-                                <p class="contact-info-value">{{ settings.response_time or 'Within 24-48 hours' }}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Map Placeholder -->
-                    <div class="contact-map">
-                        {% if settings.map_image %}
-                        <img src="{{ settings.map_image }}" alt="Location Map">
-                        {% else %}
-                        <div class="contact-map-placeholder">
-                            <i class="bi bi-geo-alt"></i>
-                            <span>{{ settings.site_name }} HQ</span>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </aside>
-        </div>
+            <button type="submit" class="btn-submit" id="submit-btn">
+                <i class="bi bi-send"></i> Send Message
+            </button>
+        </form>
     </div>
-</section>
+
+    <!-- Sidebar -->
+    <aside class="contact-sidebar">
+        <!-- Contact Info -->
+        <div class="sidebar-card">
+            <h3><i class="bi bi-info-circle"></i> Contact Info</h3>
+
+            {% if settings.contact_email %}
+            <div class="contact-info-item">
+                <div class="contact-info-icon">
+                    <i class="bi bi-envelope"></i>
+                </div>
+                <div class="contact-info-content">
+                    <h4>Email</h4>
+                    <p><a href="mailto:{{ settings.contact_email }}">{{ settings.contact_email }}</a></p>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="contact-info-item">
+                <div class="contact-info-icon">
+                    <i class="bi bi-clock"></i>
+                </div>
+                <div class="contact-info-content">
+                    <h4>Response Time</h4>
+                    <p>We typically respond within 24-48 hours.</p>
+                </div>
+            </div>
+
+            <div class="contact-info-item">
+                <div class="contact-info-icon">
+                    <i class="bi bi-globe"></i>
+                </div>
+                <div class="contact-info-content">
+                    <h4>Website</h4>
+                    <p><a href="{{ url_for('site_bp.site_home', user_id=user_id) }}">{{ settings.site_name }}</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Social Links -->
+        {% if settings.social_links and (settings.social_links.twitter or settings.social_links.linkedin or settings.social_links.github) %}
+        <div class="sidebar-card social-card">
+            <h3><i class="bi bi-share"></i> Follow Us</h3>
+            <p>Stay connected on social media for updates and more.</p>
+            <div class="social-links">
+                {% if settings.social_links.twitter %}
+                <a href="{{ settings.social_links.twitter }}" target="_blank" class="social-link" title="Twitter">
+                    <i class="bi bi-twitter-x"></i>
+                </a>
+                {% endif %}
+                {% if settings.social_links.linkedin %}
+                <a href="{{ settings.social_links.linkedin }}" target="_blank" class="social-link" title="LinkedIn">
+                    <i class="bi bi-linkedin"></i>
+                </a>
+                {% endif %}
+                {% if settings.social_links.github %}
+                <a href="{{ settings.social_links.github }}" target="_blank" class="social-link" title="GitHub">
+                    <i class="bi bi-github"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </aside>
+</div>
 
 <!-- FAQ Section -->
-<section class="contact-faq">
-    <div class="contact-faq-container">
-        <div class="contact-faq-header fade-in-up">
-            <h2 class="contact-faq-title">Frequently Asked <span class="highlight">Questions</span></h2>
-            <p class="contact-faq-subtitle">Common questions about our platform and services.</p>
+<section class="faq-section">
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq-grid">
+        <div class="faq-card">
+            <h4><i class="bi bi-question-circle"></i> How quickly will I get a response?</h4>
+            <p>We aim to respond to all inquiries within 24-48 hours during business days.</p>
         </div>
-
-        <div class="faq-accordion">
-            <div class="faq-item fade-in-up">
-                <button class="faq-question">
-                    <span class="faq-question-text">{{ settings.faq_1_question or 'How do I start a subscription?' }}</span>
-                    <span class="faq-question-icon"><i class="bi bi-chevron-down"></i></span>
-                </button>
-                <div class="faq-answer">
-                    <p class="faq-answer-content">{{ settings.faq_1_answer or "Starting a subscription is simple. Visit our pricing page, choose the plan that fits your needs, and follow the checkout process. You'll have immediate access to all features included in your plan." }}</p>
-                </div>
-            </div>
-
-            <div class="faq-item fade-in-up">
-                <button class="faq-question">
-                    <span class="faq-question-text">{{ settings.faq_2_question or 'Can I change my plan later?' }}</span>
-                    <span class="faq-question-icon"><i class="bi bi-chevron-down"></i></span>
-                </button>
-                <div class="faq-answer">
-                    <p class="faq-answer-content">{{ settings.faq_2_answer or "Yes, you can upgrade or downgrade your plan at any time. Changes will be reflected in your next billing cycle. Contact our support team if you need assistance." }}</p>
-                </div>
-            </div>
-
-            <div class="faq-item fade-in-up">
-                <button class="faq-question">
-                    <span class="faq-question-text">{{ settings.faq_3_question or 'Do you offer educational discounts?' }}</span>
-                    <span class="faq-question-icon"><i class="bi bi-chevron-down"></i></span>
-                </button>
-                <div class="faq-answer">
-                    <p class="faq-answer-content">{{ settings.faq_3_answer or "We offer special discounts for students and educators. Please contact us with your educational credentials and we'll be happy to provide you with a discount code." }}</p>
-                </div>
-            </div>
-
-            <div class="faq-item fade-in-up">
-                <button class="faq-question">
-                    <span class="faq-question-text">{{ settings.faq_4_question or 'What is your refund policy?' }}</span>
-                    <span class="faq-question-icon"><i class="bi bi-chevron-down"></i></span>
-                </button>
-                <div class="faq-answer">
-                    <p class="faq-answer-content">{{ settings.faq_4_answer or "We offer a 30-day money-back guarantee on all plans. If you're not satisfied with our service, contact us within 30 days of your purchase for a full refund." }}</p>
-                </div>
-            </div>
+        <div class="faq-card">
+            <h4><i class="bi bi-question-circle"></i> Can I contribute to the blog?</h4>
+            <p>We welcome guest contributions! Reach out with your ideas and we'll discuss collaboration opportunities.</p>
         </div>
-    </div>
-</section>
-
-<!-- CTA Section -->
-<section class="contact-cta">
-    <div class="contact-cta-container fade-in-up">
-        <h2 class="contact-cta-title">{{ settings.contact_cta_title or 'Stay inspired.' }}</h2>
-        <p class="contact-cta-subtitle">{{ settings.contact_cta_subtitle or "Join 20,000+ professionals receiving our weekly digest on clarity, precision, and the art of thoughtful communication." }}</p>
-        <form class="contact-cta-form" id="cta-subscribe-form" data-subscribe-url="{{ url_for('site_bp.site_subscribe', user_id=user_id) }}">
-            <input type="email" class="contact-cta-input" placeholder="Enter your email address" required>
-            <button type="submit" class="contact-cta-btn">Subscribe Now</button>
-        </form>
+        <div class="faq-card">
+            <h4><i class="bi bi-question-circle"></i> How can I stay updated?</h4>
+            <p>Subscribe to our newsletter or follow us on social media to never miss new content.</p>
+        </div>
+        <div class="faq-card">
+            <h4><i class="bi bi-question-circle"></i> Do you offer partnerships?</h4>
+            <p>Yes! We're open to collaborations and partnerships. Let us know what you have in mind.</p>
+        </div>
     </div>
 </section>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/site/contact.js') }}"></script>
+<script>
+    // Form submission handling
+    document.getElementById('contact-form').addEventListener('submit', function() {
+        const btn = document.getElementById('submit-btn');
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Sending...';
+        btn.disabled = true;
+    });
+</script>
 {% endblock %}
