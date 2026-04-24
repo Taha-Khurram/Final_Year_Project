@@ -83,19 +83,34 @@ class SemanticSearchAgent:
                 for i, c in enumerate(to_rerank)
             ])
 
-            prompt = f"""Rate relevance of these posts for "{query}" (0-100):
+            prompt = f"""Rate these blog posts for the search query "{query}".
+
+Posts:
 {posts_info}
 
-Return JSON: [{{"id":0,"score":85,"why":"reason"}},...]"""
+Return a JSON array with scores (0-100) and brief reasons. Use this exact format:
+[
+  {{"id": 0, "score": 85, "why": "Directly addresses the topic"}},
+  {{"id": 1, "score": 60, "why": "Related but not specific"}}
+]
+
+Only return the JSON array, nothing else."""
 
             response = self.model.generate_content(
                 prompt,
-                generation_config={"temperature": 0.1, "max_output_tokens": 300}
+                generation_config={"temperature": 0.1, "max_output_tokens": 400}
             )
 
             text = response.text.strip()
+
+            # Clean up response
             text = re.sub(r'^```json?\s*', '', text)
             text = re.sub(r'\s*```$', '', text)
+            text = text.strip()
+
+            # Fix common JSON issues
+            text = text.replace("'", '"')  # Single to double quotes
+
             rankings = json.loads(text)
 
             for rank in rankings:
@@ -109,6 +124,10 @@ Return JSON: [{{"id":0,"score":85,"why":"reason"}},...]"""
 
         except Exception as e:
             print(f"Rerank error: {e}")
+            # Return with default reasons based on score
+            for c in candidates:
+                if not c.get('match_reason'):
+                    c['match_reason'] = f"Matches your search"
             return candidates
 
     def search(self, user_id, query, top_k=6):
