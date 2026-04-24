@@ -745,9 +745,10 @@
             const data = await response.json();
 
             if (data.success) {
-                button.textContent = 'Subscribed!';
                 this.querySelector('input').value = '';
-                setTimeout(() => { button.textContent = originalText; button.disabled = false; }, 2000);
+                button.textContent = originalText;
+                button.disabled = false;
+                showNewsletterModal();
             } else {
                 button.textContent = 'Failed';
                 setTimeout(() => { button.textContent = originalText; button.disabled = false; }, 2000);

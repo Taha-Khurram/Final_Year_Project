@@ -668,8 +668,162 @@
         </div>
     </footer>
 
+    <!-- Newsletter Success Modal -->
+    <div class="newsletter-modal-overlay" id="newsletter-modal">
+        <div class="newsletter-modal">
+            <button class="newsletter-modal-close" onclick="closeNewsletterModal()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            <div class="newsletter-modal-icon">
+                <i class="bi bi-envelope-check"></i>
+            </div>
+            <h3 class="newsletter-modal-title">Thank You for Subscribing!</h3>
+            <p class="newsletter-modal-message">
+                You've successfully joined our newsletter. We'll send you the latest updates and articles directly to your inbox.
+            </p>
+            <button class="newsletter-modal-btn" onclick="closeNewsletterModal()">Got it!</button>
+        </div>
+    </div>
+
+    <style>
+        /* Newsletter Success Modal */
+        .newsletter-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .newsletter-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .newsletter-modal {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        }
+
+        .newsletter-modal-overlay.active .newsletter-modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .newsletter-modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: var(--bg-body);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: var(--transition-base);
+        }
+
+        .newsletter-modal-close:hover {
+            background: var(--primary-light);
+            color: var(--primary-color);
+        }
+
+        .newsletter-modal-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 10px 30px rgba(67, 24, 255, 0.3);
+        }
+
+        .newsletter-modal-icon i {
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        .newsletter-modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .newsletter-modal-message {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .newsletter-modal-btn {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+            color: white;
+            border: none;
+            padding: 0.875rem 2.5rem;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition-base);
+        }
+
+        .newsletter-modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(67, 24, 255, 0.4);
+        }
+    </style>
+
     <!-- Scripts -->
     <script>
+        // Newsletter Modal Functions
+        function showNewsletterModal() {
+            document.getElementById('newsletter-modal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeNewsletterModal() {
+            document.getElementById('newsletter-modal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close modal on overlay click
+        document.getElementById('newsletter-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeNewsletterModal();
+            }
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeNewsletterModal();
+            }
+        });
+
         // Mobile Menu Toggle
         document.querySelector('.mobile-menu-toggle').addEventListener('click', function() {
             this.classList.toggle('active');
@@ -703,9 +857,10 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    button.innerHTML = '<i class="bi bi-check-lg"></i>';
                     this.querySelector('input').value = '';
-                    setTimeout(() => { button.innerHTML = originalHTML; button.disabled = false; }, 2000);
+                    button.innerHTML = originalHTML;
+                    button.disabled = false;
+                    showNewsletterModal();
                 } else {
                     button.innerHTML = '<i class="bi bi-x-lg"></i>';
                     setTimeout(() => { button.innerHTML = originalHTML; button.disabled = false; }, 2000);

@@ -943,9 +943,10 @@
             const data = await response.json();
 
             if (data.success) {
-                button.innerHTML = '<i class="bi bi-check-lg"></i> Subscribed!';
                 this.querySelector('input').value = '';
-                setTimeout(() => { button.innerHTML = originalHTML; button.disabled = false; }, 3000);
+                button.innerHTML = originalHTML;
+                button.disabled = false;
+                showNewsletterModal();
             } else {
                 button.innerHTML = '<i class="bi bi-x-lg"></i> Failed';
                 setTimeout(() => { button.innerHTML = originalHTML; button.disabled = false; }, 2000);
