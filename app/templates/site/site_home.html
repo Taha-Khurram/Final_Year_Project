@@ -2,226 +2,269 @@
 
 {% block title %}{{ settings.site_name }} - Home{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/site/home.css') }}">
+{% endblock %}
+
 {% block content %}
 <!-- Hero Section -->
-<section class="site-hero">
-    <div class="hero-content">
-        {% if settings.niche %}
-        <div class="hero-badge">
-            <i class="bi bi-stars"></i>
-            {{ settings.niche }}
+<section class="home-hero">
+    <div class="home-hero-container">
+        <div class="home-hero-content">
+            <h1 class="home-hero-title">
+                {{ settings.hero_title_line1 or 'Transform Your Ideas into' }}
+                <span class="highlight">{{ settings.hero_title_highlight or 'Powerful Scripts' }}</span>
+            </h1>
+            <p class="home-hero-subtitle">
+                {{ settings.hero_subtitle or 'Create professional scripts in minutes with our AI-powered platform. From concept to final draft, we make scriptwriting effortless.' }}
+            </p>
+            <div class="home-hero-buttons">
+                <a href="{{ settings.hero_cta_primary_url or url_for('site_bp.site_blog', user_id=user_id) }}" class="btn-hero-primary">
+                    {{ settings.hero_cta_primary_text or 'Start Writing Free' }}
+                </a>
+                <a href="{{ settings.hero_cta_secondary_url or url_for('site_bp.site_about', user_id=user_id) }}" class="btn-hero-secondary">
+                    <i class="bi bi-play-circle"></i>
+                    {{ settings.hero_cta_secondary_text or 'Watch Demo' }}
+                </a>
+            </div>
+            <div class="home-hero-social-proof">
+                <div class="home-hero-avatars">
+                    <img src="{{ settings.avatar_1_url or url_for('static', filename='images/site/avatar-1.jpg') }}" alt="User" class="hero-avatar">
+                    <img src="{{ settings.avatar_2_url or url_for('static', filename='images/site/avatar-2.jpg') }}" alt="User" class="hero-avatar">
+                    <img src="{{ settings.avatar_3_url or url_for('static', filename='images/site/avatar-3.jpg') }}" alt="User" class="hero-avatar">
+                    <img src="{{ settings.avatar_4_url or url_for('static', filename='images/site/avatar-4.jpg') }}" alt="User" class="hero-avatar">
+                </div>
+                <span class="home-hero-join-text">{{ settings.hero_social_proof_text or 'Join 10,000+ writers' }}</span>
+            </div>
         </div>
-        {% endif %}
+        <div class="home-hero-image">
+            <img src="{{ settings.hero_image_url or url_for('static', filename='images/site/hero-illustration.png') }}" alt="Hero Illustration">
+        </div>
+    </div>
+</section>
 
-        <h1 class="hero-title">
-            Welcome to <span>{{ settings.site_name }}</span>
-        </h1>
+<!-- Features Section -->
+<section class="home-features">
+    <div class="home-features-container">
+        <div class="home-features-header">
+            <h2 class="home-features-title">
+                {{ settings.features_title_line1 or 'Everything You Need to' }}
+                <span class="highlight">{{ settings.features_title_highlight or 'Create Amazing Scripts' }}</span>
+            </h2>
+            <p class="home-features-subtitle">
+                {{ settings.features_subtitle or 'Our platform provides all the tools and features you need to write, edit, and perfect your scripts.' }}
+            </p>
+        </div>
+        <div class="home-features-grid">
+            <!-- Feature 1 -->
+            <div class="home-feature-card">
+                <div class="home-feature-icon" style="background: {{ settings.feature_1_color or 'rgba(67, 24, 255, 0.1)' }};">
+                    <i class="bi {{ settings.feature_1_icon or 'bi-lightning-charge' }}" style="color: {{ settings.feature_1_icon_color or '#4318FF' }};"></i>
+                </div>
+                <h3 class="home-feature-title">{{ settings.feature_1_title or 'AI-Powered Writing' }}</h3>
+                <p class="home-feature-description">{{ settings.feature_1_description or 'Let our advanced AI help you generate ideas, dialogue, and scene descriptions in seconds.' }}</p>
+            </div>
+            <!-- Feature 2 -->
+            <div class="home-feature-card">
+                <div class="home-feature-icon" style="background: {{ settings.feature_2_color or 'rgba(5, 205, 153, 0.1)' }};">
+                    <i class="bi {{ settings.feature_2_icon or 'bi-pencil-square' }}" style="color: {{ settings.feature_2_icon_color or '#05CD99' }};"></i>
+                </div>
+                <h3 class="home-feature-title">{{ settings.feature_2_title or 'Smart Formatting' }}</h3>
+                <p class="home-feature-description">{{ settings.feature_2_description or 'Automatic screenplay formatting that follows industry standards. Focus on creativity, not margins.' }}</p>
+            </div>
+            <!-- Feature 3 -->
+            <div class="home-feature-card">
+                <div class="home-feature-icon" style="background: {{ settings.feature_3_color or 'rgba(255, 181, 71, 0.1)' }};">
+                    <i class="bi {{ settings.feature_3_icon or 'bi-people' }}" style="color: {{ settings.feature_3_icon_color or '#FFB547' }};"></i>
+                </div>
+                <h3 class="home-feature-title">{{ settings.feature_3_title or 'Real-time Collaboration' }}</h3>
+                <p class="home-feature-description">{{ settings.feature_3_description or 'Work together with your team in real-time. Share, comment, and edit scripts seamlessly.' }}</p>
+            </div>
+        </div>
+    </div>
+</section>
 
-        <p class="hero-subtitle">
-            {{ settings.site_description or 'Discover insightful articles, tips, and stories that inspire and inform. Join our community of readers today.' }}
-        </p>
+<!-- Trusted By Section -->
+<section class="home-trusted">
+    <div class="home-trusted-container">
+        <h2 class="home-trusted-title">{{ settings.trusted_title or 'Trusted by Industry Leaders' }}</h2>
+        <div class="home-trusted-logos">
+            <img src="{{ settings.logo_1_url or url_for('static', filename='images/site/logo-1.png') }}" alt="Company" class="trusted-logo">
+            <img src="{{ settings.logo_2_url or url_for('static', filename='images/site/logo-2.png') }}" alt="Company" class="trusted-logo">
+            <img src="{{ settings.logo_3_url or url_for('static', filename='images/site/logo-3.png') }}" alt="Company" class="trusted-logo">
+            <img src="{{ settings.logo_4_url or url_for('static', filename='images/site/logo-4.png') }}" alt="Company" class="trusted-logo">
+            <img src="{{ settings.logo_5_url or url_for('static', filename='images/site/logo-5.png') }}" alt="Company" class="trusted-logo">
+            <img src="{{ settings.logo_6_url or url_for('static', filename='images/site/logo-6.png') }}" alt="Company" class="trusted-logo">
+        </div>
+    </div>
+</section>
 
-        <div class="hero-cta">
-            <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="btn-primary">
-                <i class="bi bi-journal-text"></i> Explore Articles
+<!-- Testimonials Section -->
+<section class="home-testimonials">
+    <div class="home-testimonials-container">
+        <div class="home-testimonials-header">
+            <h2 class="home-testimonials-title">{{ settings.testimonials_title or 'What Our Users Say' }}</h2>
+        </div>
+        <div class="home-testimonials-grid">
+            <!-- Testimonial 1 -->
+            <div class="home-testimonial-card">
+                <div class="home-testimonial-stars">
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                </div>
+                <p class="home-testimonial-quote">"{{ settings.testimonial_1_quote or 'This platform has completely transformed how I write scripts. The AI suggestions are incredibly helpful and save me hours of work.' }}"</p>
+                <div class="home-testimonial-author">
+                    <img src="{{ settings.testimonial_1_avatar or url_for('static', filename='images/site/testimonial-1.jpg') }}" alt="Author" class="testimonial-avatar">
+                    <div class="testimonial-author-info">
+                        <span class="testimonial-author-name">{{ settings.testimonial_1_name or 'Sarah Johnson' }}</span>
+                        <span class="testimonial-author-role">{{ settings.testimonial_1_role or 'Screenwriter' }}</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Testimonial 2 -->
+            <div class="home-testimonial-card">
+                <div class="home-testimonial-stars">
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                </div>
+                <p class="home-testimonial-quote">"{{ settings.testimonial_2_quote or 'The collaboration features are game-changing. My team can now work on scripts together without any hassle.' }}"</p>
+                <div class="home-testimonial-author">
+                    <img src="{{ settings.testimonial_2_avatar or url_for('static', filename='images/site/testimonial-2.jpg') }}" alt="Author" class="testimonial-avatar">
+                    <div class="testimonial-author-info">
+                        <span class="testimonial-author-name">{{ settings.testimonial_2_name or 'Michael Chen' }}</span>
+                        <span class="testimonial-author-role">{{ settings.testimonial_2_role or 'Film Director' }}</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Testimonial 3 -->
+            <div class="home-testimonial-card">
+                <div class="home-testimonial-stars">
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                </div>
+                <p class="home-testimonial-quote">"{{ settings.testimonial_3_quote or 'From amateur to professional-looking scripts in no time. The formatting tools are simply outstanding.' }}"</p>
+                <div class="home-testimonial-author">
+                    <img src="{{ settings.testimonial_3_avatar or url_for('static', filename='images/site/testimonial-3.jpg') }}" alt="Author" class="testimonial-avatar">
+                    <div class="testimonial-author-info">
+                        <span class="testimonial-author-name">{{ settings.testimonial_3_name or 'Emily Parker' }}</span>
+                        <span class="testimonial-author-role">{{ settings.testimonial_3_role or 'Content Creator' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Blog Section -->
+<section class="home-blog">
+    <div class="home-blog-container">
+        <div class="home-blog-header">
+            <h2 class="home-blog-title">{{ settings.blog_section_title or 'Latest from Our Blog' }}</h2>
+            <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="home-blog-view-all">
+                View All <i class="bi bi-arrow-right"></i>
             </a>
-            <a href="{{ url_for('site_bp.site_about', user_id=user_id) }}" class="btn-outline">
-                <i class="bi bi-info-circle"></i> Learn More
+        </div>
+        <div class="home-blog-grid">
+            {% if blogs and blogs|length > 0 %}
+                {% for blog in blogs[:3] %}
+                <article class="home-blog-card">
+                    <div class="home-blog-card-image">
+                        {% if blog.cover_image %}
+                        <img src="{{ blog.cover_image }}" alt="{{ blog.title }}">
+                        {% else %}
+                        <div class="home-blog-card-placeholder">
+                            <i class="bi bi-image"></i>
+                        </div>
+                        {% endif %}
+                        {% if blog.category %}
+                        <span class="home-blog-card-category">{{ blog.category }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="home-blog-card-body">
+                        <h3 class="home-blog-card-title">
+                            <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}">
+                                {{ blog.title }}
+                            </a>
+                        </h3>
+                        <p class="home-blog-card-excerpt">
+                            {% if blog.content is mapping %}
+                                {{ (blog.content.body or blog.content.markdown or blog.content.text or '')|striptags|truncate(120) }}
+                            {% else %}
+                                {{ blog.content|striptags|truncate(120) }}
+                            {% endif %}
+                        </p>
+                        <div class="home-blog-card-meta">
+                            <div class="home-blog-card-author">
+                                <img src="{{ settings.author_avatar or url_for('static', filename='images/site/author-default.jpg') }}" alt="Author" class="blog-author-avatar">
+                                <span>{{ settings.author_name or 'Admin' }}</span>
+                            </div>
+                            <span class="home-blog-card-read-time">
+                                <i class="bi bi-clock"></i> {{ blog.read_time or '5 min read' }}
+                            </span>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            {% else %}
+                <!-- Empty Blog Cards (Placeholders) -->
+                {% for i in range(3) %}
+                <article class="home-blog-card">
+                    <div class="home-blog-card-image">
+                        <div class="home-blog-card-placeholder">
+                            <i class="bi bi-image"></i>
+                        </div>
+                        <span class="home-blog-card-category">Category</span>
+                    </div>
+                    <div class="home-blog-card-body">
+                        <h3 class="home-blog-card-title">
+                            <a href="#">Blog Post Title Here</a>
+                        </h3>
+                        <p class="home-blog-card-excerpt">
+                            This is a placeholder for blog post excerpt. Add your blog posts to see real content here.
+                        </p>
+                        <div class="home-blog-card-meta">
+                            <div class="home-blog-card-author">
+                                <div class="blog-author-avatar-placeholder"></div>
+                                <span>Author Name</span>
+                            </div>
+                            <span class="home-blog-card-read-time">
+                                <i class="bi bi-clock"></i> 5 min read
+                            </span>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="home-cta">
+    <div class="home-cta-container">
+        <h2 class="home-cta-title">{{ settings.cta_title or 'Ready to Transform Your Writing?' }}</h2>
+        <p class="home-cta-subtitle">{{ settings.cta_subtitle or 'Join thousands of writers who are already creating amazing scripts with our platform.' }}</p>
+        <div class="home-cta-buttons">
+            <a href="{{ settings.cta_primary_url or url_for('site_bp.site_contact', user_id=user_id) }}" class="btn-cta-primary">
+                {{ settings.cta_primary_text or 'Get Started Free' }}
+            </a>
+            <a href="{{ settings.cta_secondary_url or url_for('site_bp.site_about', user_id=user_id) }}" class="btn-cta-secondary">
+                {{ settings.cta_secondary_text or 'Schedule Demo' }}
             </a>
         </div>
-
-        <div class="hero-stats">
-            <div class="hero-stat">
-                <span class="hero-stat-number">{{ blogs|length if blogs else 0 }}</span>
-                <span class="hero-stat-label">Articles</span>
-            </div>
-            <div class="hero-stat">
-                <span class="hero-stat-number">{{ categories|length if categories else 0 }}</span>
-                <span class="hero-stat-label">Categories</span>
-            </div>
-            <div class="hero-stat">
-                <span class="hero-stat-number">{{ (blogs|length * 50) if blogs else 0 }}+</span>
-                <span class="hero-stat-label">Readers</span>
-            </div>
-        </div>
-    </div>
-</section>
-
-{% if blogs and blogs|length > 0 %}
-<!-- Featured Posts Section -->
-<section class="featured-section">
-    <div class="section-header">
-        <h2><i class="bi bi-bookmark-star"></i> Featured Posts</h2>
-        <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="view-all">
-            View All <i class="bi bi-arrow-right"></i>
-        </a>
-    </div>
-
-    <div class="featured-grid">
-        <!-- Main Featured Post -->
-        {% set main_post = featured_post if featured_post else blogs[0] %}
-        <div class="featured-main">
-            <article class="featured-card">
-                <div class="featured-card-image">
-                    <i class="bi bi-journal-richtext"></i>
-                    {% if main_post.category %}
-                    <span class="featured-card-category">{{ main_post.category }}</span>
-                    {% endif %}
-                </div>
-                <div class="featured-card-body">
-                    <h3 class="featured-card-title">
-                        <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=main_post.id) }}">
-                            {{ main_post.title }}
-                        </a>
-                    </h3>
-                    <p class="featured-card-excerpt">
-                        {% if main_post.content is mapping %}
-                            {{ (main_post.content.body or main_post.content.markdown or main_post.content.text or '')|striptags|truncate(200) }}
-                        {% else %}
-                            {{ main_post.content|striptags|truncate(200) }}
-                        {% endif %}
-                    </p>
-                    <div class="featured-card-meta">
-                        <i class="bi bi-calendar3"></i>
-                        {{ main_post.updated_at.strftime('%B %d, %Y') if main_post.updated_at else 'Recently Published' }}
-                    </div>
-                </div>
-            </article>
-        </div>
-
-        <!-- Secondary Featured Posts -->
-        <div class="featured-secondary">
-            {% for blog in blogs[1:3] %}
-            <article class="featured-card">
-                <div class="featured-card-image">
-                    <i class="bi bi-journal-richtext"></i>
-                    {% if blog.category %}
-                    <span class="featured-card-category">{{ blog.category }}</span>
-                    {% endif %}
-                </div>
-                <div class="featured-card-body">
-                    <h3 class="featured-card-title">
-                        <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}">
-                            {{ blog.title }}
-                        </a>
-                    </h3>
-                    <p class="featured-card-excerpt">
-                        {% if blog.content is mapping %}
-                            {{ (blog.content.body or blog.content.markdown or blog.content.text or '')|striptags|truncate(100) }}
-                        {% else %}
-                            {{ blog.content|striptags|truncate(100) }}
-                        {% endif %}
-                    </p>
-                    <div class="featured-card-meta">
-                        <i class="bi bi-calendar3"></i>
-                        {{ blog.updated_at.strftime('%b %d, %Y') if blog.updated_at else 'Recently' }}
-                    </div>
-                </div>
-            </article>
-            {% endfor %}
-        </div>
-    </div>
-</section>
-
-<!-- Latest Posts Section -->
-{% if blogs|length > 3 %}
-<section class="blog-section">
-    <div class="section-header">
-        <h2><i class="bi bi-grid"></i> Latest Posts</h2>
-    </div>
-
-    <!-- Category Filter -->
-    {% if categories %}
-    <div class="category-filter">
-        <a href="{{ url_for('site_bp.site_home', user_id=user_id) }}" class="category-pill {% if not current_category %}active{% endif %}">
-            All Posts
-        </a>
-        {% for cat in categories %}
-        <a href="{{ url_for('site_bp.site_category', user_id=user_id, category_name=cat.name) }}"
-           class="category-pill {% if current_category and current_category|lower == cat.name|lower %}active{% endif %}">
-            {{ cat.name }}
-        </a>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <div class="blog-grid">
-        {% for blog in blogs[3:] %}
-        <article class="blog-card">
-            <div class="blog-card-image">
-                <i class="bi bi-journal-richtext"></i>
-                {% if blog.category %}
-                <span class="blog-card-category">{{ blog.category }}</span>
-                {% endif %}
-            </div>
-            <div class="blog-card-body">
-                <h2 class="blog-card-title">
-                    <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}">
-                        {{ blog.title }}
-                    </a>
-                </h2>
-                <p class="blog-card-excerpt">
-                    {% if blog.content is mapping %}
-                        {{ (blog.content.body or blog.content.markdown or blog.content.text or '')|striptags|truncate(150) }}
-                    {% else %}
-                        {{ blog.content|striptags|truncate(150) }}
-                    {% endif %}
-                </p>
-                <div class="blog-card-footer">
-                    <div class="blog-card-meta">
-                        <i class="bi bi-calendar3"></i>
-                        {{ blog.updated_at.strftime('%b %d, %Y') if blog.updated_at else 'Recently' }}
-                    </div>
-                    <a href="{{ url_for('site_bp.site_post', user_id=user_id, blog_id=blog.id) }}" class="blog-card-link">
-                        Read More <i class="bi bi-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
-        </article>
-        {% endfor %}
-    </div>
-
-    <div class="view-all-btn">
-        <a href="{{ url_for('site_bp.site_blog', user_id=user_id) }}" class="btn-primary">
-            <i class="bi bi-grid-3x3-gap"></i> View All Posts
-        </a>
-    </div>
-</section>
-{% endif %}
-{% else %}
-<!-- Empty State -->
-<div class="empty-state">
-    <i class="bi bi-journal-x"></i>
-    <h3>No posts yet</h3>
-    <p>Check back soon for new content!</p>
-</div>
-{% endif %}
-
-<!-- Newsletter Section -->
-<section class="newsletter-section">
-    <div class="newsletter-content">
-        <div class="newsletter-icon">
-            <i class="bi bi-envelope-paper"></i>
-        </div>
-        <h2>Stay Updated</h2>
-        <p>Subscribe to our newsletter and never miss a new article. Get the latest posts delivered right to your inbox.</p>
-        <form class="newsletter-form-lg" id="home-newsletter-form">
-            <input type="email" name="email" placeholder="Enter your email address" required>
-            <button type="submit">
-                Subscribe <i class="bi bi-arrow-right"></i>
-            </button>
-        </form>
-        <p class="newsletter-disclaimer">No spam, unsubscribe anytime.</p>
     </div>
 </section>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    // Home Newsletter Form
-    document.getElementById('home-newsletter-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        handleNewsletterSubmit(this, '{{ url_for("site_bp.site_subscribe", user_id=user_id) }}');
-    });
-</script>
+<script src="{{ url_for('static', filename='js/site/home.js') }}"></script>
 {% endblock %}
