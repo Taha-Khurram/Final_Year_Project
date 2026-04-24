@@ -121,25 +121,7 @@ class SemanticSearchAgent:
         'app': ['application', 'software', 'program', 'tool'],
     }
 
-    # Intent patterns (rule-based, no LLM)
-    INTENT_PATTERNS = {
-        QueryIntent.INFORMATIONAL: [
-            r'^what\s+', r'^how\s+', r'^why\s+', r'^when\s+', r'^where\s+',
-            r'^explain', r'^describe', r'^define', r'^meaning',
-            r'difference\s+between', r'^can\s+you', r'^could\s+you',
-            r'^tell\s+me', r'^help\s+me\s+understand', r'\?$',
-            r'^is\s+it', r'^are\s+there', r'^does\s+', r'^do\s+',
-            r'vs\.?$', r'versus', r'compared\s+to'
-        ],
-        QueryIntent.NAVIGATIONAL: [
-            r'guide', r'tutorial', r'article', r'post', r'blog',
-            r'^find\s+', r'^show\s+', r'^looking\s+for', r'^search\s+',
-            r'documentation', r'docs', r'example', r'sample',
-            r'template', r'starter', r'boilerplate', r'resource'
-        ]
-    }
-
-    # Navigational keywords (single words that suggest looking for specific content)
+    # Navigational keywords (words that suggest looking for specific content)
     NAVIGATIONAL_KEYWORDS = {
         'guide', 'tutorial', 'howto', 'walkthrough', 'introduction', 'intro',
         'documentation', 'docs', 'example', 'examples', 'sample', 'demo',
@@ -177,45 +159,42 @@ class SemanticSearchAgent:
         """
         Classify query intent using pattern matching and heuristics (no LLM).
 
-        Detection strategy:
-        1. Check explicit patterns (questions, commands)
-        2. Check for navigational keywords
-        3. Analyze query structure (word count, specificity)
+        Intent types:
+        - INFORMATIONAL: User wants to learn/understand something (questions)
+        - NAVIGATIONAL: User looking for specific content (guide, tutorial, docs)
+        - EXPLORATORY: User browsing/discovering content on a topic
         """
         query_lower = query.lower().strip()
         words = query_lower.split()
+        word_count = len(words)
 
-        # Check explicit patterns first
-        for intent, patterns in self.INTENT_PATTERNS.items():
-            for pattern in patterns:
-                if re.search(pattern, query_lower):
-                    return intent
+        # 1. Check for question patterns → INFORMATIONAL
+        question_patterns = [
+            r'^what\s+', r'^how\s+', r'^why\s+', r'^when\s+', r'^where\s+',
+            r'^who\s+', r'^which\s+', r'^can\s+', r'^could\s+', r'^should\s+',
+            r'^is\s+', r'^are\s+', r'^does\s+', r'^do\s+', r'^will\s+',
+            r'\?$', r'vs\.?$', r'versus', r'compared\s+to', r'difference'
+        ]
+        for pattern in question_patterns:
+            if re.search(pattern, query_lower):
+                return QueryIntent.INFORMATIONAL
 
-        # Check for navigational keywords anywhere in query
+        # 2. Check for navigational keywords → NAVIGATIONAL
         for word in words:
             if word in self.NAVIGATIONAL_KEYWORDS:
                 return QueryIntent.NAVIGATIONAL
 
-        # Heuristics based on query structure
-        word_count = len(words)
+        # 3. Check navigational phrase patterns
+        nav_patterns = [
+            r'guide', r'tutorial', r'documentation', r'docs$',
+            r'^find\s+', r'^show\s+', r'^looking\s+for', r'^search\s+for'
+        ]
+        for pattern in nav_patterns:
+            if re.search(pattern, query_lower):
+                return QueryIntent.NAVIGATIONAL
 
-        # Single specific term = likely navigational (looking for content about X)
-        if word_count == 1 and len(query_lower) > 3:
-            return QueryIntent.NAVIGATIONAL
-
-        # Two words often = topic + modifier (e.g., "python basics", "react hooks")
-        if word_count == 2:
-            return QueryIntent.NAVIGATIONAL
-
-        # Longer queries without question words = exploratory
-        if word_count >= 3:
-            # Check if it contains action verbs suggesting information seeking
-            info_verbs = {'learn', 'understand', 'know', 'mean', 'work', 'use'}
-            if any(word in info_verbs for word in words):
-                return QueryIntent.INFORMATIONAL
-
-        # Default to navigational for most search-like queries
-        return QueryIntent.NAVIGATIONAL
+        # 4. Default: topic-based queries are EXPLORATORY (browsing/discovering)
+        return QueryIntent.EXPLORATORY
 
     def _expand_query(self, terms: List[str]) -> List[str]:
         """Expand query with synonyms (no LLM)."""
