@@ -32,6 +32,13 @@
     gap: 2rem;
 }
 
+/* ==================== HEADER LEFT (Logo + Nav) ==================== */
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
 /* ==================== LOGO ==================== */
 .site-logo {
     display: flex;
@@ -63,6 +70,9 @@
 }
 
 .site-nav a {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
     color: var(--text-secondary);
     text-decoration: none;
     font-weight: 500;
@@ -70,6 +80,10 @@
     padding: 0.5rem 1rem;
     position: relative;
     transition: color 0.2s ease;
+}
+
+.site-nav a i {
+    font-size: 1rem;
 }
 
 .site-nav a:hover {
@@ -224,7 +238,9 @@
 }
 
 .mobile-nav a {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
     color: var(--text-primary);
     text-decoration: none;
     font-weight: 500;
@@ -232,6 +248,11 @@
     padding: 0.75rem 0;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     transition: color 0.2s ease;
+}
+
+.mobile-nav a i {
+    font-size: 1.1rem;
+    width: 1.25rem;
 }
 
 .mobile-nav a:last-of-type {
