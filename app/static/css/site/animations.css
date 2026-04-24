@@ -1,301 +1,46 @@
 /* ==========================================================================
-   Scroll Animations
-   Reveal animations triggered on scroll using Intersection Observer
+   Scroll Animations - Lightweight Version
    ========================================================================== */
 
-/* ==========================================================================
-   BASE ANIMATION STATES
-   Elements start hidden and animate into view
-   ========================================================================== */
-
-/* Fade animations */
-[data-animate="fade-up"],
-[data-animate="fade-down"],
-[data-animate="fade-left"],
-[data-animate="fade-right"],
-[data-animate="fade-in"],
-[data-animate="zoom-in"],
-[data-animate="zoom-out"] {
-    opacity: 0;
-    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    will-change: opacity, transform;
-}
-
-/* Transform starting positions */
+/* Base fade-up animation */
 [data-animate="fade-up"] {
-    transform: translateY(25px);
-}
-
-[data-animate="fade-down"] {
-    transform: translateY(-25px);
-}
-
-[data-animate="fade-left"] {
-    transform: translateX(25px);
-}
-
-[data-animate="fade-right"] {
-    transform: translateX(-25px);
-}
-
-[data-animate="zoom-in"] {
-    transform: scale(0.9);
-}
-
-[data-animate="zoom-out"] {
-    transform: scale(1.1);
-}
-
-/* ==========================================================================
-   ANIMATED STATE (when element is in view)
-   ========================================================================== */
-
-[data-animate].animated {
-    opacity: 1;
-    transform: translateY(0) translateX(0) scale(1);
-}
-
-/* ==========================================================================
-   ANIMATION DELAYS
-   Stagger animations for lists and grids
-   ========================================================================== */
-
-[data-animate-delay="100"] { transition-delay: 50ms; }
-[data-animate-delay="200"] { transition-delay: 100ms; }
-[data-animate-delay="300"] { transition-delay: 150ms; }
-[data-animate-delay="400"] { transition-delay: 200ms; }
-[data-animate-delay="500"] { transition-delay: 250ms; }
-[data-animate-delay="600"] { transition-delay: 300ms; }
-[data-animate-delay="700"] { transition-delay: 350ms; }
-[data-animate-delay="800"] { transition-delay: 400ms; }
-
-/* ==========================================================================
-   ANIMATION DURATIONS
-   ========================================================================== */
-
-[data-animate-duration="fast"] {
-    transition-duration: 0.2s;
-}
-
-[data-animate-duration="slow"] {
-    transition-duration: 0.5s;
-}
-
-[data-animate-duration="slower"] {
-    transition-duration: 0.7s;
-}
-
-/* ==========================================================================
-   STAGGER ANIMATIONS FOR CHILDREN
-   Apply to parent, children animate sequentially
-   ========================================================================== */
-
-[data-animate-stagger] > * {
     opacity: 0;
     transform: translateY(20px);
-    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
 }
 
-[data-animate-stagger].animated > *:nth-child(1) { transition-delay: 0ms; }
-[data-animate-stagger].animated > *:nth-child(2) { transition-delay: 50ms; }
-[data-animate-stagger].animated > *:nth-child(3) { transition-delay: 100ms; }
-[data-animate-stagger].animated > *:nth-child(4) { transition-delay: 150ms; }
-[data-animate-stagger].animated > *:nth-child(5) { transition-delay: 200ms; }
-[data-animate-stagger].animated > *:nth-child(6) { transition-delay: 250ms; }
-[data-animate-stagger].animated > *:nth-child(7) { transition-delay: 300ms; }
-[data-animate-stagger].animated > *:nth-child(8) { transition-delay: 350ms; }
-[data-animate-stagger].animated > *:nth-child(9) { transition-delay: 400ms; }
-[data-animate-stagger].animated > *:nth-child(10) { transition-delay: 450ms; }
-[data-animate-stagger].animated > *:nth-child(11) { transition-delay: 500ms; }
-[data-animate-stagger].animated > *:nth-child(12) { transition-delay: 550ms; }
+[data-animate="fade-up"].animated {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Stagger children */
+[data-animate-stagger] > * {
+    opacity: 0;
+    transform: translateY(15px);
+    transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+}
 
 [data-animate-stagger].animated > * {
     opacity: 1;
     transform: translateY(0);
 }
 
-/* ==========================================================================
-   SPECIAL ANIMATIONS
-   ========================================================================== */
+[data-animate-stagger].animated > *:nth-child(1) { transition-delay: 0ms; }
+[data-animate-stagger].animated > *:nth-child(2) { transition-delay: 40ms; }
+[data-animate-stagger].animated > *:nth-child(3) { transition-delay: 80ms; }
+[data-animate-stagger].animated > *:nth-child(4) { transition-delay: 120ms; }
+[data-animate-stagger].animated > *:nth-child(5) { transition-delay: 160ms; }
+[data-animate-stagger].animated > *:nth-child(6) { transition-delay: 200ms; }
 
-/* Counter/number animation */
-[data-animate="counter"] {
-    opacity: 0;
-    transform: scale(0.5);
-    transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-[data-animate="counter"].animated {
-    opacity: 1;
-    transform: scale(1);
-}
-
-/* Blur fade */
-[data-animate="blur-in"] {
-    opacity: 0;
-    filter: blur(8px);
-    transition: opacity 0.35s ease, filter 0.35s ease;
-}
-
-[data-animate="blur-in"].animated {
-    opacity: 1;
-    filter: blur(0);
-}
-
-/* Slide scale */
-[data-animate="slide-scale"] {
-    opacity: 0;
-    transform: translateY(40px) scale(0.97);
-    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-[data-animate="slide-scale"].animated {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-}
-
-/* ==========================================================================
-   FLOATING ANIMATION (continuous)
-   ========================================================================== */
-
-@keyframes float {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-10px);
-    }
-}
-
-@keyframes float-rotate {
-    0%, 100% {
-        transform: translateY(0) rotate(0deg);
-    }
-    50% {
-        transform: translateY(-8px) rotate(3deg);
-    }
-}
-
-.animate-float {
-    animation: float 4s ease-in-out infinite;
-}
-
-.animate-float-slow {
-    animation: float 6s ease-in-out infinite;
-}
-
-.animate-float-rotate {
-    animation: float-rotate 5s ease-in-out infinite;
-}
-
-/* ==========================================================================
-   PULSE ANIMATION
-   ========================================================================== */
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 0.8;
-        transform: scale(1.02);
-    }
-}
-
-.animate-pulse {
-    animation: pulse 2s ease-in-out infinite;
-}
-
-/* ==========================================================================
-   SHIMMER EFFECT
-   ========================================================================== */
-
-@keyframes shimmer {
-    0% {
-        background-position: -200% 0;
-    }
-    100% {
-        background-position: 200% 0;
-    }
-}
-
-.animate-shimmer {
-    background: linear-gradient(
-        90deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.2) 50%,
-        transparent 100%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 2s infinite;
-}
-
-/* ==========================================================================
-   DRAW LINE ANIMATION (for SVGs)
-   ========================================================================== */
-
-@keyframes draw-line {
-    to {
-        stroke-dashoffset: 0;
-    }
-}
-
-.animate-draw {
-    stroke-dasharray: 1000;
-    stroke-dashoffset: 1000;
-    animation: draw-line 2s ease forwards;
-}
-
-/* ==========================================================================
-   PARALLAX EFFECTS
-   ========================================================================== */
-
-[data-parallax] {
-    transition: transform 0.1s linear;
-    will-change: transform;
-}
-
-/* ==========================================================================
-   REDUCED MOTION
-   Respects user's motion preferences
-   ========================================================================== */
-
-@media (prefers-reduced-motion: reduce) {
-    [data-animate],
-    [data-animate-stagger] > *,
-    .animate-float,
-    .animate-float-slow,
-    .animate-float-rotate,
-    .animate-pulse,
-    .animate-shimmer {
-        opacity: 1 !important;
-        transform: none !important;
-        filter: none !important;
-        animation: none !important;
-        transition: none !important;
-    }
-
-    [data-parallax] {
-        transform: none !important;
-    }
-}
-
-/* ==========================================================================
-   HERO SVG ANIMATIONS
-   ========================================================================== */
-
+/* Hero SVG entrance */
 .hero-illustration svg,
 .about-hero-illustration svg,
 .contact-hero-illustration svg,
 .blog-hero-illustration svg {
     opacity: 0;
-    transform: translateX(20px);
-    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateX(15px);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
 }
 
 .hero-illustration svg.animated,
@@ -304,4 +49,18 @@
 .blog-hero-illustration svg.animated {
     opacity: 1;
     transform: translateX(0);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    [data-animate],
+    [data-animate-stagger] > *,
+    .hero-illustration svg,
+    .about-hero-illustration svg,
+    .contact-hero-illustration svg,
+    .blog-hero-illustration svg {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
 }
