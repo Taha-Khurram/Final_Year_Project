@@ -310,7 +310,7 @@ def site_semantic_search(user_id):
         from app.agents.semantic_search_agent import SemanticSearchAgent
 
         search_agent = SemanticSearchAgent()
-        results = search_agent.search(user_id, query, top_k=6)
+        results, insights = search_agent.search(user_id, query, top_k=6, include_insights=True)
 
         # Format results for frontend
         formatted_results = []
@@ -330,7 +330,8 @@ def site_semantic_search(user_id):
             'success': True,
             'query': query,
             'results': formatted_results,
-            'count': len(formatted_results)
+            'count': len(formatted_results),
+            'insights': insights
         })
 
     except Exception as e:

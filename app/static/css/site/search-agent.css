@@ -389,6 +389,158 @@
     padding-left: 4px;
 }
 
+/* Agent Insights Panel */
+.search-insights {
+    background: linear-gradient(135deg, #f8f9ff 0%, #f3f0ff 100%);
+    border: 1px solid rgba(67, 24, 255, 0.1);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+
+.insights-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--site-primary, #4318FF);
+    transition: background 0.2s ease;
+}
+
+.insights-toggle:hover {
+    background: rgba(67, 24, 255, 0.05);
+}
+
+.insights-toggle .toggle-icon {
+    margin-left: auto;
+    transition: transform 0.3s ease;
+}
+
+.search-insights.expanded .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.insights-content {
+    display: none;
+    padding: 0 16px 16px;
+}
+
+.search-insights.expanded .insights-content {
+    display: block;
+}
+
+.insights-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.insight-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.insight-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(67, 24, 255, 0.1);
+    border-radius: 8px;
+    color: var(--site-primary, #4318FF);
+    font-size: 14px;
+}
+
+.insight-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.insight-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888;
+    font-weight: 500;
+}
+
+.insight-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.insight-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.insight-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12px;
+}
+
+.insight-key {
+    color: #666;
+    white-space: nowrap;
+    min-width: 100px;
+}
+
+.insight-val {
+    color: #1a1a2e;
+}
+
+.insight-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.term-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    background: rgba(67, 24, 255, 0.1);
+    color: var(--site-primary, #4318FF);
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.tool-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.empty-insights {
+    margin-top: 16px;
+    width: 100%;
+}
+
+.empty-insights .search-insights {
+    text-align: left;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
     .search-agent-trigger {

@@ -124,15 +124,27 @@ class SemanticSearchAgent:
     # Intent patterns (rule-based, no LLM)
     INTENT_PATTERNS = {
         QueryIntent.INFORMATIONAL: [
-            r'^what\s+is', r'^how\s+to', r'^how\s+do', r'^why\s+',
-            r'^explain', r'^describe', r'^define', r'^meaning\s+of',
-            r'difference\s+between', r'^can\s+you\s+explain'
+            r'^what\s+', r'^how\s+', r'^why\s+', r'^when\s+', r'^where\s+',
+            r'^explain', r'^describe', r'^define', r'^meaning',
+            r'difference\s+between', r'^can\s+you', r'^could\s+you',
+            r'^tell\s+me', r'^help\s+me\s+understand', r'\?$',
+            r'^is\s+it', r'^are\s+there', r'^does\s+', r'^do\s+',
+            r'vs\.?$', r'versus', r'compared\s+to'
         ],
         QueryIntent.NAVIGATIONAL: [
-            r'guide$', r'tutorial$', r'^find\s+', r'^show\s+me',
-            r'^looking\s+for', r'^search\s+for', r'article\s+about',
-            r'post\s+about', r'blog\s+about'
+            r'guide', r'tutorial', r'article', r'post', r'blog',
+            r'^find\s+', r'^show\s+', r'^looking\s+for', r'^search\s+',
+            r'documentation', r'docs', r'example', r'sample',
+            r'template', r'starter', r'boilerplate', r'resource'
         ]
+    }
+
+    # Navigational keywords (single words that suggest looking for specific content)
+    NAVIGATIONAL_KEYWORDS = {
+        'guide', 'tutorial', 'howto', 'walkthrough', 'introduction', 'intro',
+        'documentation', 'docs', 'example', 'examples', 'sample', 'demo',
+        'template', 'starter', 'boilerplate', 'cheatsheet', 'reference',
+        'basics', 'fundamentals', 'beginner', 'advanced', 'tips', 'tricks'
     }
 
     # Quality thresholds
@@ -162,16 +174,48 @@ class SemanticSearchAgent:
         return terms
 
     def _classify_intent(self, query: str) -> QueryIntent:
-        """Classify query intent using pattern matching (no LLM)."""
-        query_lower = query.lower()
+        """
+        Classify query intent using pattern matching and heuristics (no LLM).
 
+        Detection strategy:
+        1. Check explicit patterns (questions, commands)
+        2. Check for navigational keywords
+        3. Analyze query structure (word count, specificity)
+        """
+        query_lower = query.lower().strip()
+        words = query_lower.split()
+
+        # Check explicit patterns first
         for intent, patterns in self.INTENT_PATTERNS.items():
             for pattern in patterns:
                 if re.search(pattern, query_lower):
                     return intent
 
-        # Default to exploratory
-        return QueryIntent.EXPLORATORY
+        # Check for navigational keywords anywhere in query
+        for word in words:
+            if word in self.NAVIGATIONAL_KEYWORDS:
+                return QueryIntent.NAVIGATIONAL
+
+        # Heuristics based on query structure
+        word_count = len(words)
+
+        # Single specific term = likely navigational (looking for content about X)
+        if word_count == 1 and len(query_lower) > 3:
+            return QueryIntent.NAVIGATIONAL
+
+        # Two words often = topic + modifier (e.g., "python basics", "react hooks")
+        if word_count == 2:
+            return QueryIntent.NAVIGATIONAL
+
+        # Longer queries without question words = exploratory
+        if word_count >= 3:
+            # Check if it contains action verbs suggesting information seeking
+            info_verbs = {'learn', 'understand', 'know', 'mean', 'work', 'use'}
+            if any(word in info_verbs for word in words):
+                return QueryIntent.INFORMATIONAL
+
+        # Default to navigational for most search-like queries
+        return QueryIntent.NAVIGATIONAL
 
     def _expand_query(self, terms: List[str]) -> List[str]:
         """Expand query with synonyms (no LLM)."""
@@ -466,16 +510,25 @@ class SemanticSearchAgent:
     # MAIN SEARCH (Agentic Loop)
     # =========================================================================
 
-    def search(self, user_id: str, query: str, top_k: int = 6) -> List[Dict]:
+    def search(self, user_id: str, query: str, top_k: int = 6, include_insights: bool = False):
         """
         Main search method implementing agentic loop:
 
         1. Understand → 2. Plan → 3. Execute → 4. Evaluate → 5. Refine → 6. Explain
+
+        Args:
+            user_id: The user's ID
+            query: Search query string
+            top_k: Number of results to return
+            include_insights: If True, returns (results, insights) tuple
+
+        Returns:
+            List of results, or (results, insights) tuple if include_insights=True
         """
         try:
             # Validation
             if not query or len(query.strip()) < 2:
-                return []
+                return ([], None) if include_insights else []
 
             # Initialize agent state
             state = AgentState()
@@ -490,7 +543,7 @@ class SemanticSearchAgent:
             blogs = self.db_service.get_published_blogs(user_id, limit=50)
             if not blogs:
                 logger.info("No blogs found for user")
-                return []
+                return ([], self._build_insights(state, 0)) if include_insights else []
 
             # PHASE 3: Execute
             candidates = self._execute_tools(blogs, state)
@@ -504,7 +557,8 @@ class SemanticSearchAgent:
 
             if not candidates:
                 logger.info(f"No results above threshold for query: {query}")
-                return []
+                insights = self._build_insights(state, 0) if include_insights else None
+                return ([], insights) if include_insights else []
 
             # PHASE 5: Explain
             candidates = self._add_explanations(candidates[:top_k], state)
@@ -512,11 +566,59 @@ class SemanticSearchAgent:
             # Log agent trace
             logger.info(f"Search completed: {state.to_log()}")
 
+            if include_insights:
+                return candidates, self._build_insights(state, len(candidates))
             return candidates
 
         except Exception as e:
             logger.error(f"Search error: {e}")
-            return []
+            return ([], None) if include_insights else []
+
+    def _build_insights(self, state: AgentState, result_count: int) -> Dict:
+        """Build frontend-friendly insights from agent state."""
+        return {
+            'intent': {
+                'type': state.intent.value,
+                'label': self._get_intent_label(state.intent)
+            },
+            'query_analysis': {
+                'original': state.query,
+                'normalized': state.normalized_query,
+                'terms_used': state.expanded_terms[:8],  # Limit for display
+                'expansion_applied': len(state.expanded_terms) > len(state.query.split())
+            },
+            'strategy': {
+                'plan': state.plan,
+                'tools_used': list(set(state.tools_used)),
+                'iterations': state.iterations,
+                'refinements': state.refinements
+            },
+            'quality': {
+                'score': state.quality_score,
+                'label': self._get_quality_label(state.quality_score),
+                'result_count': result_count
+            }
+        }
+
+    def _get_intent_label(self, intent: QueryIntent) -> str:
+        """Get human-readable intent label."""
+        labels = {
+            QueryIntent.INFORMATIONAL: "Looking for information",
+            QueryIntent.NAVIGATIONAL: "Finding specific content",
+            QueryIntent.EXPLORATORY: "Exploring topics"
+        }
+        return labels.get(intent, "General search")
+
+    def _get_quality_label(self, score: float) -> str:
+        """Get human-readable quality label."""
+        if score >= 0.6:
+            return "Excellent match"
+        elif score >= 0.4:
+            return "Good match"
+        elif score >= 0.2:
+            return "Partial match"
+        else:
+            return "Best effort"
 
     # =========================================================================
     # EMBEDDING MANAGEMENT

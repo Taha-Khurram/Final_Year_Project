@@ -1,6 +1,7 @@
 /**
  * Semantic Search Agent
  * Handles the floating search button and modal interactions
+ * Displays agent insights and reasoning
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -56,23 +57,96 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Show empty state
-    function showEmpty(query) {
+    function showEmpty(query, insights) {
         loadingState?.classList.remove('active');
         emptyState?.classList.add('active');
         resultsList?.classList.remove('active');
+
         const emptyTitle = emptyState?.querySelector('h4');
         if (emptyTitle) {
             emptyTitle.textContent = `No results for "${query}"`;
         }
+
+        // Show insights even for empty results
+        if (insights) {
+            const insightsHtml = buildInsightsHtml(insights);
+            const emptyContent = emptyState?.querySelector('.empty-insights');
+            if (emptyContent) {
+                emptyContent.innerHTML = insightsHtml;
+            } else {
+                const div = document.createElement('div');
+                div.className = 'empty-insights';
+                div.innerHTML = insightsHtml;
+                emptyState?.appendChild(div);
+            }
+        }
+    }
+
+    // Build insights HTML
+    function buildInsightsHtml(insights) {
+        if (!insights) return '';
+
+        const intent = insights.intent || {};
+        const query = insights.query_analysis || {};
+        const strategy = insights.strategy || {};
+        const quality = insights.quality || {};
+
+        return `
+            <div class="search-insights">
+                <button class="insights-toggle" onclick="this.parentElement.classList.toggle('expanded')">
+                    <i class="bi bi-cpu"></i>
+                    <span>Agent Insights</span>
+                    <i class="bi bi-chevron-down toggle-icon"></i>
+                </button>
+                <div class="insights-content">
+                    <div class="insights-grid">
+                        <div class="insight-card">
+                            <div class="insight-icon"><i class="bi bi-bullseye"></i></div>
+                            <div class="insight-body">
+                                <span class="insight-label">Intent</span>
+                                <span class="insight-value">${escapeHtml(intent.label || 'Unknown')}</span>
+                            </div>
+                        </div>
+                        <div class="insight-card">
+                            <div class="insight-icon"><i class="bi bi-graph-up"></i></div>
+                            <div class="insight-body">
+                                <span class="insight-label">Quality</span>
+                                <span class="insight-value">${escapeHtml(quality.label || 'Unknown')}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="insight-details">
+                        <div class="insight-row">
+                            <span class="insight-key">Terms analyzed:</span>
+                            <span class="insight-chips">
+                                ${(query.terms_used || []).map(t => `<span class="term-chip">${escapeHtml(t)}</span>`).join('')}
+                            </span>
+                        </div>
+                        <div class="insight-row">
+                            <span class="insight-key">Tools used:</span>
+                            <span class="insight-chips">
+                                ${(strategy.tools_used || []).map(t => `<span class="tool-chip">${escapeHtml(t)}</span>`).join('')}
+                            </span>
+                        </div>
+                        ${strategy.refinements && strategy.refinements.length > 0 ? `
+                        <div class="insight-row">
+                            <span class="insight-key">Refinements:</span>
+                            <span class="insight-val">${strategy.refinements.join(', ')}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     // Show results
-    function showResults(results, query) {
+    function showResults(results, query, insights) {
         loadingState?.classList.remove('active');
         emptyState?.classList.remove('active');
 
         if (!results || results.length === 0) {
-            showEmpty(query);
+            showEmpty(query, insights);
             return;
         }
 
@@ -82,7 +156,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (resultsList) {
-            resultsList.innerHTML = results.map(result => `
+            // Build insights panel + results
+            const insightsHtml = buildInsightsHtml(insights);
+
+            const resultsHtml = results.map(result => `
                 <a href="${result.url}" class="search-result-item">
                     ${result.cover_image
                         ? `<img src="${result.cover_image}" alt="" class="search-result-image">`
@@ -104,6 +181,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </a>
             `).join('');
+
+            resultsList.innerHTML = insightsHtml + resultsHtml;
         }
     }
 
@@ -140,13 +219,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
 
             if (data.success) {
-                showResults(data.results, query);
+                showResults(data.results, query, data.insights);
             } else {
-                showEmpty(query);
+                showEmpty(query, data.insights);
             }
         } catch (error) {
             console.error('Search error:', error);
-            showEmpty(query);
+            showEmpty(query, null);
         }
     }
 
