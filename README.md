@@ -31,19 +31,21 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 - **Multiple Pages**: Home, Blog (with pagination), About, and Contact pages
 - **Mobile-First**: Responsive navigation with hamburger menu for mobile devices
 - **Contact Form**: Visitor contact form with Firestore storage
-- **Newsletter Signup**: Email subscription with duplicate prevention
+- **Newsletter Signup**: Email subscription with duplicate prevention and custom modals
 - **Site Settings**: Customizable site name, description, colors, social links, and SEO metadata
 - **Category Filtering**: Browse posts by category with sidebar navigation
 - **Search & Sort**: Client-side search and sorting on the blog listing page
+- **Performance Optimized**: Response compression, static asset caching, in-memory query caching, and link prefetching for fast navigation
 
 ## Tech Stack
 
-- **Backend**: Flask (Python)
+- **Backend**: Flask (Python) with Flask-Compress
 - **Database**: Firebase Firestore
 - **Authentication**: Firebase Auth
 - **AI**: Google Generative AI (Gemini)
 - **Email**: Resend API
 - **SEO Analysis**: RapidAPI (Google Search, Keyword Research)
+- **Static Files**: WhiteNoise with cache headers
 - **Deployment**: Gunicorn / Waitress
 
 ## Project Structure

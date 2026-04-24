@@ -533,13 +533,25 @@ class FirestoreService:
         
         
     def update_blog_status(self, blog_id, new_status):
+        """Updates blog status and invalidates published blogs cache."""
         try:
             doc_ref = self.db.collection("blogs").document(blog_id)
+
+            # Get blog to find site_owner_id for cache invalidation
+            doc = doc_ref.get()
+            site_owner_id = None
+            if doc.exists:
+                data = doc.to_dict()
+                site_owner_id = data.get('site_owner_id') or data.get('author_id')
 
             doc_ref.update({
                 "status": new_status,
                 "updated_at": datetime.utcnow()
             })
+
+            # Invalidate published blogs cache for this site owner
+            if site_owner_id:
+                cache.clear_prefix(f"published_blogs:{site_owner_id}")
 
             return True
         except Exception as e:
@@ -711,7 +723,13 @@ class FirestoreService:
         """
         Retrieves site settings for a user.
         Merges stored data with defaults to ensure all fields exist.
+        Uses in-memory cache with 2-minute TTL to reduce Firestore queries.
         """
+        cache_key = f"site_settings:{user_id}"
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
+
         try:
             defaults = self._get_site_settings_defaults(user_id)
             doc = self.db.collection("site_settings").document(user_id).get()
@@ -727,8 +745,10 @@ class FirestoreService:
                 stored_social = stored_data.get('social_links', {})
                 merged['social_links'] = {**default_social, **stored_social}
 
+                cache.set(cache_key, merged, ttl=120)
                 return merged
 
+            cache.set(cache_key, defaults, ttl=120)
             return defaults
         except Exception as e:
             print(f"❌ Error fetching site settings: {e}")
@@ -801,7 +821,7 @@ class FirestoreService:
     def update_site_settings(self, user_id, settings):
         """
         Updates or creates site settings for a user.
-        Validates input before saving.
+        Validates input before saving. Invalidates cache on update.
         """
         try:
             # Validate settings
@@ -811,6 +831,9 @@ class FirestoreService:
 
             doc_ref = self.db.collection("site_settings").document(user_id)
             doc_ref.set(validated, merge=True)
+
+            # Invalidate cached settings
+            cache.delete(f"site_settings:{user_id}")
             return True
         except Exception as e:
             print(f"❌ Error updating site settings: {e}")
@@ -822,8 +845,13 @@ class FirestoreService:
         Returns blogs ordered by updated_at descending.
         Filters by site_owner_id to include blogs from all team members.
         Falls back to author_id for backwards compatibility with older blogs.
-        Note: Sorting done in Python to avoid composite index requirement.
+        Uses in-memory cache with 2-minute TTL to reduce Firestore queries.
         """
+        cache_key = f"published_blogs:{user_id}:{limit}"
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
+
         try:
             blogs = []
             blog_ids = set()
@@ -864,7 +892,9 @@ class FirestoreService:
             # Sort combined results by updated_at in Python (newest first)
             blogs.sort(key=lambda x: x.get('updated_at', datetime.min), reverse=True)
 
-            return blogs[:limit] if limit else blogs
+            result = blogs[:limit] if limit else blogs
+            cache.set(cache_key, result, ttl=120)
+            return result
         except Exception as e:
             print(f"❌ Error fetching published blogs: {e}")
             return []

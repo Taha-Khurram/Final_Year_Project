@@ -1,5 +1,6 @@
 import os
 from flask import Flask, redirect, url_for, session, render_template, abort
+from flask_compress import Compress
 from config import Config
 from app.firebase.firebase_admin import FirebaseLoader
 from app.firebase.firestore_service import FirestoreService
@@ -24,9 +25,12 @@ def create_app(config_class=Config):
     app = Flask(__name__, static_folder='static', template_folder='templates')
     app.config.from_object(config_class)
 
+    # Enable response compression (gzip)
+    Compress(app)
+
     # Middleware setup
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
-    app.wsgi_app = WhiteNoise(app.wsgi_app, root='app/static/', prefix='static/')
+    app.wsgi_app = WhiteNoise(app.wsgi_app, root='app/static/', prefix='static/', max_age=604800)
 
     # Initialize Firebase
     FirebaseLoader.get_instance(app.config['FIREBASE_SERVICE_ACCOUNT'])
