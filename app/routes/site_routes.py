@@ -115,6 +115,7 @@ def site_about(user_id):
             settings=settings,
             published_count=len(published_blogs),
             categories_count=len(categories),
+            categories=categories,
             user_id=user_id
         )
 
@@ -197,6 +198,7 @@ def site_blog(user_id):
             current_page=page,
             total_pages=total_pages,
             total_posts=total_posts,
+            per_page=per_page,
             user_id=user_id
         )
 
@@ -212,9 +214,13 @@ def site_contact(user_id):
         # Get site settings
         settings = db_service.get_site_settings(user_id)
 
+        # Get categories for footer
+        categories = db_service.get_all_categories(user_id=user_id)
+
         return render_template(
             'site/site_contact.html',
             settings=settings,
+            categories=categories,
             user_id=user_id
         )
 
