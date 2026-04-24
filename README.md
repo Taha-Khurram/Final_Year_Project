@@ -7,7 +7,7 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 - **AI Blog Generation** - Generate complete blog posts from topics using Gemini
 - **SEO Optimization** - Keyword analysis, readability scoring, meta tag generation
 - **Public Blog Sites** - Each user gets a customizable public-facing blog
-- **Semantic Search** - AI-powered search with embeddings and LLM reranking
+- **Semantic Search Agent** - Industry-standard agentic search with intent classification
 - **Newsletter System** - Generate and send newsletters to subscribers
 - **Team Collaboration** - Multi-user support with approval workflows
 
@@ -63,14 +63,36 @@ Access at `http://localhost:5000`
 | SEO Agent | Optimizes content for search |
 | Formatting Agent | Adds TOC, reading time, styling |
 | Newsletter Agent | Generates newsletters from blogs |
-| Semantic Search Agent | AI-powered search with explanations |
+| Semantic Search Agent | Industry-standard agentic search |
+
+### Semantic Search Agent
+
+Implements industry-standard agentic patterns with minimal LLM usage:
+
+```
+Query → Understand → Plan → Execute Tools → Evaluate → Refine → Explain
+```
+
+**Features:**
+- **Query Understanding** - Intent classification (informational/navigational/exploratory)
+- **Query Expansion** - Synonym-based term expansion (no LLM cost)
+- **Multi-Tool Execution** - Keyword, vector, and category search tools
+- **Self-Evaluation** - Quality scoring with automatic refinement
+- **Agent Insights** - Transparent reasoning displayed in UI
+
+**Intent Classification:**
+| Query Type | Example | Intent |
+|------------|---------|--------|
+| Questions | "how does react work?" | Informational |
+| Content search | "python tutorial" | Navigational |
+| Topic browse | "machine learning" | Exploratory |
 
 ## Public Site
 
 Each user gets a public blog at `/site/<user_id>` with:
 - Home, Blog, About, Contact pages
 - Newsletter subscription
-- Semantic search (floating AI button)
+- Semantic search with agent insights panel
 - Category filtering
 - Social sharing
 

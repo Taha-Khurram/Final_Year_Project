@@ -156,15 +156,30 @@ Created automatically:
 | **Draft Saving** | Save and edit drafts |
 | **History** | View sent newsletters |
 
-### Semantic Search
+### Semantic Search Agent
+
+Industry-standard agentic search implementation with minimal LLM usage.
 
 | Feature | Description |
 |---------|-------------|
-| **Embedding Generation** | Google's gemini-embedding-001 model |
-| **Vector Search** | Cosine similarity matching |
-| **Query Understanding** | LLM analyzes search intent |
-| **Smart Reranking** | Results ranked by relevance with explanations |
-| **Floating UI** | Search button on all public pages |
+| **Query Understanding** | Intent classification (informational/navigational/exploratory) |
+| **Query Expansion** | Synonym-based term expansion without LLM |
+| **Multi-Tool Search** | Keyword, vector, and category search tools |
+| **Self-Evaluation** | Quality scoring with automatic refinement |
+| **Agent Insights** | Transparent reasoning displayed in collapsible UI panel |
+| **Embedding Search** | Google's gemini-embedding-001 for vector similarity |
+
+**Agentic Loop:**
+```
+Query → Understand → Plan → Execute Tools → Evaluate → Refine → Explain
+```
+
+**Intent Types:**
+| Intent | Detected When | Search Strategy |
+|--------|---------------|-----------------|
+| Informational | Questions (what, how, why?) | Semantic-heavy (50% vector) |
+| Navigational | Keywords like "guide", "tutorial" | Keyword-heavy (60% keyword) |
+| Exploratory | Topic browsing | Balanced (40/40/20) |
 
 ---
 
@@ -189,10 +204,13 @@ Formats content with TOC, reading time, and styling.
 Generates newsletter content from published blogs.
 
 ### Semantic Search Agent (`semantic_search_agent.py`)
-Performs intelligent semantic search with:
-- Parallel query processing
-- Vector similarity + keyword matching
-- LLM reranking with explanations
+Industry-standard agentic search with:
+- **AgentState** dataclass for tracking reasoning
+- **Rule-based intent classification** (no LLM cost)
+- **Synonym expansion** via static dictionary
+- **Tool execution**: keyword, vector, category tools
+- **Quality evaluation** with automatic refinement
+- **Insights API** returning agent reasoning to frontend
 
 ---
 
@@ -234,7 +252,7 @@ Customize via Dashboard > Site Settings:
 - **Social Sharing**: Twitter, LinkedIn, Facebook
 - **Table of Contents**: Auto-generated from headings
 - **Related Posts**: Same-category recommendations
-- **Semantic Search**: AI-powered floating search button
+- **Semantic Search**: Floating button with agent insights panel
 
 ### Performance
 
