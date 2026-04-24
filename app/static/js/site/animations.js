@@ -8,8 +8,8 @@
 
     // Configuration
     const config = {
-        threshold: 0.15,        // Trigger when 15% of element is visible
-        rootMargin: '0px 0px -50px 0px',  // Trigger slightly before element enters
+        threshold: 0.05,        // Trigger when 5% of element is visible (faster trigger)
+        rootMargin: '0px 0px 50px 0px',  // Trigger 50px before element enters viewport
         once: true              // Only animate once per element
     };
 
@@ -176,7 +176,7 @@
     function animateCounters(container) {
         container.querySelectorAll('[data-counter]').forEach(counter => {
             const target = parseInt(counter.getAttribute('data-counter') || counter.textContent, 10);
-            const duration = 1500;
+            const duration = 800;
             const start = 0;
             const startTime = performance.now();
 
@@ -242,7 +242,7 @@
     function animateHeroOnLoad() {
         // Wait for DOM to be ready
         requestAnimationFrame(() => {
-            // Slight delay for page to settle
+            // Minimal delay for page to settle
             setTimeout(() => {
                 // Animate hero content
                 const heroContent = document.querySelector(
@@ -266,7 +266,7 @@
                     if (heroSvg) {
                         heroSvg.classList.add('animated');
                     }
-                }, 200);
+                }, 100);
 
                 // Animate hero stats
                 setTimeout(() => {
@@ -274,8 +274,8 @@
                     if (heroStats) {
                         heroStats.classList.add('animated');
                     }
-                }, 400);
-            }, 100);
+                }, 200);
+            }, 50);
         });
     }
 
