@@ -332,6 +332,12 @@ def generate_and_submit():
         blog_ai = BlogAgent()
         generated_data = blog_ai.run_pipeline(prompt, enable_seo=False)
 
+        # Check if pipeline failed before proceeding
+        if generated_data.get('status') == 'failed' or 'error' in generated_data:
+            error_msg = generated_data.get('error', 'Blog generation failed')
+            print(f"❌ Pipeline failed: {error_msg}")
+            return jsonify({"success": False, "error": error_msg}), 500
+
         # Extract content safely while preserving full structure
         content_text = ""
         content_obj = generated_data.get('content', {})

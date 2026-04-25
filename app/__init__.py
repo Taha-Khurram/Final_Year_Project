@@ -1,5 +1,5 @@
 import os
-from flask import Flask, redirect, url_for, session, render_template, abort
+from flask import Flask, redirect, url_for, session, render_template, abort, request, jsonify, current_app
 from flask_compress import Compress
 from config import Config
 from app.firebase.firebase_admin import FirebaseLoader
@@ -8,6 +8,7 @@ from app.utils.date_utils import format_date, format_time, format_datetime
 from whitenoise import WhiteNoise
 from werkzeug.middleware.proxy_fix import ProxyFix
 from functools import wraps
+from datetime import datetime, timezone
 
 
 def admin_required(f):
@@ -114,5 +115,32 @@ def create_app(config_class=Config):
 
     # FIX: Register with url_prefix to match your JS calls (/users/list, etc.)
     app.register_blueprint(user_bp, url_prefix='/users')
+
+    # Session inactivity timeout check
+    @app.before_request
+    def check_session_timeout():
+        # Exempt static files, auth pages, and public site routes
+        if request.endpoint and request.endpoint == 'static':
+            return None
+        exempt = {'auth_bp.login', 'auth_bp.signup', 'auth_bp.verify_token', 'auth_bp.logout'}
+        if request.endpoint in exempt:
+            return None
+        if request.endpoint and request.endpoint.startswith('site_bp.'):
+            return None
+
+        if session.get('logged_in'):
+            last_activity = session.get('last_activity')
+            if last_activity is not None:
+                if isinstance(last_activity, str):
+                    last_activity = datetime.fromisoformat(last_activity)
+                elapsed = datetime.now(timezone.utc) - last_activity
+                timeout = current_app.config.get('PERMANENT_SESSION_LIFETIME')
+                if elapsed > timeout:
+                    session.clear()
+                    if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return jsonify({'error': 'session_expired', 'redirect': url_for('auth_bp.login', expired=1)}), 401
+                    return redirect(url_for('auth_bp.login', expired=1))
+            # Reset activity timestamp
+            session['last_activity'] = datetime.now(timezone.utc).isoformat()
 
     return app

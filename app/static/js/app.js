@@ -147,3 +147,53 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+// --------------------------------------------------------------------------
+// Session Inactivity Timeout
+// --------------------------------------------------------------------------
+
+(function() {
+    const TIMEOUT_MS = 15 * 60 * 1000;
+    const WARN_MS = 2 * 60 * 1000;
+    let timeoutTimer, warningTimer;
+
+    function resetTimers() {
+        clearTimeout(timeoutTimer);
+        clearTimeout(warningTimer);
+
+        warningTimer = setTimeout(() => {
+            if (window.showToast) {
+                showToast({
+                    type: 'warning',
+                    title: 'Session Expiring',
+                    message: 'Your session will expire in 2 minutes due to inactivity.',
+                    duration: 10000
+                });
+            }
+        }, TIMEOUT_MS - WARN_MS);
+
+        timeoutTimer = setTimeout(() => {
+            window.location.href = '/login?expired=1';
+        }, TIMEOUT_MS);
+    }
+
+    ['click', 'keydown', 'scroll', 'mousemove'].forEach(evt =>
+        document.addEventListener(evt, resetTimers, { passive: true })
+    );
+    resetTimers();
+
+    // Intercept fetch to handle 401 session_expired responses
+    const _fetch = window.fetch;
+    window.fetch = async function(...args) {
+        const res = await _fetch.apply(this, args);
+        if (res.status === 401) {
+            try {
+                const data = await res.clone().json();
+                if (data.error === 'session_expired') {
+                    window.location.href = data.redirect || '/login?expired=1';
+                }
+            } catch(e) {}
+        }
+        return res;
+    };
+})();

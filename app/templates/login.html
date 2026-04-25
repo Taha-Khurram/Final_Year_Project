@@ -64,4 +64,18 @@
   {{ firebase_config | tojson }}
 </script>
 <script src="{{ url_for('static', filename='js/firebase_google.js') }}"></script>
+<script>
+  if (new URLSearchParams(window.location.search).get('expired') === '1') {
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.showToast) {
+        showToast({
+          type: 'warning',
+          title: 'Session Expired',
+          message: 'You were logged out due to inactivity. Please sign in again.',
+          duration: 8000
+        });
+      }
+    });
+  }
+</script>
 {% endblock %}

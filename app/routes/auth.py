@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, current_app
 from firebase_admin import auth as admin_auth
+from datetime import datetime, timezone
 from app.firebase.firestore_service import FirestoreService
 
 auth_bp = Blueprint('auth_bp', __name__)
@@ -39,7 +40,8 @@ def verify_token():
             'user_id': uid,
             'user_name': user_record['name'],
             'user_role': user_record.get('role', 'ADMIN'), # CRITICAL for routing
-            'logged_in': True
+            'logged_in': True,
+            'last_activity': datetime.now(timezone.utc).isoformat()
         })
 
         return jsonify({"success": True, "redirect": url_for('blog.home')})
