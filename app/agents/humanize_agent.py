@@ -4,46 +4,235 @@ from google import generativeai as genai
 from flask import current_app
 
 
+# ── AI word → human word replacement map ──────────────────────────
+# These are the exact tokens AI detectors flag as high-probability AI output.
+# Replacing them with lower-probability synonyms directly raises perplexity.
+
+AI_WORD_MAP = {
+    r'\butilize\b': 'use',
+    r'\butilizing\b': 'using',
+    r'\butilized\b': 'used',
+    r'\bleverage\b': 'use',
+    r'\bleveraging\b': 'using',
+    r'\bleveraged\b': 'used',
+    r'\bstreamline\b': 'simplify',
+    r'\bstreamlined\b': 'simplified',
+    r'\bstreamlining\b': 'simplifying',
+    r'\brobust\b': 'solid',
+    r'\bcutting-edge\b': 'latest',
+    r'\bgroundbreaking\b': 'new',
+    r'\bdelve\b': 'dig into',
+    r'\bdelving\b': 'digging into',
+    r'\bdelved\b': 'dug into',
+    r'\bcrucial\b': 'key',
+    r'\bpivotal\b': 'important',
+    r'\bfacilitate\b': 'help with',
+    r'\bfacilitating\b': 'helping with',
+    r'\bcomprehensive\b': 'thorough',
+    r'\bimplement\b': 'set up',
+    r'\bimplementing\b': 'setting up',
+    r'\bimplemented\b': 'set up',
+    r'\bimplementation\b': 'setup',
+    r'\boptimize\b': 'improve',
+    r'\boptimizing\b': 'improving',
+    r'\boptimized\b': 'improved',
+    r'\bparadigm\b': 'approach',
+    r'\bfoster\b': 'build',
+    r'\bfostering\b': 'building',
+    r'\bharness\b': 'use',
+    r'\bharnessing\b': 'using',
+    r'\bempower\b': 'help',
+    r'\bempowering\b': 'helping',
+    r'\bseamless\b': 'smooth',
+    r'\bseamlessly\b': 'smoothly',
+    r'\bplethora\b': 'plenty of',
+    r'\bmyriad\b': 'many',
+    r'\bencompass\b': 'cover',
+    r'\bencompassing\b': 'covering',
+    r'\bencompasses\b': 'covers',
+    r'\bmultifaceted\b': 'complex',
+    r'\btapestry\b': 'mix',
+    r'\bunderscores\b': 'shows',
+    r'\bunderscore\b': 'show',
+    r'\bbolster\b': 'strengthen',
+    r'\bbolstering\b': 'strengthening',
+    r'\bFurthermore\b': 'Also',
+    r'\bMoreover\b': 'Plus',
+    r'\bAdditionally\b': 'On top of that',
+    r'\bIn conclusion\b': 'So overall',
+    r'\bIt is important to note\b': 'Worth noting',
+    r'\bIt\'s important to note\b': 'Worth noting',
+    r'\bIn today\'s\b': "In today's",
+    r'\bIn the realm of\b': 'In the world of',
+    r'\bthe realm of\b': 'the world of',
+    r'\bthe landscape of\b': 'the space of',
+    r'\bnavigate the\b': 'deal with the',
+    r'\bnavigating the\b': 'dealing with the',
+}
+
+# ── Shared preamble for all prompt variants ───────────────────────
+# E-E-A-T, information gain, and anti-AI rules baked into every call.
+
+_SHARED_RULES = """You are an expert Editor and Content Strategist. Transform this AI draft into human-first content that meets Google's E-E-A-T standards.
+
+CORE RULES (apply to EVERY rewrite):
+- PERPLEXITY & BURSTINESS: Vary sentence length wildly. Mix short punchy lines (3-8 words) with medium explanatory ones (10-16 words). Never 3+ sentences of similar length in a row.
+- INFORMATION GAIN: Don't just rephrase. Add a specific example, a hypothetical scenario, or a nuanced "insider" observation where it fits naturally. Make the reader learn something extra.
+- REMOVE AI-ISMS: Eliminate "In conclusion," "It is important to note," "Furthermore," "In the rapidly evolving world of," "It's worth mentioning," and all similar filler.
+- GROUNDED TONE: Conversational yet authoritative. Use "we", "you", or "I" naturally to build connection. Active voice always — never passive.
+- CONTRACTIONS ALWAYS: don't, it's, can't, won't, they're, we're.
+- KEEP all markdown formatting (headings, bold, italic, lists, links, code blocks).
+- KEEP all facts exactly the same. Only change how they're expressed.
+- Transitions must feel logical and earned, not mechanical pattern-following.
+- Return ONLY the rewritten section. No commentary. No code fences. No preamble."""
+
+# ── Prompt variants (rotated per chunk) ───────────────────────────
+# Each adds a unique style layer on top of the shared rules.
+
+PROMPT_VARIANTS = [
+    # Variant 0: Direct simplicity
+    _SHARED_RULES + """
+
+STYLE FOR THIS SECTION:
+- Average sentence: 8-15 words. Some can be 3-5 words. None over 20.
+- Every sentence in a paragraph must start with a different word.
+- Plain vocabulary. Write like a real person, not a textbook.
+
+Rewrite this blog section about {topic}:
+{section}""",
+
+    # Variant 1: Conversational
+    _SHARED_RULES + """
+
+STYLE FOR THIS SECTION:
+- Explain it like you're talking to a smart friend.
+- Paragraphs: 1-4 sentences max.
+- Throw in 1-2 natural questions like "Right?" or "Make sense?"
+- Simple words only. If a 12-year-old wouldn't say it, don't write it.
+
+Rewrite this blog section about {topic}:
+{section}""",
+
+    # Variant 2: Punchy
+    _SHARED_RULES + """
+
+STYLE FOR THIS SECTION:
+- Short and punchy. Fragments are fine. "Works great." is a valid sentence.
+- 1-2 rhetorical questions per paragraph.
+- Simplest word possible every time.
+- Sentence length: some 3 words, some 15. Never uniform.
+
+Rewrite this blog section about {topic}:
+{section}""",
+
+    # Variant 3: Relaxed explainer
+    _SHARED_RULES + """
+
+STYLE FOR THIS SECTION:
+- Alternate short sentences (5-8 words) with medium ones (10-16 words).
+- Start some sentences with "And", "But", "So".
+- Sentence fragments occasionally for emphasis.
+- No filler phrases whatsoever.
+
+Rewrite this blog section about {topic}:
+{section}""",
+]
+
+# ── Contraction expansion pairs ───────────────────────────────────
+CONTRACTION_PAIRS = [
+    (r"\bdon't\b", "do not"),
+    (r"\bcan't\b", "cannot"),
+    (r"\bwon't\b", "will not"),
+    (r"\bit's\b", "it is"),
+    (r"\bthey're\b", "they are"),
+    (r"\bdoesn't\b", "does not"),
+    (r"\bwouldn't\b", "would not"),
+]
+
+# ── Filler words and parenthetical asides ─────────────────────────
+FILLER_STARTERS = ["Honestly, ", "Look, ", "So, ", "I mean, ", "Basically, "]
+PARENTHETICAL_ASIDES = [
+    " (at least from what I've seen)",
+    " (which is kind of wild)",
+    " (your mileage may vary)",
+    " (not always, but often)",
+    " (just my take)",
+    " (seriously)",
+]
+
+
 class HumanizeAgent:
     """
-    Single-call content humanization agent with post-processing.
+    Section-based content humanization agent.
     Rewrites AI-generated content to bypass AI detection tools
-    while preserving meaning, structure, and SEO value.
-    Uses ONE API call + deterministic post-processing.
+    using rotating prompt variants + 5-pass deterministic post-processing.
     """
 
     def __init__(self):
         genai.configure(api_key=current_app.config['GEMINI_API_KEY'])
         self.model = genai.GenerativeModel('gemini-3-flash-preview')
         self.generation_config = genai.types.GenerationConfig(
-            temperature=1.2,
-            top_p=0.92,
-            max_output_tokens=16384,
+            temperature=0.9,
+            top_p=0.88,
+            max_output_tokens=8192,
         )
 
     def humanize_content(self, markdown, topic=""):
         """
-        Main entry point: humanize AI-generated markdown content.
-        LLM rewrite + deterministic post-processing for maximum human score.
+        Main entry point. Humanize AI-generated markdown content.
+        Uses max 2 API calls (blog split in half) + heavy post-processing.
 
         Args:
             markdown: Raw AI-generated markdown text
-            topic: Blog topic for context-aware voice injection
+            topic: Blog topic for context-aware rewriting
 
         Returns:
             dict with 'markdown', 'original_markdown', 'humanization_applied'
         """
         original_markdown = markdown
+        orig_words = len(markdown.split())
+        print(f"\n{'='*60}")
+        print(f"🔄 HumanizeAgent — Starting humanization")
+        print(f"   Topic: {topic or '(none)'}")
+        print(f"   Input: {orig_words} words")
+        print(f"{'='*60}")
 
         try:
-            # Step 1: LLM rewrite (single API call)
-            humanized = self._humanize_full(markdown, topic)
+            # Step 1: Split blog into 2 halves at a ## boundary
+            chunks = self._split_into_halves(markdown)
+            print(f"\n📂 Step 1: Split into {len(chunks)} chunk(s)")
+            for i, chunk in enumerate(chunks):
+                chunk_words = len(chunk.split())
+                chunk_headings = len(re.findall(r'^#{1,3}\s', chunk, re.MULTILINE))
+                print(f"   Chunk {i+1}: {chunk_words} words, {chunk_headings} headings")
 
-            # Step 2: Deterministic post-processing (no API call)
+            # Step 2: Rewrite each half with a different prompt variant (max 2 API calls)
+            print(f"\n🤖 Step 2: Rewriting chunks via Gemini API")
+            rewritten = []
+            for i, chunk in enumerate(chunks):
+                rewritten.append(self._rewrite_chunk(chunk, topic, i))
+
+            # Step 3: Reassemble
+            humanized = '\n\n'.join(c.strip() for c in rewritten if c.strip())
+            reassembled_words = len(humanized.split())
+            print(f"\n🔗 Step 3: Reassembled — {reassembled_words} words")
+
+            # Step 4: 5-pass deterministic post-processing
+            print(f"\n⚙️  Step 4: Post-processing (5 passes)")
             humanized = self._post_process(humanized)
+            post_words = len(humanized.split())
+            print(f"   Post-processing complete — {post_words} words")
 
-            # Step 3: Validate structure preserved
+            # Step 5: Validate structure preserved
+            print(f"\n✅ Step 5: Validating structure")
             humanized = self._validate(original_markdown, humanized)
+            final_words = len(humanized.split())
+            ratio = final_words / orig_words if orig_words > 0 else 1.0
+
+            print(f"\n{'='*60}")
+            print(f"✅ Humanization complete!")
+            print(f"   {orig_words} → {final_words} words (ratio: {ratio:.2f})")
+            print(f"{'='*60}\n")
 
             return {
                 "markdown": humanized,
@@ -52,149 +241,301 @@ class HumanizeAgent:
             }
 
         except Exception as e:
-            print(f"❌ HumanizeAgent Error: {e}")
+            print(f"\n❌ HumanizeAgent Error: {e}")
             return {
                 "markdown": original_markdown,
                 "original_markdown": original_markdown,
                 "humanization_applied": False
             }
 
-    def _humanize_full(self, markdown, topic):
-        """Rewrite the entire blog in a single API call with persona-driven humanization."""
-        prompt = f"""You are Marcus, a 34-year-old freelance writer and blogger who's been covering {topic} for about 6 years. You have a casual-but-knowledgeable writing style — you explain complex things simply, throw in personal takes, and aren't afraid to be a bit blunt. You write the way you'd talk to a smart friend over coffee. You sometimes ramble slightly, catch yourself, and get back on track.
+    # ── Splitting & rewriting ─────────────────────────────────────
 
-Your task: Completely REWRITE the blog content below in YOUR voice. Not edit it. Not polish it. REWRITE it from scratch using the same facts, structure, and headings.
+    def _split_into_halves(self, markdown):
+        """Split markdown into 2 roughly equal halves at a ## heading boundary."""
+        sections = re.split(r'(?=^## )', markdown, flags=re.MULTILINE)
+        sections = [s for s in sections if s.strip()]
+        print(f"   Found {len(sections)} sections (## headings)")
 
-═══ WHY THIS MATTERS ═══
-AI detectors (GPTZero, Originality.ai, ZeroGPT) flag content based on:
-- Uniform perplexity (every sentence equally "smooth") → You must make some sentences messy, some clean
-- Low burstiness (all sentences similar length) → You must wildly vary sentence lengths
-- Predictable word choices (the "AI voice") → You must use surprising, specific vocabulary
-- Perfect grammar throughout → You must include natural imperfections
-- Absence of personal perspective → You must inject YOUR takes
+        if len(sections) <= 2:
+            print(f"   → Too few sections, using 1 chunk (single API call)")
+            return [markdown]
 
-═══ WHAT AI TEXT LOOKS LIKE (AVOID ALL OF THIS) ═══
-BAD: "In today's rapidly evolving digital landscape, it is crucial to leverage cutting-edge technologies to streamline your workflow and optimize productivity."
-GOOD: "Look, I've been doing this long enough to know — most productivity advice is garbage. But there are maybe 3-4 tools that actually changed how I work. Let me break those down."
+        mid = len(sections) // 2
+        first_half = '\n\n'.join(sections[:mid])
+        second_half = '\n\n'.join(sections[mid:])
+        print(f"   → Split at section {mid}: chunk 1 = sections 1-{mid}, chunk 2 = sections {mid+1}-{len(sections)}")
+        return [first_half, second_half]
 
-BAD: "Furthermore, implementing a comprehensive strategy can facilitate better outcomes and foster meaningful growth."
-GOOD: "And here's what nobody tells you about strategy: half of it is just showing up consistently. I spent way too long overcomplicating this before I figured that out."
+    def _rewrite_chunk(self, chunk, topic, index):
+        """Rewrite a chunk using a prompt variant. Skips if under 30 words."""
+        chunk_words = len(chunk.split())
+        variant_num = index % len(PROMPT_VARIANTS)
 
-═══ STRUCTURAL RULES ═══
-1. SENTENCE LENGTH — wildly vary it. Some sentences: 3-5 words. Others: 30-40 word run-ons connected with dashes and commas. Never 3+ sentences of similar length in a row.
-2. PARAGRAPH LENGTH — some paragraphs are just one punchy sentence. Others are 5-6 sentences where you really dig in. Mix it up unpredictably.
-3. KILL THESE TRANSITIONS — never use: "Furthermore", "Moreover", "Additionally", "In conclusion", "It is important to note", "Firstly/Secondly", "In today's world". Instead use: "Here's the thing —", "Okay so", "That said,", "Look,", "The flip side?", "Now this is where it gets interesting", "Real talk:", "So yeah,".
-4. SENTENCE OPENERS — every sentence in a paragraph MUST start differently. Mix: questions, "And" starters, "But" starters, fragments, imperatives, numbers, names of tools/people.
+        if chunk_words < 30:
+            print(f"   Chunk {index+1}: ⏭️  Skipped (only {chunk_words} words)")
+            return chunk
 
-═══ VOCABULARY RULES ═══
-1. BANNED AI WORDS — replace every single one:
-   "utilize/leverage/streamline/robust/cutting-edge/delve/crucial/facilitate/comprehensive/implement/optimize/paradigm/foster/harness/empower/seamless/plethora/myriad/encompass/pivotal/navigate(figurative)/landscape(figurative)/realm" → use plain English: "use, tap into, simplify, solid, latest, dig into, key, help, thorough, set up, improve, approach, build, grab, help, smooth, plenty of, many, cover, important, deal with, space, area"
-2. CONTRACTIONS ALWAYS: "do not"→"don't", "it is"→"it's", "cannot"→"can't", "will not"→"won't", "they are"→"they're", "would not"→"wouldn't", "should not"→"shouldn't"
-3. COLLOQUIAL SPRINKLES (3-5 per section): "honestly", "let's be real", "no-brainer", "here's the deal", "at the end of the day", "not gonna lie", "the thing is", "spoiler alert"
-4. HEDGING LANGUAGE — humans express uncertainty. Use: "I think", "probably", "might be", "not 100% sure but", "from what I can tell", "seems like", "I'd guess". Don't make every statement sound certain.
+        print(f"   Chunk {index+1}: 🔄 Rewriting with variant {variant_num} ({chunk_words} words)...", end=" ", flush=True)
 
-═══ VOICE & PERSONALITY ═══
-1. RHETORICAL QUESTIONS (2-3 per section): "But does this actually hold up?", "Sound familiar?", "So what's the catch?", "Why does this matter?", "Ever noticed how...?"
-2. SELF-CORRECTIONS: Include 1-2 moments where you rephrase: "Well, actually...", "Okay let me rephrase that —", "Actually scratch that,", "Wait, that's not quite right —"
-3. PERSONAL TAKES (1-2 per section): "In my experience,", "I'd argue", "Hot take:", "Unpopular opinion:", "What I've found works best is"
-4. MINI-ANECDOTES: "I ran into this exact problem last year when...", "A client once asked me...", "I remember reading somewhere that...", "I've seen this go wrong when..."
-5. EMOTIONAL MICRO-REACTIONS: "This blew my mind", "Frustrating, right?", "That's the part that gets me", "Love this", "This drives me nuts"
-6. FILLER DISCOURSE MARKERS: Occasionally use "So yeah,", "Anyway,", "Right?", "I mean,", "Point being," — the way people actually write blog posts
-7. READER ADDRESS — switch between "you", "we", "I" naturally. Don't always address the reader the same way.
-8. IMPERFECT GRAMMAR (strategic): 2-3 sentence fragments per section. Start some sentences with "And" or "But". Use em dashes (—) liberally. One or two run-on sentences per section.
-9. E-E-A-T SIGNALS: "from what I've tested", "after spending way too much time on this", "based on actual results I've seen", "from hands-on experience", "I've been doing this for years and"
-10. SPECIFIC OVER VAGUE: Replace "many tools" with "about 7 tools". Replace "significant improvement" with "roughly 40% better". Invent plausible specific numbers.
+        variant = PROMPT_VARIANTS[variant_num]
+        prompt = variant.format(topic=topic or "this topic", section=chunk)
 
-═══ HARD RULES ═══
-- Keep ALL headings (##, ###) — same number, same hierarchy, wording can change slightly
-- Keep ALL markdown formatting (bold, italic, lists, code blocks, links)
-- Keep the same factual information — don't invent new claims, just reframe existing ones
-- Content length should stay within ±25% of the original
-- Return ONLY the rewritten markdown. No commentary. No code fences. No preamble like "Here's the rewritten version".
+        try:
+            response = self.model.generate_content(
+                prompt, generation_config=self.generation_config
+            )
+            result = self._clean_response(response.text)
+            result_words = len(result.split())
 
-CONTENT TO REWRITE:
-{markdown}"""
+            # Sanity: if chunk had headings and result lost them all, keep original
+            orig_headings = re.findall(r'^#{1,3}\s', chunk, re.MULTILINE)
+            new_headings = re.findall(r'^#{1,3}\s', result, re.MULTILINE)
+            if len(orig_headings) > 0 and len(new_headings) == 0:
+                print(f"⚠️ Lost all headings, keeping original")
+                return chunk
 
-        response = self.model.generate_content(
-            prompt, generation_config=self.generation_config
-        )
-        return self._clean_response(response.text)
+            print(f"✅ Done ({chunk_words} → {result_words} words)")
+            return result
 
-    def _post_process(self, text):
-        """
-        Deterministic post-processing to disrupt AI detection patterns.
-        These are text-level transformations no LLM would produce,
-        which breaks the statistical fingerprint detectors look for.
-        """
-        lines = text.split('\n')
-        processed = []
-
-        for line in lines:
-            # Skip headings, code blocks, and list items
-            if re.match(r'^#{1,6}\s', line) or line.startswith('```') or re.match(r'^\s*[-*]\s', line):
-                processed.append(line)
-                continue
-
-            # 1. Introduce contraction inconsistency (humans aren't consistent)
-            #    Randomly expand ~10% of contractions back to full form
-            if random.random() < 0.10:
-                expansions = [
-                    (r"\bdon't\b", "do not"),
-                    (r"\bcan't\b", "cannot"),
-                    (r"\bwon't\b", "will not"),
-                    (r"\bit's\b", "it is"),
-                    (r"\bthey're\b", "they are"),
-                    (r"\bwe're\b", "we are"),
-                    (r"\bdoesn't\b", "does not"),
-                    (r"\bwouldn't\b", "would not"),
-                ]
-                pick = random.choice(expansions)
-                line = re.sub(pick[0], pick[1], line, count=1)
-
-            # 2. Swap some straight quotes with curly quotes (~15% of lines)
-            if random.random() < 0.15 and '"' in line:
-                # Replace first pair of straight quotes with curly
-                line = re.sub(r'"([^"]+)"', '\u201c\\1\u201d', line, count=1)
-
-            # 3. Swap double hyphens for em dashes or vice versa (~8%)
-            if random.random() < 0.08:
-                if ' -- ' in line:
-                    line = line.replace(' -- ', ' \u2014 ', 1)
-                elif ' \u2014 ' in line and line.count(' \u2014 ') > 1:
-                    line = line.replace(' \u2014 ', ' -- ', 1)
-
-            # 4. Occasionally add a trailing thought with ellipsis (~3% of non-empty body lines)
-            if (random.random() < 0.03
-                    and len(line) > 40
-                    and line.endswith('.')
-                    and not line.endswith('...')):
-                trailing = random.choice([
-                    "...but more on that later",
-                    "...at least in my experience",
-                    "...or so I've found",
-                    "...which is interesting to think about",
-                ])
-                line = line[:-1] + trailing + "."
-
-            processed.append(line)
-
-        return '\n'.join(processed)
+        except Exception as e:
+            print(f"❌ Failed: {e}")
+            return chunk
 
     def _clean_response(self, text):
-        """Strip markdown code fences that LLMs sometimes wrap around output."""
+        """Strip code fences and preamble from LLM output."""
         text = text.strip()
-        # Remove ```markdown ... ``` or ``` ... ``` wrappers
         text = re.sub(r'^```(?:markdown)?\s*\n?', '', text)
         text = re.sub(r'\n?```\s*$', '', text)
-        # Remove preamble like "Here's the rewritten version:" before first heading
+        # Remove preamble before first heading if present
         if re.search(r'^#', text, re.MULTILINE):
             stripped = re.sub(r'^.*?(?=^#)', '', text, count=1, flags=re.DOTALL | re.MULTILINE)
             if stripped.strip():
                 text = stripped
         return text.strip()
 
+    # ── Post-processing (5 passes) ────────────────────────────────
+
+    def _post_process(self, text):
+        """
+        5-pass deterministic post-processing to disrupt AI detection patterns.
+        Each pass targets a specific signal that detectors measure.
+        """
+        before = len(text.split())
+
+        text = self._replace_ai_words(text)
+        print(f"   Pass 1/5: AI word replacement — {len(text.split())} words")
+
+        text = self._split_long_sentences(text)
+        print(f"   Pass 2/5: Long sentence splitting — {len(text.split())} words")
+
+        text = self._mix_contractions(text)
+        print(f"   Pass 3/5: Contraction mixing — {len(text.split())} words")
+
+        text = self._vary_paragraph_lengths(text)
+        print(f"   Pass 4/5: Paragraph length variation — {len(text.split())} words")
+
+        text = self._inject_imperfections(text)
+        print(f"   Pass 5/5: Imperfection injection — {len(text.split())} words")
+
+        return text
+
+    def _replace_ai_words(self, text):
+        """Pass 1: Replace high-probability AI words with human alternatives."""
+        for pattern, replacement in AI_WORD_MAP.items():
+            # Preserve sentence-start capitalization
+            def _replace_match(m):
+                original = m.group(0)
+                if original[0].isupper() and replacement[0].islower():
+                    return replacement[0].upper() + replacement[1:]
+                return replacement
+            text = re.sub(pattern, _replace_match, text, flags=re.IGNORECASE)
+        return text
+
+    def _split_long_sentences(self, text):
+        """Pass 2: Break sentences over 20 words to increase burstiness."""
+        lines = text.split('\n')
+        result = []
+
+        in_code_block = False
+        for line in lines:
+            if line.strip().startswith('```'):
+                in_code_block = not in_code_block
+                result.append(line)
+                continue
+
+            # Skip headings, code blocks, list items
+            if (in_code_block
+                    or re.match(r'^#{1,6}\s', line)
+                    or re.match(r'^\s*[-*]\s', line)
+                    or re.match(r'^\s*\d+\.\s', line)
+                    or not line.strip()):
+                result.append(line)
+                continue
+
+            # Split line into sentences and process each
+            sentences = re.split(r'(?<=[.!?])\s+', line)
+            new_sentences = []
+
+            for sentence in sentences:
+                words = sentence.split()
+                if len(words) > 20:
+                    split_sent = self._try_split_sentence(sentence)
+                    new_sentences.extend(split_sent)
+                else:
+                    new_sentences.append(sentence)
+
+            result.append(' '.join(new_sentences))
+
+        return '\n'.join(result)
+
+    def _try_split_sentence(self, sentence):
+        """Try to split a long sentence at a conjunction or comma near the middle."""
+        words = sentence.split()
+        mid = len(words) // 2
+        search_range = range(max(mid - 3, 2), min(mid + 4, len(words) - 1))
+
+        split_words = {'and', 'but', 'which', 'that', 'because', 'while', 'so', 'yet', 'although', 'however'}
+
+        # Try to find a conjunction near the middle
+        for i in search_range:
+            if words[i].lower().rstrip(',') in split_words:
+                first_half = ' '.join(words[:i])
+                second_half = ' '.join(words[i:])
+
+                # Clean up first half — add period if needed
+                if not first_half.endswith(('.', '!', '?')):
+                    first_half = first_half.rstrip(',') + '.'
+
+                # Capitalize second half
+                if second_half and second_half[0].islower():
+                    second_half = second_half[0].upper() + second_half[1:]
+
+                return [first_half, second_half]
+
+        # Try comma near the middle
+        for i in search_range:
+            if words[i].endswith(','):
+                first_half = ' '.join(words[:i + 1]).rstrip(',') + '.'
+                second_half = ' '.join(words[i + 1:])
+                if second_half and second_half[0].islower():
+                    second_half = second_half[0].upper() + second_half[1:]
+                return [first_half, second_half]
+
+        # No good split point — return as-is
+        return [sentence]
+
+    def _mix_contractions(self, text):
+        """Pass 3: Expand one contraction in ~15% of paragraphs for inconsistency."""
+        paragraphs = text.split('\n\n')
+        result = []
+
+        for para in paragraphs:
+            # Skip headings and code
+            if para.strip().startswith('#') or para.strip().startswith('```'):
+                result.append(para)
+                continue
+
+            if random.random() < 0.15:
+                pair = random.choice(CONTRACTION_PAIRS)
+                para = re.sub(pair[0], pair[1], para, count=1)
+
+            result.append(para)
+
+        return '\n\n'.join(result)
+
+    def _vary_paragraph_lengths(self, text):
+        """Pass 4: Merge consecutive short paragraphs or split long ones."""
+        paragraphs = text.split('\n\n')
+        result = []
+        i = 0
+
+        while i < len(paragraphs):
+            para = paragraphs[i]
+
+            # Skip headings, code blocks, lists
+            if (para.strip().startswith('#')
+                    or para.strip().startswith('```')
+                    or re.match(r'^\s*[-*]\s', para.strip())
+                    or re.match(r'^\s*\d+\.\s', para.strip())):
+                result.append(para)
+                i += 1
+                continue
+
+            words = para.split()
+
+            # Merge two consecutive short paragraphs (both under 30 words)
+            if (len(words) < 30
+                    and i + 1 < len(paragraphs)
+                    and not paragraphs[i + 1].strip().startswith('#')
+                    and not paragraphs[i + 1].strip().startswith('```')
+                    and len(paragraphs[i + 1].split()) < 30
+                    and random.random() < 0.30):
+                merged = para.rstrip() + ' ' + paragraphs[i + 1].lstrip()
+                result.append(merged)
+                i += 2
+                continue
+
+            # Split long paragraphs (over 80 words with 4+ sentences)
+            if len(words) > 80 and random.random() < 0.40:
+                sentences = re.split(r'(?<=[.!?])\s+', para)
+                if len(sentences) >= 4:
+                    mid = len(sentences) // 2
+                    first_half = ' '.join(sentences[:mid])
+                    second_half = ' '.join(sentences[mid:])
+                    result.append(first_half)
+                    result.append(second_half)
+                    i += 1
+                    continue
+
+            result.append(para)
+            i += 1
+
+        return '\n\n'.join(result)
+
+    def _inject_imperfections(self, text):
+        """Pass 5: Add filler words and parenthetical asides."""
+        lines = text.split('\n')
+        result = []
+
+        in_code_block = False
+        for line in lines:
+            if line.strip().startswith('```'):
+                in_code_block = not in_code_block
+                result.append(line)
+                continue
+
+            # Skip headings, code, lists, empty lines
+            if (in_code_block
+                    or re.match(r'^#{1,6}\s', line)
+                    or re.match(r'^\s*[-*]\s', line)
+                    or re.match(r'^\s*\d+\.\s', line)
+                    or not line.strip()):
+                result.append(line)
+                continue
+
+            # 5% chance: prepend a filler word
+            if random.random() < 0.05 and len(line) > 20:
+                filler = random.choice(FILLER_STARTERS)
+                # Lowercase the original first character
+                if line[0].isupper():
+                    line = filler + line[0].lower() + line[1:]
+                else:
+                    line = filler + line
+
+            # 4% chance: add parenthetical aside before last period
+            if random.random() < 0.04 and line.rstrip().endswith('.') and len(line) > 30:
+                aside = random.choice(PARENTHETICAL_ASIDES)
+                line = line.rstrip()
+                line = line[:-1] + aside + '.'
+
+            result.append(line)
+
+        return '\n'.join(result)
+
+    # ── Validation ────────────────────────────────────────────────
+
     def _validate(self, original, humanized):
-        """Validate humanized output preserves structure and reasonable length."""
+        """Validate that structure and reasonable length are preserved."""
         if not humanized or not humanized.strip():
             print("⚠️ Humanization returned empty — using original")
             return original
@@ -211,8 +552,8 @@ CONTENT TO REWRITE:
 
         if orig_words > 0:
             ratio = new_words / orig_words
-            if ratio < 0.70 or ratio > 1.30:
-                print(f"⚠️ Word count changed too much ({orig_words} → {new_words}) — using original")
+            if ratio < 0.65 or ratio > 1.35:
+                print(f"⚠️ Word count ratio {ratio:.2f} out of bounds ({orig_words} → {new_words}) — using original")
                 return original
 
         return humanized
