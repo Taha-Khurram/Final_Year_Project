@@ -5,6 +5,8 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 ## Features
 
 - **AI Blog Generation** - Generate complete blog posts from topics using Gemini
+- **AI Humanizer** - Bypass AI detectors with section-based rewriting and 5-pass post-processing
+- **Comment System** - Public comments with AI moderation (auto-approve, edit, or remove)
 - **SEO Optimization** - Keyword analysis, readability scoring, meta tag generation
 - **Public Blog Sites** - Each user gets a customizable public-facing blog
 - **Semantic Search Agent** - Industry-standard agentic search with intent classification
@@ -62,8 +64,38 @@ Access at `http://localhost:5000`
 | Content Agent | Expands outlines to articles |
 | SEO Agent | Optimizes content for search |
 | Formatting Agent | Adds TOC, reading time, styling |
+| Humanize Agent | Bypasses AI detectors with E-E-A-T rewriting |
+| Comment Agent | AI moderation for public comments |
 | Newsletter Agent | Generates newsletters from blogs |
 | Semantic Search Agent | Industry-standard agentic search |
+
+### Humanize Agent
+
+Rewrites AI-generated content to bypass detectors (GPTZero, Originality.ai, ZeroGPT) using a multi-layered approach:
+
+```
+Content → Split into 2 chunks → Rewrite with rotating prompts → 5-pass post-processing → Validate
+```
+
+**Architecture:**
+- **2-chunk rewriting** - Blog split at `##` headings, each half rewritten with a different prompt variant
+- **4 prompt variants** - Direct, Conversational, Punchy, Relaxed — rotated to break statistical fingerprint uniformity
+- **E-E-A-T rules** - Every prompt enforces Google's Experience, Expertise, Authoritativeness, Trustworthiness standards
+- **5-pass post-processing** (no API cost):
+  1. AI word replacement (35+ flagged words → human alternatives)
+  2. Long sentence splitting (>20 words broken at conjunctions)
+  3. Contraction mixing (realistic inconsistency)
+  4. Paragraph length variation (merge short, split long)
+  5. Imperfection injection (fillers, parentheticals)
+
+### Comment Agent
+
+AI-powered comment moderation using a single Gemini API call per comment:
+
+- **Auto-approve** clean comments (published immediately)
+- **Auto-edit** comments with grammar/formatting issues
+- **Auto-remove** spam, toxic, or irrelevant comments (user never sees rejection)
+- **Fail-open** design: if AI fails, comment is approved
 
 ### Semantic Search Agent
 

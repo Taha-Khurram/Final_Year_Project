@@ -23,6 +23,8 @@ Complete documentation for Scriptly - an AI-powered blog content generation plat
 Scriptly is a full-stack blog platform that automates content creation using AI. It provides:
 
 - **AI Content Generation**: Blog posts, outlines, and newsletters using Google Gemini
+- **AI Humanizer**: Bypass AI detectors with section-based rewriting and post-processing
+- **Comment System**: Public comments with AI moderation (approve, edit, remove)
 - **SEO Optimization**: Keyword analysis, readability scoring, meta tag generation
 - **Public Blog Sites**: Each user gets a customizable public-facing blog
 - **Semantic Search**: AI-powered search using embeddings and LLM reranking
@@ -211,6 +213,39 @@ Industry-standard agentic search with:
 - **Tool execution**: keyword, vector, category tools
 - **Quality evaluation** with automatic refinement
 - **Insights API** returning agent reasoning to frontend
+
+### Humanize Agent (`humanize_agent.py`)
+Rewrites AI-generated content to bypass AI detectors using a multi-layered approach:
+- **2-chunk rewriting** — blog split at `##` headings, each half gets a different prompt variant (max 2 API calls)
+- **4 rotating prompt variants** — Direct, Conversational, Punchy, Relaxed styles to break statistical fingerprint uniformity
+- **E-E-A-T compliance** — every prompt enforces Google's Experience, Expertise, Authoritativeness, Trustworthiness standards
+- **Information gain** — adds specific examples and insider observations, not just rephrasing
+- **5-pass deterministic post-processing** (zero API cost):
+  1. AI word replacement — 35+ high-probability AI words swapped to human alternatives
+  2. Long sentence splitting — sentences over 20 words broken at conjunctions/commas
+  3. Contraction mixing — 15% of paragraphs get one contraction expanded for realistic inconsistency
+  4. Paragraph length variation — merge consecutive short paragraphs, split long ones
+  5. Imperfection injection — filler words and parenthetical asides in small doses
+- **Console logging** — full pipeline visibility (chunk splitting, API calls, post-processing passes, word counts)
+- **Fail-open** — if Gemini fails on any chunk, original content is preserved
+
+### Comment Agent (`comment_agent.py`)
+AI-powered comment moderation with a single Gemini API call per comment:
+- **Auto-approve** clean comments (published immediately)
+- **Auto-edit** comments with grammar/formatting issues (cleaned version published)
+- **Auto-remove** spam, toxic, or irrelevant comments (user sees "Thank you!" — rejection is never revealed)
+- **Fail-open design** — if AI moderation fails, comment is approved as-is
+
+### Comment System
+
+| Feature | Description |
+|---------|-------------|
+| **Public Comment Form** | Name + email + text on every blog post |
+| **AI Moderation** | Real-time approve/edit/remove via CommentAgent |
+| **Dashboard Moderation** | Admin page to view, edit, restore, delete comments |
+| **Moderation Log** | Full history of AI actions and admin edits |
+| **Stats Cards** | Total, Published, Removed counts |
+| **Filter Tabs** | All / Published / Removed |
 
 ---
 
