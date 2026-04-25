@@ -399,6 +399,57 @@ async function submitForReview(id) {
   }
 }
 
+async function humanizeDraft(id) {
+  const row = document.getElementById(`row-${id}`);
+  const dropdownBtn = row ? row.querySelector('.btn-dropdown-trigger') : null;
+  if (dropdownBtn) {
+    dropdownBtn.disabled = true;
+    dropdownBtn.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div>';
+  }
+
+  showToast({
+    type: 'info',
+    title: 'Humanizing Content',
+    message: 'This may take 15-20 seconds. Please wait...',
+    duration: 20000
+  });
+
+  try {
+    const res = await fetch(`/api/humanize/${id}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast({
+        type: 'success',
+        title: 'Content Humanized',
+        message: 'Your draft has been rewritten to bypass AI detectors.',
+        duration: 5000
+      });
+    } else {
+      showToast({
+        type: 'error',
+        title: 'Humanization Failed',
+        message: data.error || 'Could not humanize content.',
+        duration: 5000
+      });
+    }
+  } catch (e) {
+    showToast({
+      type: 'error',
+      title: 'Error',
+      message: 'Failed to humanize draft.',
+      duration: 5000
+    });
+  } finally {
+    if (dropdownBtn) {
+      dropdownBtn.disabled = false;
+      dropdownBtn.innerHTML = '<i class="bi bi-three-dots-vertical"></i>';
+    }
+  }
+}
+
 async function deleteDraft(id) {
   // Find and disable the dropdown button for this row
   const row = document.getElementById(`row-${id}`);

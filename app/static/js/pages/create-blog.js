@@ -14,6 +14,18 @@ function handleKeyPress(event) {
   }
 }
 
+// Humanize toggle button
+document.addEventListener('DOMContentLoaded', () => {
+  const toggleBtn = document.getElementById('humanizeToggleBtn');
+  const hiddenInput = document.getElementById('humanizeToggle');
+  if (toggleBtn && hiddenInput) {
+    toggleBtn.addEventListener('click', () => {
+      const isActive = toggleBtn.classList.toggle('active');
+      hiddenInput.value = isActive ? 'true' : 'false';
+    });
+  }
+});
+
 async function handleGeneration() {
   const promptInput = document.getElementById('prompt');
   const promptText = promptInput.value.trim();
@@ -23,17 +35,27 @@ async function handleGeneration() {
 
   if (!promptText) return;
 
+  const enableHumanize = document.getElementById('humanizeToggle')?.value === 'true';
+
   loader.classList.remove('d-none');
   genBtn.disabled = true;
   promptInput.disabled = true;
   promptInput.blur();
   promptBox.classList.add('locked');
 
+  // Update loader text based on humanize toggle
+  const loaderText = loader.querySelector('span');
+  if (loaderText) {
+    loaderText.textContent = enableHumanize
+      ? 'AI is generating and humanizing your content...'
+      : 'AI is generating your content...';
+  }
+
   try {
     const response = await fetch('/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: promptText })
+      body: JSON.stringify({ prompt: promptText, enable_humanize: enableHumanize })
     });
 
     const data = await response.json();

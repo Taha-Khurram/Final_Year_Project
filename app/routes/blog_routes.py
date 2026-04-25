@@ -3,6 +3,7 @@ from app.agents.blog_agent import BlogAgent
 from app.agents.category_agent import CategoryAgent
 from app.agents.seo_agent import SEOAgent
 from app.agents.formatting_agent import FormattingAgent
+from app.agents.humanize_agent import HumanizeAgent
 from app.firebase.firestore_service import FirestoreService
 from app.utils.date_utils import (
     COMMON_TIMEZONES, DATE_FORMATS, TIME_FORMATS, LOCALES,
@@ -327,10 +328,11 @@ def generate_and_submit():
         data = request.get_json()
         prompt = data.get('prompt')
         auto_submit = data.get('auto_submit', False)
+        enable_humanize = data.get('enable_humanize', False)
 
         # Run optimized pipeline (SEO disabled by default for speed)
         blog_ai = BlogAgent()
-        generated_data = blog_ai.run_pipeline(prompt, enable_seo=False)
+        generated_data = blog_ai.run_pipeline(prompt, enable_seo=False, enable_humanize=enable_humanize)
 
         # Check if pipeline failed before proceeding
         if generated_data.get('status') == 'failed' or 'error' in generated_data:
@@ -420,6 +422,68 @@ def generate_and_submit():
 
     except Exception as e:
         print(f"❌ Route Error in Generate: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@blog_bp.route('/api/humanize/<blog_id>', methods=['POST'])
+def humanize_draft(blog_id):
+    """Humanize an existing draft's content post-generation."""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"success": False, "error": "User session expired"}), 401
+
+        blog_data = db_service.get_blog_by_id(blog_id)
+        if not blog_data:
+            return jsonify({"success": False, "error": "Blog not found"}), 404
+
+        # Extract markdown content
+        content = blog_data.get('content', {})
+        if isinstance(content, dict):
+            markdown_text = content.get('markdown') or content.get('body') or ''
+        else:
+            markdown_text = str(content)
+
+        if not markdown_text.strip():
+            return jsonify({"success": False, "error": "No content to humanize"}), 400
+
+        # Run humanization
+        humanizer = HumanizeAgent()
+        result = humanizer.humanize_content(
+            markdown=markdown_text,
+            topic=blog_data.get('title', '')
+        )
+
+        if not result.get('humanization_applied'):
+            return jsonify({"success": False, "error": "Humanization failed — content unchanged"}), 500
+
+        # Re-format the humanized content
+        formatter = FormattingAgent()
+        formatted = formatter.format_blog(
+            content=result['markdown'],
+            title=blog_data.get('title', '')
+        )
+
+        # Update the blog in Firestore
+        updated_content = {
+            'body': result['markdown'],
+            'html': formatted['html'],
+            'markdown': result['markdown'],
+            'toc': formatted['toc'],
+            'toc_html': formatted['toc_html']
+        }
+
+        doc_ref = db_service.db.collection(db_service.collection_name).document(blog_id)
+        doc_ref.update({
+            'content': updated_content,
+            'metadata.humanized': True,
+            'updated_at': datetime.utcnow()
+        })
+
+        return jsonify({"success": True, "message": "Content humanized successfully"})
+
+    except Exception as e:
+        print(f"❌ Humanize Route Error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 

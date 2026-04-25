@@ -2,6 +2,7 @@ from app.agents.outline_agent import OutlineAgent
 from app.agents.content_agent import ContentAgent
 from app.agents.formatting_agent import FormattingAgent
 from app.agents.seo_agent import SEOAgent
+from app.agents.humanize_agent import HumanizeAgent
 from app.utils.parallel import run_parallel_simple, TimedExecution
 
 
@@ -11,8 +12,9 @@ class BlogAgent:
         self.content_agent = ContentAgent()
         self.formatting_agent = FormattingAgent()
         self.seo_agent = SEOAgent()
+        self.humanize_agent = HumanizeAgent()
 
-    def run_pipeline(self, user_prompt, enable_seo=False, region="PK"):
+    def run_pipeline(self, user_prompt, enable_seo=False, enable_humanize=False, region="PK"):
         """
         Optimized AI blog generation pipeline.
         SEO is disabled by default during generation for speed.
@@ -42,6 +44,19 @@ class BlogAgent:
 
             markdown_text = content_data['markdown']
             final_title = user_prompt.title()
+
+            # Step 2.5: Humanize Content (optional, before formatting)
+            if enable_humanize:
+                with TimedExecution("Humanization"):
+                    try:
+                        humanize_result = self.humanize_agent.humanize_content(
+                            markdown=markdown_text, topic=user_prompt
+                        )
+                        if humanize_result.get('humanization_applied'):
+                            markdown_text = humanize_result['markdown']
+                            print("✅ Content humanized successfully")
+                    except Exception as humanize_error:
+                        print(f"⚠️ Humanization skipped: {humanize_error}")
 
             # Step 3: Format Content (run immediately, no SEO delay)
             with TimedExecution("Formatting"):
@@ -92,6 +107,7 @@ class BlogAgent:
                     "model_used": "gemini-3-flash-preview",
                     "status": "success",
                     "seo_enabled": enable_seo,
+                    "humanized": enable_humanize,
                     "target_region": region if enable_seo else None
                 }
             }
