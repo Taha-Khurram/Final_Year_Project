@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Comment Moderation | ScriptlyAI{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/comments.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+
+  {% include 'partials/sidebar.html' %}
+
+  <main class="dashboard-main">
+    <header class="dashboard-header">
+      <div>
+        <div class="header-welcome-text">Administration</div>
+        <h1 class="header-title">Comment Moderation</h1>
+      </div>
+    </header>
+
+    <div class="dashboard-content-wrapper animate-fade-up">
+
+      <!-- Stats Cards -->
+      <div class="comment-stats-row">
+        <div class="stat-card">
+          <div class="stat-icon stat-total"><i class="bi bi-chat-dots"></i></div>
+          <div class="stat-info">
+            <span class="stat-count" id="stat-total">{{ comment_stats.total }}</span>
+            <span class="stat-label">Total Comments</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon stat-published"><i class="bi bi-check-circle"></i></div>
+          <div class="stat-info">
+            <span class="stat-count" id="stat-published">{{ comment_stats.published }}</span>
+            <span class="stat-label">Published</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon stat-removed"><i class="bi bi-shield-x"></i></div>
+          <div class="stat-info">
+            <span class="stat-count" id="stat-removed">{{ comment_stats.removed }}</span>
+            <span class="stat-label">Removed</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="comment-filters">
+        <button class="filter-tab active" data-filter="all">All</button>
+        <button class="filter-tab" data-filter="published">Published</button>
+        <button class="filter-tab" data-filter="removed">Removed</button>
+      </div>
+
+      <!-- Comments Table -->
+      <div class="comments-container">
+        <div class="drafts-header">
+          <div class="col-commenter">Commenter</div>
+          <div class="col-comment">Comment</div>
+          <div class="col-post">Post</div>
+          <div class="col-status">Status</div>
+          <div class="col-actions"></div>
+        </div>
+        <div id="comments-table-body">
+          <div class="text-center py-4 text-secondary" id="comments-loading">
+            <div class="spinner-border spinner-border-sm"></div> Loading comments...
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="comment-pagination" id="comment-pagination"></div>
+
+    </div>
+  </main>
+</div>
+
+<!-- View/Edit Comment Modal -->
+<div class="modal fade" id="commentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content custom-modal">
+      <div class="custom-modal-header">
+        <h5 class="custom-modal-title"><i class="bi bi-chat-square-text"></i> Comment Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="custom-modal-body">
+        <!-- Tab Navigation -->
+        <ul class="comment-modal-tabs">
+          <li class="tab-item active" data-tab="details"><i class="bi bi-info-circle"></i> Details</li>
+          <li class="tab-item" data-tab="moderation"><i class="bi bi-robot"></i> Moderation Log</li>
+          <li class="tab-item" data-tab="edit"><i class="bi bi-pencil-square"></i> Edit</li>
+        </ul>
+
+        <!-- Details Tab -->
+        <div class="tab-content active" id="tab-details">
+          <!-- Commenter Card -->
+          <div class="commenter-card">
+            <div class="commenter-card-avatar" id="modal-commenter-avatar">T</div>
+            <div class="commenter-card-info">
+              <div class="commenter-card-name" id="modal-commenter-name"></div>
+              <div class="commenter-card-email"><i class="bi bi-envelope"></i> <span id="modal-commenter-email"></span></div>
+            </div>
+            <div class="commenter-card-badge" id="modal-status-badge"></div>
+          </div>
+
+          <!-- Meta Info Bar -->
+          <div class="comment-meta-bar">
+            <div class="meta-chip">
+              <i class="bi bi-file-earmark-text"></i>
+              <span id="modal-blog-title"></span>
+            </div>
+            <div class="meta-chip">
+              <i class="bi bi-calendar3"></i>
+              <span id="modal-created-at"></span>
+            </div>
+            <div class="meta-chip" id="modal-ai-action-chip">
+              <i class="bi bi-robot"></i>
+              <span id="modal-ai-action-text"></span>
+            </div>
+          </div>
+
+          <!-- Comment Content -->
+          <div class="comment-content-section">
+            <div class="content-label"><i class="bi bi-chat-left-text"></i> Original Comment</div>
+            <div class="comment-text-box diff-old" id="modal-original-text"></div>
+          </div>
+          <div class="comment-content-section" id="modal-moderated-section">
+            <div class="content-label"><i class="bi bi-magic"></i> AI Moderated Version</div>
+            <div class="comment-text-box diff-new" id="modal-moderated-text"></div>
+          </div>
+          <div class="comment-content-section">
+            <div class="content-label"><i class="bi bi-eye"></i> Currently Displayed</div>
+            <div class="comment-text-box comment-text-display" id="modal-display-text"></div>
+          </div>
+        </div>
+
+        <!-- Moderation Log Tab -->
+        <div class="tab-content" id="tab-moderation">
+          <div class="moderation-log" id="modal-moderation-log"></div>
+        </div>
+
+        <!-- Edit Tab -->
+        <div class="tab-content" id="tab-edit">
+          <div class="edit-field">
+            <label class="edit-label">Display Text</label>
+            <textarea id="modal-edit-text" class="edit-textarea" rows="5" placeholder="Edit the comment text..."></textarea>
+          </div>
+          <div class="edit-field">
+            <label class="edit-label">Reason for Edit <span class="edit-optional">(optional)</span></label>
+            <input type="text" id="modal-edit-reason" class="edit-input" placeholder="Why are you editing this comment?">
+          </div>
+        </div>
+      </div>
+      <div class="custom-modal-footer" id="modal-footer">
+        <button class="btn-modal btn-modal-secondary" data-bs-dismiss="modal">Close</button>
+        <button class="btn-modal btn-modal-primary" id="modal-save-edit" onclick="saveCommentEdit()" style="display:none;">
+          <i class="bi bi-check-lg"></i> Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content custom-modal">
+      <div class="custom-modal-header">
+        <h5 class="modal-title">Confirm Delete</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="custom-modal-body text-center py-4">
+        <i class="bi bi-exclamation-triangle text-danger" style="font-size: 2.5rem;"></i>
+        <p class="mt-3 mb-0 fw-bold">Permanently delete this comment?</p>
+        <p class="text-secondary small">This action cannot be undone.</p>
+      </div>
+      <div class="custom-modal-footer">
+        <button class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger btn-sm" id="confirm-delete-btn" onclick="confirmDelete()">
+          <i class="bi bi-trash"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/pages/comments.js') }}"></script>
+{% endblock %}

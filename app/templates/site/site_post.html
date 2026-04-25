@@ -25,6 +25,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/site/post.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/site/comments.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -152,6 +153,66 @@
     </article>
 </div>
 
+<!-- Comments Section -->
+<section class="comments-section" id="comments-section">
+    <h2 class="comments-title">
+        Comments <span class="comments-count" id="comments-count"></span>
+    </h2>
+
+    <div class="comment-form-card">
+        <h3 class="comment-form-heading">Leave a Comment</h3>
+        <form id="comment-form" class="comment-form">
+            <div class="comment-form-row">
+                <div class="comment-form-field">
+                    <label for="comment-name">Name <span class="required">*</span></label>
+                    <input type="text" id="comment-name" name="name"
+                           required maxlength="100" placeholder="Your name">
+                </div>
+                <div class="comment-form-field">
+                    <label for="comment-email">Email <span class="required">*</span></label>
+                    <input type="email" id="comment-email" name="email"
+                           required maxlength="100" placeholder="your@email.com">
+                    <small class="form-hint">Your email will not be published.</small>
+                </div>
+            </div>
+            <div class="comment-form-field">
+                <label for="comment-text">Comment <span class="required">*</span></label>
+                <textarea id="comment-text" name="comment"
+                          required maxlength="5000" rows="4"
+                          placeholder="Share your thoughts..."></textarea>
+            </div>
+            <div class="comment-form-actions">
+                <button type="submit" class="comment-submit-btn" id="comment-submit-btn">
+                    <i class="bi bi-send"></i> Post Comment
+                </button>
+            </div>
+            <div class="comment-form-message d-none" id="comment-form-message"></div>
+        </form>
+    </div>
+
+    <div id="comments-list" class="comments-list">
+        <div class="comments-loading" id="comments-loading">
+            <div class="spinner-border spinner-border-sm"></div>
+            <span>Loading comments...</span>
+        </div>
+    </div>
+</section>
+
+<!-- Comment Thank You Modal -->
+<div class="comment-thankyou-overlay" id="comment-thankyou-modal">
+    <div class="comment-thankyou-card">
+        <div class="comment-thankyou-icon">
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+                <circle cx="28" cy="28" r="28" fill="rgba(67, 24, 255, 0.1)"/>
+                <path d="M20 28.5L25.5 34L36 22" stroke="#4318FF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <h3 class="comment-thankyou-title">Thank You!</h3>
+        <p class="comment-thankyou-text">Your comment has been submitted successfully. We appreciate you sharing your thoughts!</p>
+        <button class="comment-thankyou-btn" onclick="closeThankYouModal()">Continue Reading</button>
+    </div>
+</div>
+
 <!-- Related Posts -->
 {% if related_blogs and related_blogs|length > 0 %}
 <section class="related-section">
@@ -209,5 +270,10 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+    const COMMENT_POST_URL = "{{ url_for('site_bp.site_submit_comment', site_identifier=settings.site_slug|default(user_id, true), slug_or_id=blog.slug or blog.id) }}";
+    const COMMENT_LIST_URL = "{{ url_for('site_bp.site_get_comments', site_identifier=settings.site_slug|default(user_id, true), slug_or_id=blog.slug or blog.id) }}";
+</script>
 <script src="{{ url_for('static', filename='js/site/post.js') }}"></script>
+<script src="{{ url_for('static', filename='js/site/comments.js') }}"></script>
 {% endblock %}

@@ -190,6 +190,15 @@ def categories_page():
     return render_template('categories.html', categories=categories)
 
 
+@blog_bp.route('/comments')
+@admin_required
+def comments_page():
+    """Comment Moderation Dashboard"""
+    user_id = session.get('user_id')
+    stats = db_service.get_comment_stats(user_id)
+    return render_template('comments.html', comment_stats=stats)
+
+
 # ---------------------------------------------------
 # API ROUTES
 # ---------------------------------------------------
@@ -1240,5 +1249,204 @@ def unpublish_blog(blog_id):
 
     except Exception as e:
         print(f"Unpublish Error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+# ---------------------------------------------------
+# COMMENT MODERATION API ROUTES
+# ---------------------------------------------------
+
+@blog_bp.route('/api/comments', methods=['GET'])
+@admin_required
+def api_get_comments():
+    """Fetch comments for dashboard with filtering and pagination."""
+    try:
+        user_id = session.get('user_id')
+        status_filter = request.args.get('status', 'all')
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 20))
+
+        result = db_service.get_comments_for_dashboard(
+            site_owner_id=user_id,
+            status_filter=status_filter,
+            page=page,
+            per_page=per_page
+        )
+
+        # Serialize timestamps
+        for comment in result['comments']:
+            for field in ['created_at', 'updated_at', 'ai_moderated_at', 'removed_at']:
+                val = comment.get(field)
+                if val and hasattr(val, 'isoformat'):
+                    comment[field] = val.isoformat()
+                elif val and hasattr(val, 'timestamp'):
+                    comment[field] = val.isoformat() if hasattr(val, 'isoformat') else str(val)
+
+            # Serialize admin edit timestamps
+            for edit in comment.get('admin_edits', []):
+                if edit.get('edited_at') and hasattr(edit['edited_at'], 'isoformat'):
+                    edit['edited_at'] = edit['edited_at'].isoformat()
+
+        return jsonify({"success": True, **result})
+
+    except Exception as e:
+        print(f"Error fetching comments: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@blog_bp.route('/api/comments/stats', methods=['GET'])
+@admin_required
+def api_get_comment_stats():
+    """Lightweight endpoint for refreshing comment stats after mutations."""
+    try:
+        user_id = session.get('user_id')
+        stats = db_service.get_comment_stats(user_id)
+        return jsonify({"success": True, "stats": stats})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@blog_bp.route('/api/comments/<comment_id>', methods=['GET'])
+@admin_required
+def api_get_comment(comment_id):
+    """Get single comment with full moderation history."""
+    try:
+        comment = db_service.get_comment_by_id(comment_id)
+        if not comment:
+            return jsonify({"success": False, "error": "Comment not found"}), 404
+
+        # Serialize timestamps
+        for field in ['created_at', 'updated_at', 'ai_moderated_at', 'removed_at']:
+            val = comment.get(field)
+            if val and hasattr(val, 'isoformat'):
+                comment[field] = val.isoformat()
+
+        for edit in comment.get('admin_edits', []):
+            if edit.get('edited_at') and hasattr(edit['edited_at'], 'isoformat'):
+                edit['edited_at'] = edit['edited_at'].isoformat()
+
+        return jsonify({"success": True, "comment": comment})
+
+    except Exception as e:
+        print(f"Error fetching comment: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@blog_bp.route('/api/comments/<comment_id>/edit', methods=['POST'])
+@admin_required
+def api_edit_comment(comment_id):
+    """Admin edits a comment's display text."""
+    try:
+        data = request.get_json()
+        new_text = (data.get('text', '') or '').strip()
+        reason = (data.get('reason', '') or '').strip()
+
+        if not new_text:
+            return jsonify({"success": False, "error": "Comment text is required"}), 400
+
+        user_id = session.get('user_id')
+        user_name = session.get('user_name', 'Admin')
+
+        success = db_service.update_comment_display_text(
+            comment_id, new_text, user_id, user_name, reason
+        )
+
+        if success:
+            comment = db_service.get_comment_by_id(comment_id)
+            db_service.log_activity(
+                user_id=user_id,
+                user_name=user_name,
+                type="comment",
+                action_text=f"edited comment by {comment.get('commenter_name', 'Unknown')}",
+                blog_title=comment.get('blog_title', '')
+            )
+
+        return jsonify({"success": success})
+
+    except Exception as e:
+        print(f"Error editing comment: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@blog_bp.route('/api/comments/<comment_id>/remove', methods=['POST'])
+@admin_required
+def api_remove_comment(comment_id):
+    """Soft-remove a comment from the public site."""
+    try:
+        data = request.get_json() or {}
+        reason = (data.get('reason', '') or '').strip()
+
+        success = db_service.update_comment_status(
+            comment_id, 'removed', removed_by='admin', reason=reason or 'Removed by admin'
+        )
+
+        if success:
+            user_id = session.get('user_id')
+            comment = db_service.get_comment_by_id(comment_id)
+            db_service.log_activity(
+                user_id=user_id,
+                user_name=session.get('user_name', 'Admin'),
+                type="comment",
+                action_text=f"removed comment by {comment.get('commenter_name', 'Unknown')}",
+                blog_title=comment.get('blog_title', '')
+            )
+
+        return jsonify({"success": success})
+
+    except Exception as e:
+        print(f"Error removing comment: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@blog_bp.route('/api/comments/<comment_id>/restore', methods=['POST'])
+@admin_required
+def api_restore_comment(comment_id):
+    """Restore a removed comment back to published."""
+    try:
+        success = db_service.update_comment_status(comment_id, 'published')
+
+        if success:
+            user_id = session.get('user_id')
+            comment = db_service.get_comment_by_id(comment_id)
+            db_service.log_activity(
+                user_id=user_id,
+                user_name=session.get('user_name', 'Admin'),
+                type="comment",
+                action_text=f"restored comment by {comment.get('commenter_name', 'Unknown')}",
+                blog_title=comment.get('blog_title', '')
+            )
+
+        return jsonify({"success": success})
+
+    except Exception as e:
+        print(f"Error restoring comment: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@blog_bp.route('/api/comments/<comment_id>/delete', methods=['DELETE'])
+@admin_required
+def api_delete_comment(comment_id):
+    """Permanently delete a comment."""
+    try:
+        comment = db_service.get_comment_by_id(comment_id)
+        if not comment:
+            return jsonify({"success": False, "error": "Comment not found"}), 404
+
+        success = db_service.delete_comment_permanently(comment_id)
+
+        if success:
+            user_id = session.get('user_id')
+            db_service.log_activity(
+                user_id=user_id,
+                user_name=session.get('user_name', 'Admin'),
+                type="comment",
+                action_text=f"permanently deleted comment by {comment.get('commenter_name', 'Unknown')}",
+                blog_title=comment.get('blog_title', '')
+            )
+
+        return jsonify({"success": success})
+
+    except Exception as e:
+        print(f"Error deleting comment: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 

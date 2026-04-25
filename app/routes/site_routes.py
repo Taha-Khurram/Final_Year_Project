@@ -734,6 +734,159 @@ def site_terms_of_service(site_identifier):
 
 
 # ---------------------------------------------------
+# COMMENT ROUTES
+# ---------------------------------------------------
+
+@site_bp.route('/<site_identifier>/post/<slug_or_id>/comment', methods=['POST'])
+def site_submit_comment(site_identifier, slug_or_id):
+    """Handle public comment submission with AI moderation."""
+    import re as _re
+    from datetime import datetime
+
+    try:
+        user_id, settings = _resolve_site(site_identifier)
+
+        # Resolve the blog post
+        blog = None
+        result = db_service.get_published_blog_by_slug(user_id, slug_or_id)
+        if result and result.get('blog'):
+            blog = result['blog']
+        else:
+            blog = db_service.get_published_blog_by_id(slug_or_id)
+
+        if not blog:
+            return jsonify({"success": False, "error": "Blog post not found"}), 404
+
+        # Parse request
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "Invalid request"}), 400
+
+        name = (data.get('name', '') or '').strip()[:100]
+        email = (data.get('email', '') or '').strip()[:100]
+        comment_text = (data.get('comment', '') or '').strip()[:5000]
+
+        # Validate
+        if not name or len(name) < 1:
+            return jsonify({"success": False, "error": "Name is required"}), 400
+        if not email or not _re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', email):
+            return jsonify({"success": False, "error": "Valid email is required"}), 400
+        if not comment_text or len(comment_text) < 1:
+            return jsonify({"success": False, "error": "Comment is required"}), 400
+
+        # Sanitize: strip HTML tags
+        comment_text = _re.sub(r'<[^>]+>', '', comment_text)
+
+        # AI Moderation (single API call)
+        from app.agents.comment_agent import CommentAgent
+        agent = CommentAgent()
+        moderation = agent.moderate_comment(comment_text, blog.get('title', ''))
+
+        # Build comment document
+        ai_action = moderation['action']
+        now = datetime.utcnow()
+
+        comment_data = {
+            'site_owner_id': user_id,
+            'blog_id': blog['id'],
+            'blog_title': blog.get('title', ''),
+            'commenter_name': name,
+            'commenter_email': email,
+            'original_text': comment_text,
+            'moderated_text': moderation['moderated_text'],
+            'ai_action': ai_action,
+            'ai_reason': moderation.get('reason'),
+            'ai_moderated_at': now,
+        }
+
+        if ai_action == 'remove':
+            comment_data['status'] = 'removed'
+            comment_data['display_text'] = comment_text
+            comment_data['removed_by'] = 'ai'
+            comment_data['removed_at'] = now
+            comment_data['removed_reason'] = moderation.get('reason', 'Flagged by AI')
+        elif ai_action == 'edit':
+            comment_data['status'] = 'published'
+            comment_data['display_text'] = moderation['moderated_text']
+        else:
+            comment_data['status'] = 'published'
+            comment_data['display_text'] = comment_text
+
+        doc_id = db_service.create_comment(comment_data)
+
+        if not doc_id:
+            return jsonify({"success": False, "error": "Failed to save comment"}), 500
+
+        # Response: never reveal removal to user
+        if ai_action == 'remove':
+            return jsonify({
+                "success": True,
+                "status": "moderated",
+                "message": "Thank you for your comment!"
+            })
+        else:
+            return jsonify({
+                "success": True,
+                "status": "published",
+                "comment": {
+                    "id": doc_id,
+                    "commenter_name": name,
+                    "display_text": comment_data['display_text'],
+                    "created_at": now.isoformat()
+                }
+            })
+
+    except Exception as e:
+        print(f"Comment submission error: {e}")
+        return jsonify({"success": False, "error": "Something went wrong"}), 500
+
+
+@site_bp.route('/<site_identifier>/post/<slug_or_id>/comments', methods=['GET'])
+def site_get_comments(site_identifier, slug_or_id):
+    """Fetch published comments for a blog post."""
+    try:
+        user_id, settings = _resolve_site(site_identifier)
+
+        # Resolve blog
+        blog = None
+        result = db_service.get_published_blog_by_slug(user_id, slug_or_id)
+        if result and result.get('blog'):
+            blog = result['blog']
+        else:
+            blog = db_service.get_published_blog_by_id(slug_or_id)
+
+        if not blog:
+            return jsonify({"success": False, "error": "Blog not found"}), 404
+
+        comments = db_service.get_comments_for_blog(blog['id'])
+
+        # Return only public fields (never expose email)
+        public_comments = []
+        for c in comments:
+            created = c.get('created_at')
+            if hasattr(created, 'isoformat'):
+                created = created.isoformat()
+            elif hasattr(created, 'timestamp'):
+                from datetime import datetime as _dt
+                created = _dt.fromtimestamp(created.timestamp()).isoformat()
+            else:
+                created = str(created) if created else ''
+
+            public_comments.append({
+                'id': c.get('id'),
+                'commenter_name': c.get('commenter_name', 'Anonymous'),
+                'display_text': c.get('display_text', ''),
+                'created_at': created
+            })
+
+        return jsonify({"success": True, "comments": public_comments})
+
+    except Exception as e:
+        print(f"Error fetching comments: {e}")
+        return jsonify({"success": True, "comments": []})
+
+
+# ---------------------------------------------------
 # CATCH-ALL ROUTE FOR 404 ON PUBLIC SITE
 # Must be defined last to catch all undefined routes
 # ---------------------------------------------------
