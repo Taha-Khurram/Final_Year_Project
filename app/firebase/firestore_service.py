@@ -1287,8 +1287,12 @@ For questions about these Terms, contact us at {contact_email}.
             doc_ref = self.db.collection("site_settings").document(user_id)
             doc_ref.set(validated, merge=True)
 
-            # Invalidate cached settings
+            # Invalidate cached settings and slug resolution
             cache.delete(f"site_settings:{user_id}")
+            cache.delete(f"slug_resolve:{user_id}")
+            new_slug = validated.get('site_slug', '')
+            if new_slug:
+                cache.delete(f"slug_resolve:{new_slug}")
             return True
         except Exception as e:
             print(f"❌ Error updating site settings: {e}")
@@ -1350,13 +1354,26 @@ For questions about these Terms, contact us at {contact_email}.
                     blogs.append(data)
 
             # Sort combined results by updated_at in Python (newest first)
-            blogs.sort(key=lambda x: x.get('updated_at', datetime.min), reverse=True)
+            # Use float timestamp to avoid TypeError when mixing
+            # timezone-aware (Firestore) and naive (datetime.utcnow()) datetimes
+            def _sort_key(blog):
+                val = blog.get('updated_at')
+                if val is None:
+                    return 0.0
+                if hasattr(val, 'timestamp'):
+                    return val.timestamp()
+                return 0.0
+
+            blogs.sort(key=_sort_key, reverse=True)
 
             result = blogs[:limit] if limit else blogs
             cache.set(cache_key, result, ttl=120)
             return result
         except Exception as e:
             print(f"❌ Error fetching published blogs: {e}")
+            import traceback
+            traceback.print_exc()
+            # Do NOT cache error results — return empty but let next request retry
             return []
 
     def get_published_blog_by_id(self, blog_id):

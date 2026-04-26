@@ -601,6 +601,13 @@ def update_status(blog_id):
         if not success:
             return jsonify({"success": False, "error": "Status update failed"}), 500
 
+        # Extra cache invalidation after publish to ensure blog appears immediately
+        if new_status == "PUBLISHED":
+            from app.utils.cache import cache
+            site_owner_id = blog_data.get('site_owner_id') or blog_data.get('author_id') or user_id
+            cache.clear_prefix(f"published_blogs:{site_owner_id}")
+            cache.clear_prefix(f"published_blogs:{user_id}")
+
         action_text = (
             "approved for publication"
             if new_status == "PUBLISHED"
@@ -1079,9 +1086,21 @@ def update_site_settings():
 
         data = request.get_json()
 
+        # Handle site_slug: validate and check availability
+        new_slug = data.get('site_slug', '').strip().lower()
+        new_slug = ''.join(c for c in new_slug if c.isalnum() or c == '-')
+        new_slug = new_slug.strip('-')
+
+        if new_slug:
+            if len(new_slug) < 3:
+                return jsonify({"success": False, "error": "Site slug must be at least 3 characters"}), 400
+            if not db_service.is_slug_available(new_slug, exclude_user_id=user_id):
+                return jsonify({"success": False, "error": "This slug is already taken"}), 400
+
         # Build settings object with all fields
         settings = {
             # General
+            'site_slug': new_slug,
             'site_name': data.get('site_name', '').strip(),
             'site_description': data.get('site_description', '').strip(),
             'niche': data.get('niche', '').strip(),

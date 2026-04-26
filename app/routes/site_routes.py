@@ -2,9 +2,27 @@ from flask import Blueprint, render_template, abort, request, redirect, url_for,
 from app.firebase.firestore_service import FirestoreService
 import markdown
 import math
+import re as _re
 
 site_bp = Blueprint('site_bp', __name__, url_prefix='/site')
 db_service = FirestoreService()
+
+
+class _SlugRedirect(Exception):
+    """Raised when a user_id URL should redirect to the slug URL."""
+    def __init__(self, slug):
+        self.slug = slug
+
+
+@site_bp.errorhandler(_SlugRedirect)
+def _handle_slug_redirect(e):
+    """301 redirect from /site/<user_id>/... to /site/<slug>/..."""
+    new_path = _re.sub(
+        r'^/site/[^/]+',
+        f'/site/{e.slug}',
+        request.full_path.rstrip('?')
+    )
+    return redirect(new_path, code=301)
 
 
 def _get_blog_text_content(blog):
@@ -36,11 +54,18 @@ def _resolve_site(site_identifier):
     """
     Resolve site identifier (slug or user_id) to actual user_id and settings.
     Returns (user_id, settings) or aborts with 404 if not found.
-    Supports both clean slug URLs and legacy user_id URLs for backwards compatibility.
+    If accessed via user_id but a slug exists, raises _SlugRedirect so the
+    route can 301-redirect to the canonical slug URL.
     """
     user_id, settings = db_service.resolve_site_identifier(site_identifier)
     if not user_id:
         abort(404)
+
+    # Canonical redirect: if accessed via user_id but slug exists, redirect
+    slug = settings.get('site_slug', '')
+    if slug and site_identifier == user_id and site_identifier != slug:
+        raise _SlugRedirect(slug)
+
     return user_id, settings
 
 

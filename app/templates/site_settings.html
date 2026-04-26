@@ -1138,7 +1138,7 @@
                                     </div>
                                     <div class="seo-file-info">
                                         <h4>Sitemap.xml</h4>
-                                        <p class="seo-file-url">/site/{{ session.get('user_id') }}/sitemap.xml</p>
+                                        <p class="seo-file-url">/site/{{ settings.site_slug or session.get('user_id') }}/sitemap.xml</p>
                                         <p class="seo-file-desc">Auto-generated XML sitemap with all your published posts and pages</p>
                                     </div>
                                     <a href="{{ url_for('site_bp.site_sitemap', site_identifier=settings.site_slug or session.get('user_id')) }}" target="_blank" class="btn btn-outline-primary btn-sm">
@@ -1153,7 +1153,7 @@
                                     </div>
                                     <div class="seo-file-info">
                                         <h4>Robots.txt</h4>
-                                        <p class="seo-file-url">/site/{{ session.get('user_id') }}/robots.txt</p>
+                                        <p class="seo-file-url">/site/{{ settings.site_slug or session.get('user_id') }}/robots.txt</p>
                                         <p class="seo-file-desc">Instructions for search engine crawlers</p>
                                     </div>
                                     <a href="{{ url_for('site_bp.site_robots_txt', site_identifier=settings.site_slug or session.get('user_id')) }}" target="_blank" class="btn btn-outline-primary btn-sm">
@@ -1182,7 +1182,7 @@
                                     </div>
                                     <div class="seo-file-info">
                                         <h4>RSS Feed</h4>
-                                        <p class="seo-file-url">/site/{{ session.get('user_id') }}/feed.xml</p>
+                                        <p class="seo-file-url">/site/{{ settings.site_slug or session.get('user_id') }}/feed.xml</p>
                                         <p class="seo-file-desc">RSS 2.0 feed for blog readers and aggregators</p>
                                     </div>
                                     <a href="{{ url_for('site_bp.site_rss_feed', site_identifier=settings.site_slug or session.get('user_id')) }}" target="_blank" class="btn btn-outline-primary btn-sm">
@@ -1358,7 +1358,7 @@
                         <label class="form-label">Custom Robots.txt Content</label>
                         <textarea class="form-control" id="seo_robots_txt" name="seo_robots_txt" rows="6"
                                   placeholder="# Leave empty for auto-generated robots.txt&#10;User-agent: *&#10;Allow: /&#10;Sitemap: https://yoursite.com/sitemap.xml">{{ settings.seo.robots_txt_custom if settings.seo else '' }}</textarea>
-                        <p class="form-hint">Leave empty for auto-generated robots.txt based on indexing settings. <a href="/site/{{ user_id }}/robots.txt" target="_blank">View current robots.txt</a></p>
+                        <p class="form-hint">Leave empty for auto-generated robots.txt based on indexing settings. <a href="/site/{{ settings.site_slug or user_id }}/robots.txt" target="_blank">View current robots.txt</a></p>
                     </div>
                 </div>
 
@@ -2520,7 +2520,7 @@
     });
 
     function copyUrl() {
-        const url = window.location.origin + '/site/{{ session.get("user_id") }}';
+        const url = window.location.origin + '/site/{{ settings.site_slug or session.get("user_id") }}';
         navigator.clipboard.writeText(url);
         showToast({
             type: 'success',

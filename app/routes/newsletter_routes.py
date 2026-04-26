@@ -507,9 +507,10 @@ def render_newsletter_html():
         site_settings = firestore.get_site_settings(user_id)
         site_name = site_settings.get('site_name', 'Newsletter')
 
-        # Build the public site URL
+        # Build the public site URL (prefer slug over user_id)
         base_url = request.host_url.rstrip('/')
-        site_url = f"{base_url}/site/{user_id}"
+        site_slug = site_settings.get('site_slug') or user_id
+        site_url = f"{base_url}/site/{site_slug}"
 
         # Prepare template data
         template_data = {
