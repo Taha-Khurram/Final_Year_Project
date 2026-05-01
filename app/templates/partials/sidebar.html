@@ -1,12 +1,7 @@
 <!-- Shared Sidebar Component -->
 <nav class="dashboard-sidebar">
     <div class="sidebar-logo" onclick="this.closest('.dashboard-sidebar').classList.toggle('expanded')">
-        {% if app_config and app_config.app_logo %}
-        <img src="{{ app_config.app_logo }}" alt="Logo" style="width: 28px; height: 28px; border-radius: 6px; object-fit: cover;">
-        {% else %}
-        <i class="bi bi-robot"></i>
-        {% endif %}
-        <span>{{ app_config.app_name if app_config else 'ScriptlyAI' }}</span>
+        <span class="logo-wordmark">Scriptly</span>
     </div>
 
     <div class="sidebar-menu">
@@ -26,17 +21,18 @@
             <i class="bi bi-graph-up-arrow"></i> <span>SEO Tools</span>
         </a>
         <a href="{{ url_for('blog.newsletter_page') }}" class="nav-link" data-page="newsletter">
-            <i class="bi bi-envelope-paper"></i> <span>Newsletter</span>
+            <i class="bi bi-envelope-paper-fill"></i> <span>Newsletter</span>
         </a>
 
         {% if session.get('user_role') == 'ADMIN' %}
-        <div class="mt-4 mb-2 ps-3 text-uppercase text-white-50 admin-label"
-            style="font-size: 0.75rem; letter-spacing: 1px;">
+        <div class="sidebar-separator admin-sep"></div>
+        <div class="ps-3 text-uppercase text-white-50 admin-label"
+            style="font-size: 0.7rem; letter-spacing: 1.2px; padding: 0.25rem 1.25rem; font-weight: 600;">
             Admin
         </div>
 
         <a href="{{ url_for('blog.site_settings_page') }}" class="nav-link" data-page="site-settings">
-            <i class="bi bi-globe"></i> <span>Site Settings</span>
+            <i class="bi bi-globe2"></i> <span>Site Settings</span>
         </a>
         <a href="{{ url_for('blog.approval_page') }}" class="nav-link" data-page="approval">
             <i class="bi bi-check-circle-fill"></i> <span>Approvals</span>
@@ -47,19 +43,30 @@
         <a href="{{ url_for('user_bp.manage_users') }}" class="nav-link" data-page="users">
             <i class="bi bi-people-fill"></i> <span>Users</span>
         </a>
+        <a href="{{ url_for('activity.activity_page') }}" class="nav-link" data-page="activity">
+            <i class="bi bi-clock-history"></i> <span>Activity</span>
+        </a>
         {% endif %}
     </div>
 
-    <div class="sidebar-wrapper-footer" onclick="this.closest('.dashboard-sidebar').classList.toggle('expanded')">
-        <div class="footer-avatar">
-            {{ (session.get('user_name', 'US')[:2]).upper() }}
+    <!-- User Card -->
+    <div class="sidebar-user-card">
+        <div class="user-card-avatar">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <circle cx="10" cy="7.5" r="3.5" fill="white"/>
+                <path d="M3 18.5c0-3.87 3.13-7 7-7s7 3.13 7 7" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+            </svg>
         </div>
-        <div class="footer-user-info">
-            <div class="text-white fw-bold text-truncate" style="font-size: 0.9rem;">
-                {{ session.get('user_name', 'User').split('@')[0] }}
-            </div>
-            <a href="{{ url_for('auth_bp.logout') }}" class="logout text-danger small"
-                style="font-size: 0.8rem; font-weight: 500;">Logout</a>
+        <div class="user-card-info">
+            <span class="user-card-name">{{ session.get('user_name', 'User').split('@')[0] }}</span>
+            <span class="user-card-role">{{ session.get('user_role', 'User') | capitalize }}</span>
         </div>
+        <a href="{{ url_for('auth_bp.logout') }}" class="user-card-logout" title="Logout">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M6.75 15.75H3.75C3.35218 15.75 2.97064 15.592 2.68934 15.3107C2.40804 15.0294 2.25 14.6478 2.25 14.25V3.75C2.25 3.35218 2.40804 2.97064 2.68934 2.68934C2.97064 2.40804 3.35218 2.25 3.75 2.25H6.75" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 12.75L15.75 9L12 5.25" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M15.75 9H6.75" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </a>
     </div>
 </nav>

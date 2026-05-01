@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Activity Log | ScriptlyAI{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/activity.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+
+  {% include 'partials/sidebar.html' %}
+
+  <main class="dashboard-main">
+    <header class="dashboard-header">
+      <div>
+        <div class="header-welcome-text">Administration</div>
+        <h1 class="header-title">Activity Log</h1>
+      </div>
+    </header>
+
+    <div class="dashboard-content-wrapper animate-fade-up">
+
+      <!-- Stats Cards -->
+      <div class="activity-stats-row">
+        <div class="stat-card">
+          <div class="stat-icon stat-total"><i class="bi bi-activity"></i></div>
+          <div class="stat-info">
+            <span class="stat-count" id="stat-total">{{ stats.total }}</span>
+            <span class="stat-label">Total Activities</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon stat-blog"><i class="bi bi-file-post"></i></div>
+          <div class="stat-info">
+            <span class="stat-count" id="stat-blog">{{ stats.blog }}</span>
+            <span class="stat-label">Blog Actions</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon stat-user"><i class="bi bi-person"></i></div>
+          <div class="stat-info">
+            <span class="stat-count" id="stat-user">{{ stats.user }}</span>
+            <span class="stat-label">User Actions</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon stat-other"><i class="bi bi-gear"></i></div>
+          <div class="stat-info">
+            <span class="stat-count" id="stat-other">{{ stats.comment + stats.settings + stats.newsletter + stats.category }}</span>
+            <span class="stat-label">Other Actions</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="activity-filters">
+        <div class="activity-filter-tabs">
+          <button class="filter-tab active" data-filter="all">All</button>
+          <button class="filter-tab" data-filter="blog"><i class="bi bi-file-post"></i> Blog</button>
+          <button class="filter-tab" data-filter="user"><i class="bi bi-person"></i> User</button>
+          <button class="filter-tab" data-filter="comment"><i class="bi bi-chat-dots"></i> Comment</button>
+          <button class="filter-tab" data-filter="settings"><i class="bi bi-gear"></i> Settings</button>
+          <button class="filter-tab" data-filter="newsletter"><i class="bi bi-envelope"></i> Newsletter</button>
+          <button class="filter-tab" data-filter="category"><i class="bi bi-tags"></i> Category</button>
+        </div>
+        <div class="activity-filter-controls">
+          <select id="userFilter" class="filter-select">
+            <option value="all">All Users</option>
+          </select>
+          <div class="filter-search-wrap">
+            <i class="bi bi-search"></i>
+            <input type="text" id="searchInput" class="filter-search" placeholder="Search activities...">
+          </div>
+          <button class="filter-date-btn" id="dateFilterBtn" onclick="openDateModal()">
+            <i class="bi bi-calendar3"></i> <span id="dateFilterLabel">Date Range</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Activity List -->
+      <div class="activity-container">
+        <div class="activity-list-header">
+          <div class="col-activity-user">User</div>
+          <div class="col-activity-action">Action</div>
+          <div class="col-activity-target">Target</div>
+          <div class="col-activity-type">Type</div>
+          <div class="col-activity-time">Time</div>
+        </div>
+        <div id="activityList">
+          <div class="text-center py-5">
+            <div class="spinner-border spinner-border-sm text-primary opacity-50"></div>
+            <p class="text-secondary fw-medium mt-2 mb-0">Loading activity...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="activity-pagination" id="activityPagination"></div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Date Range Modal -->
+<div class="modal fade" id="dateRangeModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content custom-modal">
+      <div class="custom-modal-header">
+        <h5 class="custom-modal-title"><i class="bi bi-calendar3"></i> Select Date Range</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="custom-modal-body">
+        <div class="date-range-field">
+          <label class="form-label">From</label>
+          <input type="date" id="dateFrom" class="form-control">
+        </div>
+        <div class="date-range-field">
+          <label class="form-label">To</label>
+          <input type="date" id="dateTo" class="form-control">
+        </div>
+        <div class="date-range-presets">
+          <button class="preset-btn" onclick="setDatePreset('today')">Today</button>
+          <button class="preset-btn" onclick="setDatePreset('week')">Last 7 days</button>
+          <button class="preset-btn" onclick="setDatePreset('month')">Last 30 days</button>
+          <button class="preset-btn" onclick="setDatePreset('all')">All Time</button>
+        </div>
+      </div>
+      <div class="custom-modal-footer">
+        <button class="btn-modal btn-modal-secondary" onclick="clearDateFilter()">Clear</button>
+        <button class="btn-modal btn-modal-primary" onclick="applyDateFilter()">
+          <i class="bi bi-check-lg"></i> Apply
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/pages/activity.js') }}"></script>
+{% endblock %}

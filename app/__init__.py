@@ -106,12 +106,14 @@ def create_app(config_class=Config):
     from app.routes.site_routes import site_bp
     from app.routes.newsletter_routes import newsletter_bp
     from app.routes.settings_routes import settings_bp
+    from app.routes.activity_routes import activity_bp
 
     app.register_blueprint(blog_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(site_bp)
     app.register_blueprint(newsletter_bp)
     app.register_blueprint(settings_bp)
+    app.register_blueprint(activity_bp)
 
     # FIX: Register with url_prefix to match your JS calls (/users/list, etc.)
     app.register_blueprint(user_bp, url_prefix='/users')

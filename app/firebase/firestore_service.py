@@ -451,10 +451,10 @@ class FirestoreService:
 
     # ---------------- ACTIVITY METHODS ----------------
 
-    def log_activity(self, user_id, user_name, type, action_text, blog_title):
+    def log_activity(self, user_id, user_name, type, action_text, blog_title="",
+                     target_type=None, target_id=None, target_name=None, metadata=None):
         try:
-            doc_ref = self.db.collection(self.activity_collection).document()
-            doc_ref.set({
+            doc_data = {
                 "user_id": user_id,
                 "user_name": user_name,
                 "type": type,
@@ -462,7 +462,17 @@ class FirestoreService:
                 "blog_title": blog_title,
                 "timestamp": datetime.utcnow(),
                 "created_at": firestore.SERVER_TIMESTAMP
-            })
+            }
+            if target_type:
+                doc_data["target_type"] = target_type
+            if target_id:
+                doc_data["target_id"] = target_id
+            if target_name:
+                doc_data["target_name"] = target_name
+            if metadata:
+                doc_data["metadata"] = metadata
+            doc_ref = self.db.collection(self.activity_collection).document()
+            doc_ref.set(doc_data)
             return True
         except Exception as e:
             print(f"❌ Error logging activity: {e}")
@@ -495,6 +505,168 @@ class FirestoreService:
         except Exception as e:
             print(f"❌ Error fetching activities: {e}")
             return []
+
+    def get_all_activity_for_admin(self, admin_id, type_filter='all', user_filter='all',
+                                    search='', date_from='', date_to='', page=1, per_page=20):
+        try:
+            sub_users = self.get_my_sub_users(admin_id)
+            user_ids = [admin_id] + [u.get('uid') for u in sub_users if u.get('uid')]
+
+            all_activities = []
+            # Firestore 'in' supports max 30 values, batch if needed
+            for i in range(0, len(user_ids), 30):
+                batch_ids = user_ids[i:i+30]
+                docs = (self.db.collection(self.activity_collection)
+                        .where(filter=FieldFilter("user_id", "in", batch_ids))
+                        .order_by("timestamp", direction=firestore.Query.DESCENDING)
+                        .limit(500)
+                        .stream())
+                for doc in docs:
+                    data = doc.to_dict()
+                    data['id'] = doc.id
+                    self._normalize_activity(data)
+                    all_activities.append(data)
+
+            # Sort combined results
+            all_activities.sort(key=lambda x: x.get('timestamp', datetime.min), reverse=True)
+
+            # Apply filters
+            filtered = []
+            type_map = {
+                'blog': ['blog', 'generated', 'edited', 'published', 'deleted', 'status_change', 'seo_optimized'],
+                'user': ['user'],
+                'comment': ['comment'],
+                'settings': ['settings'],
+                'newsletter': ['newsletter'],
+                'category': ['category']
+            }
+
+            for a in all_activities:
+                # Type filter
+                if type_filter != 'all':
+                    allowed_types = type_map.get(type_filter, [type_filter])
+                    if a.get('type') not in allowed_types and a.get('target_type') != type_filter:
+                        continue
+
+                # User filter
+                if user_filter != 'all' and a.get('user_id') != user_filter:
+                    continue
+
+                # Date filter
+                if date_from:
+                    try:
+                        from_date = datetime.strptime(date_from, '%Y-%m-%d')
+                        ts = a.get('timestamp')
+                        if isinstance(ts, datetime) and ts < from_date:
+                            continue
+                    except (ValueError, TypeError):
+                        pass
+
+                if date_to:
+                    try:
+                        to_date = datetime.strptime(date_to, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
+                        ts = a.get('timestamp')
+                        if isinstance(ts, datetime) and ts > to_date:
+                            continue
+                    except (ValueError, TypeError):
+                        pass
+
+                # Search filter
+                if search:
+                    search_lower = search.lower()
+                    searchable = f"{a.get('action_text', '')} {a.get('target_name', '')} {a.get('blog_title', '')} {a.get('user_name', '')}".lower()
+                    if search_lower not in searchable:
+                        continue
+
+                filtered.append(a)
+
+            total = len(filtered)
+            total_pages = max(1, (total + per_page - 1) // per_page)
+            start = (page - 1) * per_page
+            page_activities = filtered[start:start + per_page]
+
+            # Serialize timestamps for JSON
+            for a in page_activities:
+                ts = a.get('timestamp')
+                if isinstance(ts, datetime):
+                    a['timestamp'] = ts.isoformat()
+                ca = a.get('created_at')
+                if ca and hasattr(ca, 'isoformat'):
+                    a['created_at'] = ca.isoformat()
+
+            return {
+                "activities": page_activities,
+                "total": total,
+                "page": page,
+                "per_page": per_page,
+                "total_pages": total_pages
+            }
+        except Exception as e:
+            print(f"❌ Error fetching admin activities: {e}")
+            return {"activities": [], "total": 0, "page": 1, "per_page": per_page, "total_pages": 1}
+
+    def get_activity_stats(self, admin_id):
+        try:
+            sub_users = self.get_my_sub_users(admin_id)
+            user_ids = [admin_id] + [u.get('uid') for u in sub_users if u.get('uid')]
+
+            stats = {"total": 0, "blog": 0, "user": 0, "comment": 0, "settings": 0, "newsletter": 0, "category": 0}
+            blog_types = ['blog', 'generated', 'edited', 'published', 'deleted', 'status_change', 'seo_optimized']
+
+            for i in range(0, len(user_ids), 30):
+                batch_ids = user_ids[i:i+30]
+                docs = (self.db.collection(self.activity_collection)
+                        .where(filter=FieldFilter("user_id", "in", batch_ids))
+                        .stream())
+                for doc in docs:
+                    data = doc.to_dict()
+                    stats["total"] += 1
+                    act_type = data.get('target_type') or data.get('type', '')
+                    if act_type in blog_types:
+                        stats["blog"] += 1
+                    elif act_type == 'user':
+                        stats["user"] += 1
+                    elif act_type == 'comment':
+                        stats["comment"] += 1
+                    elif act_type == 'settings':
+                        stats["settings"] += 1
+                    elif act_type == 'newsletter':
+                        stats["newsletter"] += 1
+                    elif act_type == 'category':
+                        stats["category"] += 1
+                    else:
+                        stats["blog"] += 1
+
+            return stats
+        except Exception as e:
+            print(f"❌ Error fetching activity stats: {e}")
+            return {"total": 0, "blog": 0, "user": 0, "comment": 0, "settings": 0, "newsletter": 0, "category": 0}
+
+    def _normalize_activity(self, data):
+        if not data.get('target_type'):
+            old_type = data.get('type', '')
+            if old_type in ('generated', 'edited', 'published', 'deleted', 'status_change', 'seo_optimized'):
+                data['target_type'] = 'blog'
+                data['target_name'] = data.get('blog_title', '')
+            elif old_type == 'comment':
+                data['target_type'] = 'comment'
+                data['target_name'] = data.get('blog_title', '')
+            elif old_type == 'settings':
+                data['target_type'] = 'settings'
+                data['target_name'] = 'Settings'
+            elif old_type == 'category':
+                data['target_type'] = 'category'
+                data['target_name'] = data.get('blog_title', '')
+            else:
+                data['target_type'] = 'blog'
+                data['target_name'] = data.get('blog_title', '')
+        # Ensure timestamp is datetime for sorting
+        ts = data.get('timestamp')
+        if ts and hasattr(ts, 'replace'):
+            try:
+                data['timestamp'] = ts.replace(tzinfo=None)
+            except (AttributeError, TypeError):
+                pass
 
     # ---------------- USER METHODS ----------------
 

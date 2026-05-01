@@ -223,6 +223,14 @@ def send_newsletter():
                 content_preview=html_content[:500],
                 html_content=html_content
             )
+            firestore.log_activity(
+                user_id=user_id,
+                user_name=session.get('user_name', 'Admin'),
+                type="newsletter",
+                action_text=f"Sent newsletter to {result.get('sent', 0)} subscribers",
+                target_type="newsletter",
+                target_name=subject
+            )
 
         return jsonify({
             "success": result.get('success'),
@@ -411,6 +419,14 @@ def delete_newsletter(newsletter_id):
         success = firestore.delete_newsletter(newsletter_id, user_id)
 
         if success:
+            firestore.log_activity(
+                user_id=user_id,
+                user_name=session.get('user_name', 'Admin'),
+                type="newsletter",
+                action_text="Deleted newsletter from history",
+                target_type="newsletter",
+                target_name="Newsletter"
+            )
             return jsonify({"success": True})
         else:
             return jsonify({"success": False, "error": "Newsletter not found or unauthorized"}), 404
@@ -450,6 +466,14 @@ def save_draft():
         draft_id = firestore.save_newsletter_draft(user_id, data)
 
         if draft_id:
+            firestore.log_activity(
+                user_id=user_id,
+                user_name=session.get('user_name', 'Admin'),
+                type="newsletter",
+                action_text="Saved newsletter draft",
+                target_type="newsletter",
+                target_name=data.get('subject', 'Newsletter Draft')
+            )
             return jsonify({"success": True, "draft_id": draft_id})
         else:
             return jsonify({"error": "Failed to save draft"}), 500
@@ -470,6 +494,14 @@ def delete_draft(draft_id):
         success = firestore.delete_newsletter_draft(draft_id, user_id)
 
         if success:
+            firestore.log_activity(
+                user_id=user_id,
+                user_name=session.get('user_name', 'Admin'),
+                type="newsletter",
+                action_text="Deleted newsletter draft",
+                target_type="newsletter",
+                target_name="Newsletter Draft"
+            )
             return jsonify({"success": True})
         else:
             return jsonify({"error": "Draft not found or unauthorized"}), 404

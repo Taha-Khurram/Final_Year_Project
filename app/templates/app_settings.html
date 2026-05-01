@@ -348,9 +348,9 @@ document.getElementById('app-settings-form').addEventListener('submit', async fu
         if (data.success) {
             showToast('success', 'Settings Saved', 'Application settings updated successfully.');
             // Update sidebar logo text if changed
-            const sidebarLogo = document.querySelector('.sidebar-logo span');
+            const sidebarLogo = document.querySelector('.logo-wordmark');
             if (sidebarLogo) {
-                sidebarLogo.textContent = document.getElementById('app_name').value.trim() || 'ScriptlyAI';
+                sidebarLogo.textContent = document.getElementById('app_name').value.trim() || 'Scriptly';
             }
         } else {
             showToast('error', 'Error', data.error || 'Failed to save settings.');

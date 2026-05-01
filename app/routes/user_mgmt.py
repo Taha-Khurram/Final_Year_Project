@@ -74,6 +74,18 @@ def create_sub_user():
             "role": data.get('role', 'EDITOR').upper(),
             "created_by": session.get('user_id')
         })
+
+        db_service.log_activity(
+            user_id=session.get('user_id'),
+            user_name=session.get('user_name', 'Admin'),
+            type="user",
+            action_text=f"Created user '{data.get('username')}'",
+            target_type="user",
+            target_id=user_record.uid,
+            target_name=data.get('username'),
+            metadata={"role": data.get('role', 'EDITOR').upper(), "email": data.get('email')}
+        )
+
         return jsonify({"success": True, "message": "User created successfully"})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
@@ -89,6 +101,16 @@ def update_user_role():
 
     try:
         db_service.db.collection("users").document(user_id).update({"role": new_role})
+        db_service.log_activity(
+            user_id=session.get('user_id'),
+            user_name=session.get('user_name', 'Admin'),
+            type="user",
+            action_text=f"Changed role to {new_role}",
+            target_type="user",
+            target_id=user_id,
+            target_name=data.get('username', user_id),
+            metadata={"new_role": new_role}
+        )
         return jsonify({"success": True, "message": "Role updated"})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
