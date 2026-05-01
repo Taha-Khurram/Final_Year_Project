@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, abort
+from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, abort, make_response
 from firebase_admin import auth as admin_auth
 from app.firebase.firestore_service import FirestoreService
 from app.services.email_service import EmailService
@@ -26,7 +26,10 @@ def admin_required(f):
 @admin_required
 def manage_users():
     """Renders the management dashboard for Admins."""
-    return render_template('users.html')
+    response = make_response(render_template('users.html'))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    return response
 
 
 @user_bp.route('/list', methods=['GET'])
@@ -43,22 +46,28 @@ def list_sub_users():
             for k, v in u.items():
                 if hasattr(v, 'isoformat'):
                     clean_u[k] = v.isoformat()
+                elif hasattr(v, 'path'):
+                    clean_u[k] = str(v)
                 else:
                     clean_u[k] = v
             safe_users.append(clean_u)
 
         invitations = db_service.get_invitations_by_admin(admin_id)
 
-        return jsonify({"success": True, "users": safe_users, "invitations": invitations})
+        response = jsonify({"success": True, "users": safe_users, "invitations": invitations})
+        response.headers['Cache-Control'] = 'no-cache, no-store'
+        return response
     except Exception as e:
         print(f"❌ Error in /users/list: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"success": False, "error": str(e)}), 500
 
 
 @user_bp.route('/invite', methods=['POST'])
 @admin_required
 def invite_user():
-    """Sends an invitation email to a new user."""
+    """Creates an invitation and returns the signup link."""
     data = request.json
     email = data.get('email', '').strip().lower()
     role = data.get('role', 'EDITOR').upper()
@@ -73,20 +82,22 @@ def invite_user():
         return jsonify(result), 400
 
     signup_url = f"{request.host_url}signup?invite={email}"
-    role_article = "an" if role in ("ADMIN", "EDITOR") else "a"
 
-    html_content = render_template('emails/invitation.html',
-        app_name='Scriptly',
-        inviter_name=admin_name,
-        role=role.capitalize(),
-        role_article=role_article,
-        signup_url=signup_url
-    )
-
-    send_result = email_service.send_single(email, "You're invited to join Scriptly", html_content)
-
-    if not send_result.get('success'):
-        return jsonify({"success": True, "message": "Invitation created but email failed to send", "email_error": send_result.get('error')})
+    # Attempt email delivery (may fail with test domain)
+    email_sent = False
+    try:
+        role_article = "an" if role in ("ADMIN", "EDITOR") else "a"
+        html_content = render_template('emails/invitation.html',
+            app_name='Scriptly',
+            inviter_name=admin_name,
+            role=role.capitalize(),
+            role_article=role_article,
+            signup_url=signup_url
+        )
+        send_result = email_service.send_single(email, "You're invited to join Scriptly", html_content)
+        email_sent = send_result.get('success', False)
+    except Exception as e:
+        print(f"⚠️ Email send attempt failed: {e}")
 
     db_service.log_activity(
         user_id=admin_id,
@@ -98,8 +109,16 @@ def invite_user():
         metadata={"role": role, "email": email}
     )
 
-    msg = "Invitation resent successfully" if result.get('already_existed') else "Invitation sent successfully"
-    return jsonify({"success": True, "message": msg})
+    msg = "Invitation created! Share the link below with the user."
+    if email_sent:
+        msg = "Invitation email sent successfully!"
+
+    return jsonify({
+        "success": True,
+        "message": msg,
+        "signup_url": signup_url,
+        "email_sent": email_sent
+    })
 
 
 @user_bp.route('/resend-invite', methods=['POST'])

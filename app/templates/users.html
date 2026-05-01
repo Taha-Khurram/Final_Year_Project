@@ -123,8 +123,256 @@
   </div>
 </div>
 
+<!-- Invite Link Modal -->
+<div id="inviteLinkModal" class="modal fade" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-card">
+      <div class="modal-header border-bottom p-4">
+        <h5 class="modal-title fw-bold text-dark"><i class="bi bi-link-45deg"></i> Invitation Link</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <p class="text-secondary mb-3" id="inviteLinkMessage">Share this link with the invited user:</p>
+        <div class="input-group">
+          <input type="text" id="inviteLinkInput" class="form-control bg-light border-0 rounded-start-pill px-3" readonly>
+          <button class="btn btn-primary rounded-end-pill px-4" onclick="copyInviteLink()" id="copyLinkBtn">
+            <i class="bi bi-clipboard"></i> Copy
+          </button>
+        </div>
+        <p class="text-muted small mt-3 mb-0">
+          <i class="bi bi-info-circle"></i> The user will use this link to create their account with the assigned role.
+        </p>
+      </div>
+      <div class="modal-footer border-top p-3 bg-light">
+        <button type="button" class="btn btn-light text-secondary fw-bold" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/users.js') }}"></script>
+<script>
+(function() {
+    function escapeHtml(text) {
+        if (!text) return '';
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    async function loadUsers() {
+        var usersList = document.getElementById('usersList');
+        var noUsers = document.getElementById('noUsers');
+        if (!usersList) return;
+
+        usersList.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary opacity-50 mb-3" role="status"></div><p class="text-secondary fw-medium">Loading users...</p></div>';
+
+        try {
+            var response = await fetch('/users/list', {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' },
+                credentials: 'same-origin'
+            });
+
+            var contentType = response.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+                throw new Error('Session expired or server error. Please refresh the page.');
+            }
+
+            if (!response.ok) throw new Error('Server returned ' + response.status);
+
+            var data = await response.json();
+            if (!data.success) throw new Error(data.error || 'Failed to fetch users.');
+
+            var users = data.users || [];
+            var invitations = data.invitations || [];
+
+            if (users.length === 0 && invitations.length === 0) {
+                usersList.innerHTML = '';
+                if (noUsers) noUsers.classList.remove('d-none');
+                return;
+            }
+
+            if (noUsers) noUsers.classList.add('d-none');
+
+            var html = '';
+
+            users.forEach(function(user) {
+                var uid = user.uid || 'unknown';
+                var name = (user.name || user.username || 'User').trim();
+                var email = (user.email || '').trim();
+                var role = (user.role || 'editor').toLowerCase().trim();
+                var initials = (name === 'User' ? (email[0] || '?') : name.substring(0, 2)).toUpperCase();
+                var roleClass = role === 'admin' ? 'badge-admin' : 'badge-editor';
+
+                html += '<div class="user-row animate-fade-up">' +
+                    '<div class="col-username d-flex align-items-center gap-3">' +
+                        '<div class="footer-avatar shadow-sm" style="width:36px;height:36px;font-size:0.8rem;border-radius:10px;">' + initials + '</div>' +
+                        '<span class="fw-bold">' + escapeHtml(name) + '</span>' +
+                    '</div>' +
+                    '<div class="col-email text-secondary">' + escapeHtml(email) + '</div>' +
+                    '<div class="col-role"><span class="badge-role ' + roleClass + '">' + role.toUpperCase() + '</span></div>' +
+                    '<div class="col-status"><span class="badge-status badge-active"><i class="bi bi-check-circle-fill"></i> Active</span></div>' +
+                    '<div class="col-actions">' +
+                        '<button class="btn btn-sm btn-light rounded-circle shadow-sm" onclick="openEditRole(\'' + uid + '\', \'' + escapeHtml(name).replace(/'/g, "\\'") + '\', \'' + role + '\')" style="width:32px;height:32px;padding:0;" title="Edit Role"><i class="bi bi-pencil-square text-primary"></i></button>' +
+                    '</div></div>';
+            });
+
+            var pendingInvitations = (invitations || []).filter(function(inv) { return inv.status === 'pending'; });
+            pendingInvitations.forEach(function(inv) {
+                var email = inv.email || '';
+                var role = (inv.role || 'editor').toLowerCase().trim();
+                var roleClass = role === 'admin' ? 'badge-admin' : 'badge-editor';
+                var initial = email.charAt(0).toUpperCase();
+
+                html += '<div class="user-row animate-fade-up">' +
+                    '<div class="col-username d-flex align-items-center gap-3">' +
+                        '<div class="footer-avatar shadow-sm" style="width:36px;height:36px;font-size:0.8rem;border-radius:10px;opacity:0.6;">' + initial + '</div>' +
+                        '<span class="fw-bold text-muted">' + escapeHtml(email.split('@')[0]) + '</span>' +
+                    '</div>' +
+                    '<div class="col-email text-secondary">' + escapeHtml(email) + '</div>' +
+                    '<div class="col-role"><span class="badge-role ' + roleClass + '">' + role.toUpperCase() + '</span></div>' +
+                    '<div class="col-status"><span class="badge-status badge-pending"><i class="bi bi-clock-fill"></i> Pending</span></div>' +
+                    '<div class="col-actions">' +
+                        '<button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="resendInvitation(\'' + escapeHtml(email) + '\')" title="Resend"><i class="bi bi-arrow-clockwise"></i> Resend</button>' +
+                    '</div></div>';
+            });
+
+            usersList.innerHTML = html;
+
+        } catch (error) {
+            usersList.innerHTML = '<div class="p-5 text-center bg-white rounded border"><div class="text-danger mb-2"><i class="bi bi-exclamation-triangle-fill fs-2"></i></div><p class="text-secondary fw-bold">Failed to load users</p><p class="small text-muted mb-3">' + escapeHtml(error.message) + '</p><button class="btn btn-sm btn-primary rounded-pill px-4" onclick="loadUsers()">Retry</button></div>';
+        }
+    }
+
+    window.loadUsers = loadUsers;
+
+    window.openEditRole = function(uid, username, currentRole) {
+        document.getElementById('editUserId').value = uid;
+        document.getElementById('editUsername').value = username;
+        document.getElementById('editRole').value = currentRole.toLowerCase();
+        var modalEl = document.getElementById('editRoleModal');
+        var modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        modal.show();
+    };
+
+    window.resendInvitation = async function(email) {
+        try {
+            var res = await fetch('/users/resend-invite', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email })
+            });
+            var data = await res.json();
+            if (data.success) {
+                showToast({ type: 'success', title: 'Sent', message: 'Invitation resent to ' + email });
+            } else {
+                showToast({ type: 'error', title: 'Error', message: data.error || 'Failed to resend' });
+            }
+        } catch (err) {
+            showToast({ type: 'error', title: 'Error', message: 'Connection failed' });
+        }
+    };
+
+    function showInviteLink(url, emailSent) {
+        var msg = emailSent
+            ? 'Email sent! You can also share this link directly:'
+            : 'Share this signup link with the invited user:';
+        document.getElementById('inviteLinkMessage').textContent = msg;
+        document.getElementById('inviteLinkInput').value = url;
+        document.getElementById('copyLinkBtn').innerHTML = '<i class="bi bi-clipboard"></i> Copy';
+        var modalEl = document.getElementById('inviteLinkModal');
+        var modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+
+    window.copyInviteLink = function() {
+        var input = document.getElementById('inviteLinkInput');
+        navigator.clipboard.writeText(input.value).then(function() {
+            var btn = document.getElementById('copyLinkBtn');
+            btn.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
+            btn.classList.replace('btn-primary', 'btn-success');
+            setTimeout(function() {
+                btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy';
+                btn.classList.replace('btn-success', 'btn-primary');
+            }, 2000);
+        });
+    };
+
+    function initForms() {
+        var inviteForm = document.getElementById('inviteUserForm');
+        if (inviteForm) {
+            inviteForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                var submitBtn = inviteForm.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Sending...';
+
+                try {
+                    var formData = Object.fromEntries(new FormData(inviteForm).entries());
+                    var res = await fetch('/users/invite', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+                    var data = await res.json();
+                    if (data.success) {
+                        var modalEl = document.getElementById('inviteUserModal');
+                        var modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                        modal.hide();
+                        inviteForm.reset();
+                        loadUsers();
+
+                        if (data.signup_url) {
+                            showInviteLink(data.signup_url, data.email_sent);
+                        } else {
+                            showToast({ type: 'success', title: 'Sent', message: data.message || 'Invitation created!' });
+                        }
+                    } else {
+                        showToast({ type: 'error', title: 'Error', message: data.error || 'Failed to send invitation' });
+                    }
+                } catch (err) {
+                    showToast({ type: 'error', title: 'Error', message: 'Connection failed' });
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bi bi-send-fill"></i> Send Invitation';
+                }
+            });
+        }
+
+        var editRoleForm = document.getElementById('editRoleForm');
+        if (editRoleForm) {
+            editRoleForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                var userId = document.getElementById('editUserId').value;
+                var role = document.getElementById('editRole').value;
+                try {
+                    var res = await fetch('/users/update-role', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: userId, role: role })
+                    });
+                    var data = await res.json();
+                    if (data.success) {
+                        var modalEl = document.getElementById('editRoleModal');
+                        var modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                        modal.hide();
+                        loadUsers();
+                        showToast({ type: 'success', title: 'Updated', message: 'Role updated' });
+                    } else {
+                        showToast({ type: 'error', title: 'Error', message: data.error || 'Failed to update' });
+                    }
+                } catch (err) {
+                    showToast({ type: 'error', title: 'Error', message: 'Connection failed' });
+                }
+            });
+        }
+    }
+
+    loadUsers();
+    initForms();
+})();
+</script>
 {% endblock %}

@@ -32,7 +32,8 @@ def create_app(config_class=Config):
 
     # Middleware setup
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
-    app.wsgi_app = WhiteNoise(app.wsgi_app, root='app/static/', prefix='static/', max_age=604800)
+    cache_max_age = 0 if os.environ.get('FLASK_DEBUG') == '1' else 604800
+    app.wsgi_app = WhiteNoise(app.wsgi_app, root='app/static/', prefix='static/', max_age=cache_max_age)
 
     # Initialize Firebase
     FirebaseLoader.get_instance(app.config['FIREBASE_SERVICE_ACCOUNT'])
@@ -141,7 +142,7 @@ def create_app(config_class=Config):
                 timeout = current_app.config.get('PERMANENT_SESSION_LIFETIME')
                 if elapsed > timeout:
                     session.clear()
-                    if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in (request.headers.get('Accept') or ''):
                         return jsonify({'error': 'session_expired', 'redirect': url_for('auth_bp.login', expired=1)}), 401
                     return redirect(url_for('auth_bp.login', expired=1))
             # Reset activity timestamp

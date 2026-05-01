@@ -26,7 +26,13 @@ async function loadUsers() {
         const response = await fetch('/users/list');
         if (!response.ok) throw new Error(`Server returned ${response.status}`);
 
-        const data = await response.json();
+        let data;
+        try {
+            data = await response.json();
+        } catch (e) {
+            throw new Error('Invalid response from server');
+        }
+
         if (!data.success) throw new Error(data.error || "Failed to fetch users.");
 
         const users = data.users || [];
@@ -48,7 +54,7 @@ async function loadUsers() {
             const name = (user.name || user.username || 'User').trim();
             const email = (user.email || '').trim();
             const role = (user.role || 'editor').toLowerCase().trim();
-            const initials = (name === 'User' ? email[0] : name.substring(0, 2)).toUpperCase();
+            const initials = (name === 'User' ? (email[0] || '?') : name.substring(0, 2)).toUpperCase();
             const roleClass = role === 'admin' ? 'badge-admin' : 'badge-editor';
 
             return `
