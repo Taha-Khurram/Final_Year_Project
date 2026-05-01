@@ -287,6 +287,14 @@ class FirestoreService:
     def get_all_blogs_filtered(self, user_ids, status_filter='all', category_filter='all',
                                 search='', date_from='', date_to='', page=1, per_page=15):
         try:
+            # Build user name lookup map
+            user_name_map = {}
+            for uid in user_ids:
+                user_doc = self.db.collection(self.user_collection).document(uid).get()
+                if user_doc.exists:
+                    u = user_doc.to_dict()
+                    user_name_map[uid] = u.get('name') or u.get('email', '').split('@')[0] or 'Unknown'
+
             all_blogs = []
             for i in range(0, len(user_ids), 30):
                 batch_ids = user_ids[i:i+30]
@@ -296,6 +304,7 @@ class FirestoreService:
                 for doc in docs:
                     data = doc.to_dict()
                     data['id'] = doc.id
+                    data['author_name'] = user_name_map.get(data.get('author_id'), 'Unknown')
                     all_blogs.append(data)
 
             all_blogs.sort(key=lambda x: x.get('updated_at') or x.get('created_at') or datetime.min, reverse=True)
