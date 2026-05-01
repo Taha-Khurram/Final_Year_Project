@@ -11,7 +11,8 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 - **Public Blog Sites** - Each user gets a customizable public-facing blog
 - **Semantic Search Agent** - Industry-standard agentic search with intent classification
 - **Newsletter System** - Generate and send newsletters to subscribers
-- **Team Collaboration** - Multi-user support with approval workflows
+- **Team Collaboration** - Multi-user support with role management and approval workflows
+- **User Management** - Invite users, assign roles, edit roles, and delete users with full activity logging
 
 ## Tech Stack
 
@@ -130,6 +131,17 @@ Each user gets a public blog at `/site/<site_slug>` (or `/site/<user_id>` for ba
 - Category filtering
 - Social sharing
 - RSS feed, Sitemap, and robots.txt
+
+## Admin Dashboard
+
+| Feature | Description |
+|---------|-------------|
+| **User Management** | Invite, edit roles, delete users with 3-dot action menu |
+| **Approval Workflow** | Review and approve/reject submitted blogs |
+| **Comment Moderation** | View, edit, restore, delete comments |
+| **Activity Log** | Full audit trail of all user actions |
+| **All Blogs** | Browse and filter all blogs across users |
+| **Site Settings** | Configure public site appearance and SEO |
 
 ## Documentation
 
