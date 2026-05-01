@@ -180,3 +180,42 @@ def update_user_role():
         return jsonify({"success": True, "message": "Role updated"})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+
+@user_bp.route('/delete-user', methods=['POST'])
+@admin_required
+def delete_user():
+    """Deletes a user from Firebase Auth and Firestore."""
+    data = request.json
+    user_id = data.get('userId')
+    username = data.get('username', 'Unknown')
+    admin_id = session.get('user_id')
+
+    if not user_id:
+        return jsonify({"success": False, "error": "User ID is required"}), 400
+
+    if user_id == admin_id:
+        return jsonify({"success": False, "error": "You cannot delete your own account"}), 400
+
+    try:
+        try:
+            admin_auth.delete_user(user_id)
+        except Exception:
+            pass
+
+        db_service.db.collection("users").document(user_id).delete()
+
+        db_service.log_activity(
+            user_id=admin_id,
+            user_name=session.get('user_name', 'Admin'),
+            type="user",
+            action_text=f"Deleted user '{username}'",
+            target_type="user",
+            target_id=user_id,
+            target_name=username,
+            metadata={"deleted_user_id": user_id}
+        )
+
+        return jsonify({"success": True, "message": f"User '{username}' deleted successfully"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
