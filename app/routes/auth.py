@@ -25,15 +25,25 @@ def verify_token():
     try:
         decoded_token = admin_auth.verify_id_token(id_token)
         uid = decoded_token['uid']
-        
+
         user_info = {
             "uid": uid,
             "name": decoded_token.get('name') or decoded_token.get('email').split('@')[0],
             "email": decoded_token.get('email')
         }
 
+        # Check for pending invitation before saving user
+        invitation = db_service.get_pending_invitation_by_email(user_info['email'])
+        if invitation:
+            user_info['role'] = invitation['role']
+            user_info['created_by'] = invitation['invited_by']
+
         # Save/Retrieve user and their ROLE
         user_record = db_service.save_user(user_info)
+
+        # Mark invitation as accepted
+        if invitation:
+            db_service.accept_invitation(invitation['id'])
 
         session.permanent = True
         session.update({

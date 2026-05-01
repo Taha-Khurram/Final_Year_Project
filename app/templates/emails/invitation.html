@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f7; padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 520px; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.06);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #4318FF 0%, #7B5AFF 100%); padding: 36px 40px; text-align: center;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">{{ app_name }}</h1>
+                        </td>
+                    </tr>
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 40px 40px 32px;">
+                            <h2 style="margin: 0 0 12px; color: #1e293b; font-size: 20px; font-weight: 700;">You're Invited!</h2>
+                            <p style="margin: 0 0 24px; color: #475569; font-size: 15px; line-height: 1.6;">
+                                <strong>{{ inviter_name }}</strong> has invited you to join <strong>{{ app_name }}</strong> as {{ role_article }} <strong>{{ role }}</strong>.
+                            </p>
+                            <p style="margin: 0 0 32px; color: #475569; font-size: 15px; line-height: 1.6;">
+                                Click the button below to create your account and get started.
+                            </p>
+                            <!-- CTA Button -->
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td align="center">
+                                        <a href="{{ signup_url }}" style="display: inline-block; background: linear-gradient(135deg, #4318FF 0%, #7B5AFF 100%); color: #ffffff; text-decoration: none; padding: 14px 36px; border-radius: 50px; font-size: 15px; font-weight: 700; letter-spacing: 0.3px;">Accept Invitation</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 24px 40px 32px; border-top: 1px solid #f1f5f9;">
+                            <p style="margin: 0; color: #94a3b8; font-size: 13px; line-height: 1.5; text-align: center;">
+                                If you didn't expect this invitation, you can safely ignore this email.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

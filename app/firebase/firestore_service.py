@@ -821,6 +821,88 @@ class FirestoreService:
             print(f"❌ Error getting site owner: {e}")
             return user_id  # Fallback to self
 
+    # ---------------- INVITATION METHODS ----------------
+
+    def create_invitation(self, email, role, invited_by):
+        email = email.lower().strip()
+        try:
+            existing_users = self.db.collection(self.user_collection)\
+                .where(filter=FieldFilter('email', '==', email)).stream()
+            if any(True for _ in existing_users):
+                return {"success": False, "error": "A user with this email already exists"}
+
+            existing_invites = self.db.collection('invitations')\
+                .where(filter=FieldFilter('email', '==', email))\
+                .where(filter=FieldFilter('invited_by', '==', invited_by))\
+                .where(filter=FieldFilter('status', '==', 'pending')).stream()
+            for doc in existing_invites:
+                data = doc.to_dict()
+                data['id'] = doc.id
+                return {"success": True, "invitation": data, "already_existed": True}
+
+            inv_data = {
+                "email": email,
+                "role": role.upper(),
+                "invited_by": invited_by,
+                "invited_at": firestore.SERVER_TIMESTAMP,
+                "status": "pending"
+            }
+            doc_ref = self.db.collection('invitations').add(inv_data)
+            inv_data['id'] = doc_ref[1].id
+            return {"success": True, "invitation": inv_data}
+        except Exception as e:
+            print(f"❌ Error creating invitation: {e}")
+            return {"success": False, "error": str(e)}
+
+    def get_pending_invitation_by_email(self, email):
+        email = email.lower().strip()
+        try:
+            docs = self.db.collection('invitations')\
+                .where(filter=FieldFilter('email', '==', email))\
+                .where(filter=FieldFilter('status', '==', 'pending')).stream()
+            invitations = []
+            for doc in docs:
+                data = doc.to_dict()
+                data['id'] = doc.id
+                invitations.append(data)
+            if not invitations:
+                return None
+            invitations.sort(key=lambda x: x.get('invited_at') or datetime.min, reverse=True)
+            return invitations[0]
+        except Exception as e:
+            print(f"❌ Error checking invitation: {e}")
+            return None
+
+    def accept_invitation(self, invitation_id):
+        try:
+            self.db.collection('invitations').document(invitation_id).update({
+                "status": "accepted",
+                "accepted_at": datetime.utcnow()
+            })
+            return True
+        except Exception as e:
+            print(f"❌ Error accepting invitation: {e}")
+            return False
+
+    def get_invitations_by_admin(self, admin_id):
+        try:
+            docs = self.db.collection('invitations')\
+                .where(filter=FieldFilter('invited_by', '==', admin_id)).stream()
+            invitations = []
+            for doc in docs:
+                data = doc.to_dict()
+                data['id'] = doc.id
+                if data.get('invited_at') and hasattr(data['invited_at'], 'isoformat'):
+                    data['invited_at'] = data['invited_at'].isoformat()
+                if data.get('accepted_at') and hasattr(data['accepted_at'], 'isoformat'):
+                    data['accepted_at'] = data['accepted_at'].isoformat()
+                invitations.append(data)
+            invitations.sort(key=lambda x: x.get('invited_at') or '', reverse=True)
+            return invitations
+        except Exception as e:
+            print(f"❌ Error fetching invitations: {e}")
+            return []
+
     def get_published_count(self, user_id):
         """Get count of published blogs for a site owner (includes team members' blogs)."""
         try:

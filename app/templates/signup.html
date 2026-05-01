@@ -77,4 +77,26 @@
     {{ firebase_config | tojson }}
 </script>
 <script src="{{ url_for('static', filename='js/firebase_google.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const params = new URLSearchParams(window.location.search);
+        const inviteEmail = params.get('invite');
+        if (inviteEmail) {
+            const emailField = document.getElementById('email');
+            if (emailField) {
+                emailField.value = decodeURIComponent(inviteEmail);
+                emailField.readOnly = true;
+                emailField.style.backgroundColor = '#f1f5f9';
+            }
+            const card = document.querySelector('.auth-card');
+            if (card) {
+                const banner = document.createElement('div');
+                banner.style.cssText = 'background: rgba(67,24,255,0.06); border: 1px solid rgba(67,24,255,0.15); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 0.85rem; color: #4318FF; font-weight: 600;';
+                banner.innerHTML = '<i class="bi bi-envelope-check-fill"></i> You have been invited! Complete your registration below.';
+                const form = card.querySelector('form');
+                if (form) card.insertBefore(banner, form);
+            }
+        }
+    });
+</script>
 {% endblock %}

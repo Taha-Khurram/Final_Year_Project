@@ -20,8 +20,8 @@
       </div>
       <div>
         <button class="btn btn-primary d-flex align-items-center gap-2 text-white shadow-sm" data-bs-toggle="modal"
-          data-bs-target="#addUserModal">
-          <i class="bi bi-person-plus-fill"></i> Add User
+          data-bs-target="#inviteUserModal">
+          <i class="bi bi-person-plus-fill"></i> Invite User
         </button>
       </div>
     </header>
@@ -30,62 +30,60 @@
 
       <div class="users-container shadow-card">
         <div class="users-header">
-          <div class="col-username">Username</div>
+          <div class="col-username">User</div>
           <div class="col-email">Email Address</div>
           <div class="col-role">Role</div>
+          <div class="col-status">Status</div>
           <div class="col-actions">Actions</div>
         </div>
 
         <div id="usersList">
           <div class="text-center py-5">
             <div class="spinner-border text-primary opacity-50 mb-3" role="status"></div>
-            <p class="text-secondary fw-medium">Initializing sync engine...</p>
+            <p class="text-secondary fw-medium">Loading users...</p>
           </div>
         </div>
 
         <div id="noUsers" class="text-center py-5 d-none">
           <div class="mb-3 text-muted opacity-50"><i class="bi bi-people fs-1"></i></div>
-          <p class="text-secondary fw-bold">No users registered yet.</p>
+          <p class="text-secondary fw-bold">No users or invitations yet.</p>
         </div>
       </div>
     </div>
   </main>
 </div>
 
-<!-- Add User Modal -->
-<div id="addUserModal" class="modal fade" tabindex="-1">
+<!-- Invite User Modal -->
+<div id="inviteUserModal" class="modal fade" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content shadow-card">
       <div class="modal-header border-bottom p-4">
-        <h5 class="modal-title fw-bold text-dark">Create New User</h5>
+        <h5 class="modal-title fw-bold text-dark">Invite User</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <form id="createUserForm" class="no-loader">
+      <form id="inviteUserForm" class="no-loader">
         <div class="modal-body p-4">
           <div class="mb-3">
-            <label class="form-label text-secondary small fw-bold text-uppercase">Username</label>
-            <input type="text" id="username" name="username" class="form-control rounded-pill px-3" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label text-secondary small fw-bold text-uppercase">Email</label>
-            <input type="email" id="email" name="email" class="form-control rounded-pill px-3" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label text-secondary small fw-bold text-uppercase">Password</label>
-            <input type="password" id="password" name="password" class="form-control rounded-pill px-3" required
-              minlength="6">
+            <label class="form-label text-secondary small fw-bold text-uppercase">Email Address</label>
+            <input type="email" id="inviteEmail" name="email" class="form-control rounded-pill px-3"
+              placeholder="user@example.com" required>
           </div>
           <div class="mb-3">
             <label class="form-label text-secondary small fw-bold text-uppercase">Role</label>
-            <select id="role" name="role" class="form-select rounded-pill px-3" required>
+            <select id="inviteRole" name="role" class="form-select rounded-pill px-3" required>
               <option value="editor">Editor</option>
               <option value="admin">Admin</option>
             </select>
           </div>
+          <p class="text-muted small mb-0">
+            <i class="bi bi-info-circle"></i> An invitation email will be sent. The user will create their own account.
+          </p>
         </div>
         <div class="modal-footer border-top p-3 bg-light">
           <button type="button" class="btn btn-light text-secondary fw-bold" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary text-white">Create User</button>
+          <button type="submit" class="btn btn-primary text-white">
+            <i class="bi bi-send-fill"></i> Send Invitation
+          </button>
         </div>
       </form>
     </div>
@@ -128,6 +126,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- Use specific JS for users functionality -->
 <script src="{{ url_for('static', filename='js/users.js') }}"></script>
 {% endblock %}

@@ -1,11 +1,13 @@
 from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, abort
 from firebase_admin import auth as admin_auth
 from app.firebase.firestore_service import FirestoreService
+from app.services.email_service import EmailService
 from functools import wraps
 
 # We define the blueprint. The 'url_prefix' will be handled in the app factory.
 user_bp = Blueprint('user_bp', __name__)
 db_service = FirestoreService()
+email_service = EmailService()
 
 
 def admin_required(f):
@@ -30,65 +32,110 @@ def manage_users():
 @user_bp.route('/list', methods=['GET'])
 @admin_required
 def list_sub_users():
-    """Fetches users managed by the logged-in Admin. Accessible at /users/list"""
+    """Fetches users and pending invitations for the logged-in Admin."""
     try:
         admin_id = session.get('user_id')
-        print(f"🔍 Fetching users for admin ID: {admin_id}")
         users = db_service.get_my_sub_users(admin_id)
-        
-        # Clean up users for JSON (handle datetimes if any)
+
         safe_users = []
         for u in users:
             clean_u = {}
             for k, v in u.items():
-                if hasattr(v, 'isoformat'): # Handle datetime objects
+                if hasattr(v, 'isoformat'):
                     clean_u[k] = v.isoformat()
                 else:
                     clean_u[k] = v
             safe_users.append(clean_u)
-            
-        print(f"✅ Found {len(safe_users)} users. Returning JSON...")
-        return jsonify({"success": True, "users": safe_users})
+
+        invitations = db_service.get_invitations_by_admin(admin_id)
+
+        return jsonify({"success": True, "users": safe_users, "invitations": invitations})
     except Exception as e:
         print(f"❌ Error in /users/list: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
-@user_bp.route('/create', methods=['POST'])
+
+@user_bp.route('/invite', methods=['POST'])
 @admin_required
-def create_sub_user():
-    """Creates Auth & Firestore records. Accessible at /users/create"""
+def invite_user():
+    """Sends an invitation email to a new user."""
     data = request.json
-    try:
-        # 1. Create in Firebase Auth
-        user_record = admin_auth.create_user(
-            email=data.get('email'),
-            password=data.get('password'),
-            display_name=data.get('username')
-        )
+    email = data.get('email', '').strip().lower()
+    role = data.get('role', 'EDITOR').upper()
+    admin_id = session.get('user_id')
+    admin_name = session.get('user_name', 'Admin')
 
-        # 2. Save to Firestore via Service
-        db_service.save_user({
-            "uid": user_record.uid,
-            "email": data.get('email'),
-            "name": data.get('username'),
-            "role": data.get('role', 'EDITOR').upper(),
-            "created_by": session.get('user_id')
-        })
+    if not email:
+        return jsonify({"success": False, "error": "Email is required"}), 400
 
-        db_service.log_activity(
-            user_id=session.get('user_id'),
-            user_name=session.get('user_name', 'Admin'),
-            type="user",
-            action_text=f"Created user '{data.get('username')}'",
-            target_type="user",
-            target_id=user_record.uid,
-            target_name=data.get('username'),
-            metadata={"role": data.get('role', 'EDITOR').upper(), "email": data.get('email')}
-        )
+    result = db_service.create_invitation(email, role, admin_id)
+    if not result.get('success'):
+        return jsonify(result), 400
 
-        return jsonify({"success": True, "message": "User created successfully"})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    signup_url = f"{request.host_url}signup?invite={email}"
+    role_article = "an" if role in ("ADMIN", "EDITOR") else "a"
+
+    html_content = render_template('emails/invitation.html',
+        app_name='Scriptly',
+        inviter_name=admin_name,
+        role=role.capitalize(),
+        role_article=role_article,
+        signup_url=signup_url
+    )
+
+    send_result = email_service.send_single(email, "You're invited to join Scriptly", html_content)
+
+    if not send_result.get('success'):
+        return jsonify({"success": True, "message": "Invitation created but email failed to send", "email_error": send_result.get('error')})
+
+    db_service.log_activity(
+        user_id=admin_id,
+        user_name=admin_name,
+        type="user",
+        action_text=f"Invited user '{email}'",
+        target_type="user",
+        target_name=email,
+        metadata={"role": role, "email": email}
+    )
+
+    msg = "Invitation resent successfully" if result.get('already_existed') else "Invitation sent successfully"
+    return jsonify({"success": True, "message": msg})
+
+
+@user_bp.route('/resend-invite', methods=['POST'])
+@admin_required
+def resend_invitation():
+    """Resends the invitation email for a pending invitation."""
+    data = request.json
+    email = data.get('email', '').strip().lower()
+    admin_id = session.get('user_id')
+    admin_name = session.get('user_name', 'Admin')
+
+    if not email:
+        return jsonify({"success": False, "error": "Email is required"}), 400
+
+    invitation = db_service.get_pending_invitation_by_email(email)
+    if not invitation:
+        return jsonify({"success": False, "error": "No pending invitation found for this email"}), 404
+
+    signup_url = f"{request.host_url}signup?invite={email}"
+    role = invitation.get('role', 'EDITOR')
+    role_article = "an" if role in ("ADMIN", "EDITOR") else "a"
+
+    html_content = render_template('emails/invitation.html',
+        app_name='Scriptly',
+        inviter_name=admin_name,
+        role=role.capitalize(),
+        role_article=role_article,
+        signup_url=signup_url
+    )
+
+    send_result = email_service.send_single(email, "You're invited to join Scriptly", html_content)
+
+    if not send_result.get('success'):
+        return jsonify({"success": False, "error": f"Failed to send email: {send_result.get('error')}"}), 500
+
+    return jsonify({"success": True, "message": "Invitation resent successfully"})
 
 
 @user_bp.route('/update-role', methods=['POST'])
