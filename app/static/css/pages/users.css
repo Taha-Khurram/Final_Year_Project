@@ -94,6 +94,11 @@
     height: 32px !important;
     border-radius: 50% !important;
     font-size: 0.72rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center;
+    line-height: 1;
 }
 
 /* ==================== BADGES ==================== */
