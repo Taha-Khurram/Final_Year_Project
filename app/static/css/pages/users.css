@@ -2,157 +2,261 @@
    Users Page Styles
    ========================================================================== */
 
-/* Local Overrides for User List */
+/* ==================== CONTAINER ==================== */
 .users-container {
-  background: white;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-  overflow: visible;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
 }
 
+/* ==================== HEADER ROW ==================== */
 .users-header {
-  display: flex;
-  padding: 1.25rem 2rem;
-  background: transparent;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--secondary-color);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-top-left-radius: var(--radius-lg);
-  border-top-right-radius: var(--radius-lg);
+    display: flex;
+    padding: 1rem 2rem;
+    background: var(--bg-body);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
+/* ==================== USER ROW ==================== */
 .user-row {
-  display: flex;
-  align-items: center;
-  padding: 1.25rem 2rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  transition: var(--transition-base);
+    display: flex;
+    align-items: center;
+    padding: 0.9rem 2rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    transition: all 0.15s ease;
 }
 
 .user-row:hover {
-  background: var(--bg-body);
+    background: var(--bg-body);
 }
 
 .user-row:last-child {
-  border-bottom: none;
-  border-bottom-left-radius: var(--radius-lg);
-  border-bottom-right-radius: var(--radius-lg);
+    border-bottom: none;
 }
 
+/* ==================== COLUMNS ==================== */
 .col-username {
-  flex: 2;
-  font-weight: 600;
-  color: var(--info-color);
+    flex: 2;
+    min-width: 0;
+    overflow: hidden;
+    padding-right: 1rem;
+}
+
+.col-username .fw-bold {
+    font-size: 0.85rem;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .col-email {
-  flex: 3;
-  color: var(--secondary-color);
-  font-size: 0.9rem;
+    flex: 3;
+    min-width: 0;
+    overflow: hidden;
+    padding-right: 1rem;
+    font-size: 0.82rem;
+    color: #475569;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .col-role {
-  flex: 1;
+    flex: 1.2;
+    min-width: 0;
+    overflow: hidden;
+    padding-right: 1rem;
 }
 
 .col-status {
-  flex: 1.2;
+    flex: 1.2;
+    min-width: 0;
+    overflow: hidden;
+    padding-right: 1rem;
 }
 
 .col-actions {
-  flex: 0 0 120px;
-  text-align: right;
+    flex: 0 0 100px;
+    text-align: right;
+    display: flex;
+    justify-content: flex-end;
 }
 
-/* Sort Icons */
-.sort-icons {
-  display: inline-flex;
-  flex-direction: column;
-  margin-left: 5px;
-  font-size: 0.6rem;
-  opacity: 0.5;
-  cursor: pointer;
+/* ==================== AVATAR ==================== */
+.user-row .footer-avatar {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    font-size: 0.72rem !important;
 }
 
-.sort-icons:hover {
-  opacity: 1;
-}
-
-/* Badge styling */
+/* ==================== BADGES ==================== */
 .badge-role {
-  padding: 0.35rem 1rem;
-  border-radius: 30px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.65rem;
+    border-radius: 50px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
 }
 
 .badge-admin {
-  background: rgba(67, 24, 255, 0.1);
-  color: var(--primary-color);
+    background: rgba(67, 24, 255, 0.1);
+    color: var(--primary-color);
 }
 
 .badge-editor {
-  background: rgba(5, 205, 153, 0.1);
-  color: var(--success-color);
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
 }
 
-/* Status badges */
+/* ==================== STATUS BADGES ==================== */
 .badge-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.3rem 0.85rem;
-  border-radius: 30px;
-  font-size: 0.72rem;
-  font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 50px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
 }
+
+.badge-status .bi { font-size: 0.4rem; }
 
 .badge-active {
-  background: rgba(16, 185, 129, 0.1);
-  color: #059669;
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
 }
 
 .badge-pending {
-  background: rgba(251, 191, 36, 0.1);
-  color: #d97706;
+    background: rgba(251, 191, 36, 0.12);
+    color: #d97706;
 }
 
-/* Toast notifications */
-.toast-notification {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  padding: 12px 20px;
-  border-radius: 10px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  z-index: 9999;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+/* ==================== ACTION DROPDOWN ==================== */
+.action-dropdown {
+    position: relative;
 }
 
-.toast-notification.show {
-  opacity: 1;
-  transform: translateY(0);
+.action-dots-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    color: #64748b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: all 0.15s ease;
 }
 
-.toast-success {
-  background: #ecfdf5;
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+.action-dots-btn:hover {
+    background: var(--bg-body);
+    border-color: #cbd5e1;
+    color: #334155;
 }
 
-.toast-error {
-  background: #fef2f2;
-  color: #dc2626;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+.action-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.35rem;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    min-width: 140px;
+    padding: 0.35rem;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: all 0.15s ease;
+}
+
+.action-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.action-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: none;
+    background: none;
+    border-radius: 7px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.12s ease;
+}
+
+.action-menu-item:hover {
+    background: var(--bg-body);
+    color: #1e293b;
+}
+
+.action-menu-item i {
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+.action-menu-item:hover i {
+    color: var(--primary-color);
+}
+
+.action-menu-item-danger:hover {
+    background: rgba(239, 68, 68, 0.06);
+    color: #ef4444;
+}
+
+.action-menu-item-danger:hover i {
+    color: #ef4444;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 1024px) {
+    .users-header {
+        padding: 1rem 1.25rem;
+    }
+
+    .user-row {
+        padding: 0.9rem 1.25rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .users-header {
+        display: none;
+    }
+
+    .user-row {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 1rem 1.25rem;
+    }
+
+    .col-username { flex: 1 1 100%; }
+    .col-email { flex: 1 1 100%; padding-right: 0; }
+    .col-role { flex: 0 0 auto; }
+    .col-status { flex: 0 0 auto; }
+    .col-actions { flex: 0 0 auto; }
 }

@@ -240,9 +240,20 @@
                     '<div class="col-email text-secondary">' + escapeHtml(email) + '</div>' +
                     '<div class="col-role"><span class="badge-role ' + roleClass + '">' + role.toUpperCase() + '</span></div>' +
                     '<div class="col-status"><span class="badge-status badge-active"><i class="bi bi-check-circle-fill"></i> Active</span></div>' +
-                    '<div class="col-actions d-flex gap-2">' +
-                        '<button class="btn btn-sm btn-light rounded-circle shadow-sm" onclick="openEditRole(\'' + uid + '\', \'' + escapeHtml(name).replace(/'/g, "\\'") + '\', \'' + role + '\')" style="width:32px;height:32px;padding:0;" title="Edit Role"><i class="bi bi-pencil-square text-primary"></i></button>' +
-                        '<button class="btn btn-sm btn-light rounded-circle shadow-sm" onclick="confirmDeleteUser(\'' + uid + '\', \'' + escapeHtml(name).replace(/'/g, "\\'") + '\')" style="width:32px;height:32px;padding:0;" title="Delete User"><i class="bi bi-trash text-danger"></i></button>' +
+                    '<div class="col-actions">' +
+                        '<div class="action-dropdown">' +
+                            '<button class="action-dots-btn" onclick="toggleActionMenu(this)">' +
+                                '<i class="bi bi-three-dots-vertical"></i>' +
+                            '</button>' +
+                            '<div class="action-menu">' +
+                                '<button class="action-menu-item" onclick="openEditRole(\'' + uid + '\', \'' + escapeHtml(name).replace(/'/g, "\\'") + '\', \'' + role + '\')">' +
+                                    '<i class="bi bi-pencil-square"></i> Edit Role' +
+                                '</button>' +
+                                '<button class="action-menu-item action-menu-item-danger" onclick="confirmDeleteUser(\'' + uid + '\', \'' + escapeHtml(name).replace(/'/g, "\\'") + '\')">' +
+                                    '<i class="bi bi-trash"></i> Delete' +
+                                '</button>' +
+                            '</div>' +
+                        '</div>' +
                     '</div></div>';
             });
 
@@ -437,6 +448,27 @@
             });
         }
     }
+
+    window.toggleActionMenu = function(btn) {
+        var menu = btn.nextElementSibling;
+        var isOpen = menu.classList.contains('show');
+
+        document.querySelectorAll('.action-menu.show').forEach(function(m) {
+            m.classList.remove('show');
+        });
+
+        if (!isOpen) {
+            menu.classList.add('show');
+        }
+    };
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.action-dropdown')) {
+            document.querySelectorAll('.action-menu.show').forEach(function(m) {
+                m.classList.remove('show');
+            });
+        }
+    });
 
     loadUsers();
     initForms();
