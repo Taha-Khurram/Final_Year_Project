@@ -140,7 +140,7 @@ function renderActivityRow(activity) {
             <span class="activity-action-text">${actionText}</span>
         </div>
         <div class="col-activity-target">
-            <span class="activity-target-text" title="${targetName}">${truncate(targetName, 40)}</span>
+            <span class="activity-target-text" title="${targetName}">${truncate(targetName, 25)}</span>
         </div>
         <div class="col-activity-type">
             <span class="activity-type-badge ${typeInfo.badgeClass}">

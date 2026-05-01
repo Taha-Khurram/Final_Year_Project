@@ -110,7 +110,7 @@ function renderBlogRow(blog) {
     return `
     <div class="blog-row">
         <div class="col-blog-title">
-            <span class="blog-title-cell" title="${title}">${truncate(title, 55)}</span>
+            <span class="blog-title-cell" title="${title}">${truncate(title, 45)}</span>
         </div>
         <div class="col-blog-author">
             <div class="blog-author-cell">

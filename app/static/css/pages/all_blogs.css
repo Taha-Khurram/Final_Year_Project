@@ -4,13 +4,17 @@
 
 /* ==================== FILTER SECTION ==================== */
 .blogs-filters {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
     margin-bottom: 1.5rem;
 }
 
 .blogs-filter-tabs {
     display: flex;
     gap: 0.5rem;
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
     flex-wrap: wrap;
 }
 
@@ -19,7 +23,7 @@
     border: 1px solid #e2e8f0;
     border-radius: 50px;
     background: white;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: 600;
     color: #64748b;
     cursor: pointer;
@@ -29,12 +33,14 @@
 .blogs-filter-tabs .filter-tab:hover {
     background: #f8fafc;
     color: #475569;
+    border-color: #cbd5e1;
 }
 
 .blogs-filter-tabs .filter-tab.active {
     background: var(--primary-color);
     color: white;
     border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(67, 24, 255, 0.25);
 }
 
 .blogs-filter-controls {
@@ -45,16 +51,17 @@
 }
 
 .blogs-filters .filter-select {
-    padding: 0.5rem 2rem 0.5rem 0.85rem;
+    padding: 0.55rem 2rem 0.55rem 0.85rem;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    background: white;
-    font-size: 0.85rem;
+    border-radius: 10px;
+    background: var(--bg-body);
+    font-size: 0.82rem;
     font-weight: 500;
     color: #475569;
     cursor: pointer;
     min-width: 160px;
     appearance: auto;
+    transition: all 0.2s ease;
 }
 
 .blogs-filters .filter-select:focus {
@@ -67,7 +74,7 @@
     position: relative;
     flex: 1;
     min-width: 200px;
-    max-width: 300px;
+    max-width: 320px;
 }
 
 .blogs-filters .filter-search-wrap i {
@@ -81,26 +88,28 @@
 
 .blogs-filters .filter-search {
     width: 100%;
-    padding: 0.5rem 0.85rem 0.5rem 2.25rem;
+    padding: 0.55rem 0.85rem 0.55rem 2.25rem;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    background: white;
-    font-size: 0.85rem;
+    border-radius: 10px;
+    background: var(--bg-body);
+    font-size: 0.82rem;
     color: #475569;
+    transition: all 0.2s ease;
 }
 
 .blogs-filters .filter-search:focus {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.08);
+    background: white;
 }
 
 .blogs-filters .filter-date-btn {
-    padding: 0.5rem 1rem;
+    padding: 0.55rem 1rem;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    background: white;
-    font-size: 0.85rem;
+    border-radius: 10px;
+    background: var(--bg-body);
+    font-size: 0.82rem;
     font-weight: 500;
     color: #475569;
     cursor: pointer;
@@ -132,29 +141,29 @@
 
 .blogs-list-header {
     display: flex;
-    padding: 1.25rem 2rem;
-    background: transparent;
+    padding: 1rem 2rem;
+    background: var(--bg-body);
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 700;
     color: var(--secondary-color);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
-.col-blog-title { flex: 3; min-width: 0; }
-.col-blog-author { flex: 1.5; min-width: 0; }
-.col-blog-category { flex: 1.5; min-width: 0; }
-.col-blog-status { flex: 1.2; min-width: 0; }
+.col-blog-title { flex: 3; min-width: 0; overflow: hidden; padding-right: 1rem; }
+.col-blog-author { flex: 1.5; min-width: 0; overflow: hidden; padding-right: 1rem; }
+.col-blog-category { flex: 1.5; min-width: 0; overflow: hidden; padding-right: 1rem; }
+.col-blog-status { flex: 1.2; min-width: 0; overflow: hidden; padding-right: 1rem; }
 .col-blog-date { flex: 1.5; min-width: 0; text-align: right; }
 
 /* ==================== BLOG ROW ==================== */
 .blog-row {
     display: flex;
     align-items: center;
-    padding: 1rem 2rem;
+    padding: 0.9rem 2rem;
     border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
 }
 
 .blog-row:hover {
@@ -167,7 +176,7 @@
 
 .blog-title-cell {
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     color: #1e293b;
     white-space: nowrap;
     overflow: hidden;
@@ -184,7 +193,7 @@
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color) 0%, #8B5CF6 100%);
     color: white;
     display: flex;
     align-items: center;
@@ -195,7 +204,7 @@
 }
 
 .blog-author-name {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     color: #475569;
     font-weight: 500;
     white-space: nowrap;
@@ -206,9 +215,9 @@
 .blog-category-badge {
     display: inline-flex;
     align-items: center;
-    padding: 0.25rem 0.65rem;
+    padding: 0.25rem 0.7rem;
     border-radius: 50px;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 600;
     background: rgba(67, 24, 255, 0.08);
     color: var(--primary-color);
@@ -228,7 +237,7 @@
     gap: 0.3rem;
     padding: 0.25rem 0.65rem;
     border-radius: 50px;
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.02em;
@@ -247,16 +256,16 @@
     justify-content: center;
     align-items: center;
     gap: 0.35rem;
-    padding: 1.25rem 0;
+    padding: 1.5rem 0 0.5rem;
 }
 
 .blogs-pagination .page-btn {
     width: 36px;
     height: 36px;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    border-radius: 10px;
     background: white;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: 600;
     color: #64748b;
     cursor: pointer;
@@ -276,6 +285,7 @@
     background: var(--primary-color);
     color: white;
     border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(67, 24, 255, 0.25);
 }
 
 .blogs-pagination .page-btn.disabled {
@@ -291,8 +301,8 @@
 /* ==================== DATE MODAL ==================== */
 #dateRangeModal .custom-modal {
     border: none;
-    border-radius: var(--radius-lg, 16px);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
     overflow: hidden;
 }
 
@@ -306,7 +316,7 @@
 }
 
 #dateRangeModal .custom-modal-title {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 700;
     color: #1e293b;
     display: flex;
@@ -337,7 +347,7 @@
 
 .date-range-field .form-label {
     display: block;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     font-weight: 700;
     color: #475569;
     margin-bottom: 0.4rem;
@@ -349,10 +359,11 @@
     width: 100%;
     padding: 0.6rem 0.85rem;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 0.875rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
     color: #334155;
     background: white;
+    transition: all 0.2s ease;
 }
 
 .date-range-field .form-control:focus {
@@ -373,9 +384,9 @@
 .preset-btn {
     padding: 0.45rem 0.75rem;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    border-radius: 10px;
     background: white;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 600;
     color: #64748b;
     cursor: pointer;
@@ -394,9 +405,9 @@
     align-items: center;
     gap: 0.45rem;
     padding: 0.55rem 1.15rem;
-    border-radius: 8px;
+    border-radius: 10px;
     font-weight: 600;
-    font-size: 0.835rem;
+    font-size: 0.82rem;
     transition: all 0.2s ease;
     border: none;
     cursor: pointer;
@@ -413,13 +424,14 @@
 #dateRangeModal .btn-modal-primary {
     background: var(--primary-color);
     color: white;
+    box-shadow: 0 4px 12px rgba(67, 24, 255, 0.25);
 }
 
 #dateRangeModal .btn-modal-primary:hover { opacity: 0.9; }
 
 /* ==================== EMPTY STATE ==================== */
 .blogs-empty {
-    padding: 3rem 1rem;
+    padding: 3.5rem 1rem;
     text-align: center;
 }
 
@@ -427,16 +439,32 @@
     font-size: 2.5rem;
     color: #cbd5e1;
     margin-bottom: 0.75rem;
+    display: block;
 }
 
 .blogs-empty p {
-    color: #64748b;
+    color: #94a3b8;
     font-weight: 600;
+    font-size: 0.9rem;
     margin: 0;
 }
 
 /* ==================== RESPONSIVE ==================== */
+@media (max-width: 1024px) {
+    .blogs-list-header {
+        padding: 1rem 1.25rem;
+    }
+
+    .blog-row {
+        padding: 0.9rem 1.25rem;
+    }
+}
+
 @media (max-width: 768px) {
+    .blogs-filters {
+        padding: 1rem;
+    }
+
     .blogs-list-header {
         display: none;
     }
@@ -444,7 +472,7 @@
     .blog-row {
         flex-wrap: wrap;
         gap: 0.5rem;
-        padding: 1rem;
+        padding: 1rem 1.25rem;
     }
 
     .col-blog-title { flex: 1 1 100%; }
