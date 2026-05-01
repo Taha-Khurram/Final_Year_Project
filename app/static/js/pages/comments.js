@@ -87,8 +87,8 @@ function renderCommentRow(comment) {
     const name = escapeHtml(comment.commenter_name || 'Anonymous');
     const initial = name.charAt(0).toUpperCase();
     const email = escapeHtml(comment.commenter_email || '');
-    const text = escapeHtml(truncate(comment.display_text || comment.original_text || '', 80));
-    const blogTitle = escapeHtml(truncate(comment.blog_title || 'Unknown Post', 40));
+    const text = escapeHtml(truncate(comment.display_text || comment.original_text || '', 25));
+    const blogTitle = escapeHtml(truncate(comment.blog_title || 'Unknown Post', 25));
     const date = comment.created_at ? formatDate(comment.created_at) : '';
 
     const statusBadge = getStatusBadge(comment.status);
