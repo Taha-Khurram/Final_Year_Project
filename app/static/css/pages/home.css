@@ -43,21 +43,10 @@
     gap: 2rem;
 }
 
-.col-span-8 {
-    grid-column: span 8;
-}
-
-.col-span-4 {
-    grid-column: span 4;
-}
-
-.col-span-3 {
-    grid-column: span 3;
-}
-
-.col-span-6 {
-    grid-column: span 6;
-}
+.col-span-8 { grid-column: span 8; }
+.col-span-4 { grid-column: span 4; }
+.col-span-3 { grid-column: span 3; }
+.col-span-6 { grid-column: span 6; }
 
 @media (max-width: 1024px) {
     .dashboard-grid {
@@ -100,30 +89,181 @@
     font-size: 1.5rem;
 }
 
-.icon-purple {
-    background: rgba(67, 24, 255, 0.1);
-    color: var(--primary-color);
+.icon-purple { background: rgba(67, 24, 255, 0.1); color: var(--primary-color); }
+.icon-green { background: rgba(5, 205, 153, 0.1); color: var(--success-color); }
+.icon-orange { background: rgba(255, 181, 71, 0.1); color: var(--warning-color); }
+
+/* ==================== BLOG LIST CARDS GRID ==================== */
+.dashboard-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
 }
 
-.icon-green {
-    background: rgba(5, 205, 153, 0.1);
-    color: var(--success-color);
+@media (max-width: 1200px) {
+    .dashboard-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
-.icon-orange {
-    background: rgba(255, 181, 71, 0.1);
-    color: var(--warning-color);
+@media (max-width: 768px) {
+    .dashboard-cards-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
-/* Recent Activity List */
-.activity-item {
+/* ==================== LIST CARD ==================== */
+.dashboard-list-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
     display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    padding: 1rem 0;
+    flex-direction: column;
+}
+
+.list-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.activity-item:last-child {
-    border: none;
+.list-card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.list-card-title i {
+    font-size: 1rem;
+    color: var(--primary-color);
+}
+
+.list-card-viewall {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 50px;
+    background: rgba(67, 24, 255, 0.06);
+    transition: all 0.2s ease;
+}
+
+.list-card-viewall:hover {
+    background: rgba(67, 24, 255, 0.12);
+    color: var(--primary-color);
+}
+
+.list-card-body {
+    padding: 0;
+    flex: 1;
+}
+
+/* ==================== LIST ITEM ==================== */
+.list-card-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    transition: background 0.15s ease;
+}
+
+.list-card-item:hover {
+    background: #f8fafc;
+}
+
+.list-card-item:last-child {
+    border-bottom: none;
+}
+
+.list-card-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+    flex: 1;
+    margin-right: 0.75rem;
+}
+
+.list-card-item-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.list-card-item-meta {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+/* ==================== STATUS BADGES ==================== */
+.list-card-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.6rem;
+    border-radius: 50px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.badge-draft {
+    background: rgba(100, 116, 139, 0.1);
+    color: #64748b;
+}
+
+.badge-under_review {
+    background: rgba(251, 191, 36, 0.12);
+    color: #d97706;
+}
+
+.badge-published {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+}
+
+.badge-rejected {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+/* ==================== EMPTY STATE ==================== */
+.list-card-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 1rem;
+    text-align: center;
+}
+
+.list-card-empty i {
+    font-size: 2rem;
+    color: #cbd5e1;
+    margin-bottom: 0.5rem;
+}
+
+.list-card-empty p {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    font-weight: 500;
+    margin: 0;
 }

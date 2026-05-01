@@ -16,8 +16,7 @@
 
         <header class="dashboard-header">
             <div>
-                <div class="header-welcome-text">{{ greeting }}, {{ username}}
-                </div>
+                <div class="header-welcome-text">{{ greeting }}, {{ username }}</div>
                 <h1 class="header-title">Welcome Back!</h1>
             </div>
         </header>
@@ -29,7 +28,7 @@
         </div>
 
         <!-- Stats Grid -->
-        <div class="dashboard-grid mb-5 animate-fade-up" style="animation-delay: 0.1s;">
+        <div class="dashboard-grid mb-4 animate-fade-up" style="animation-delay: 0.1s;">
             <div class="col-span-4 stat-card">
                 <div class="stat-icon icon-purple"><i class="bi bi-file-post"></i></div>
                 <div>
@@ -48,57 +47,93 @@
                 <div class="stat-icon icon-green"><i class="bi bi-check2-circle"></i></div>
                 <div>
                     <div class="text-muted small fw-bold text-uppercase">Published</div>
-                    <div class="fs-2 fw-bold text-dark">{{ published_count | int}}</div>
+                    <div class="fs-2 fw-bold text-dark">{{ published_count | int }}</div>
                 </div>
             </div>
         </div>
 
-        <!-- Content Grid -->
-        <div class="dashboard-grid animate-fade-up" style="animation-delay: 0.2s;">
+        <!-- Blog List Cards -->
+        <div class="dashboard-cards-grid animate-fade-up" style="animation-delay: 0.2s;">
 
-            <!-- Recent Blogs (Colorful Widget Style) -->
-            <div class="col-span-8 card-glass p-0 overflow-hidden">
-                <div class="d-flex justify-content-between align-items-center p-4 border-bottom">
-                    <h4 class="mb-0">Recent Activity</h4>
-                    <a href="#" class="btn btn-sm btn-light rounded-pill px-3 text-primary">View All</a>
+            <!-- All Blogs Card -->
+            <div class="dashboard-list-card">
+                <div class="list-card-header">
+                    <h4 class="list-card-title"><i class="bi bi-file-post"></i> All Blogs</h4>
+                    <a href="{{ url_for('blog.drafts_page') }}" class="list-card-viewall">View All <i class="bi bi-arrow-right"></i></a>
                 </div>
-                <div class="p-0">
-                    {% if recent_activities %}
-                    {% for activity in recent_activities %}
-                    <div class="activity-item px-4 py-3 hover-bg-light">
-                        <div class="rounded-circle bg-light p-2 text-primary">
-                            <i class="bi bi-pencil-fill"></i>
+                <div class="list-card-body">
+                    {% if all_blogs %}
+                    {% for blog in all_blogs %}
+                    <div class="list-card-item">
+                        <div class="list-card-item-info">
+                            <span class="list-card-item-title">{{ blog.title or 'Untitled' }}</span>
+                            <span class="list-card-item-meta">{{ blog.category or 'Uncategorized' }}</span>
                         </div>
-                        <div>
-                            <div class="fw-bold text-dark">{{ activity.description }}</div>
-                            <div class="text-muted small">{{ activity.timestamp }}</div>
-                        </div>
+                        <span class="list-card-badge badge-{{ blog.status|lower }}">{{ blog.status }}</span>
                     </div>
                     {% endfor %}
                     {% else %}
-                    <div class="p-5 text-center text-muted">No recent activity</div>
+                    <div class="list-card-empty">
+                        <i class="bi bi-journal-x"></i>
+                        <p>No blogs yet. Start creating!</p>
+                    </div>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Quick Actions / Drafts (Vertical Card) -->
-            <!-- <div class="col-span-4 d-flex flex-column gap-4">
-                <div class="widget-card widget-purple">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="opacity-75 mb-1">Drafts</div>
-                            <h3 class="text-white mb-0">{{ drafts_count }}</h3>
-                        </div>
-                        <div class="widget-icon-box"><i class="bi bi-file-earmark-text"></i></div>
-                    </div>
-                    <div class="mt-3">
-                        <a href="{{ url_for('blog.drafts_page') }}"
-                            class="text-white text-decoration-none small opacity-75 hover-opacity-100">View Drafts
-                            &rarr;</a>
-                    </div>
+            <!-- Pending Review Card -->
+            <div class="dashboard-list-card">
+                <div class="list-card-header">
+                    <h4 class="list-card-title"><i class="bi bi-hourglass-split"></i> Pending Review</h4>
+                    {% if session.get('user_role') == 'ADMIN' %}
+                    <a href="{{ url_for('blog.approval_page') }}" class="list-card-viewall">View All <i class="bi bi-arrow-right"></i></a>
+                    {% endif %}
                 </div>
+                <div class="list-card-body">
+                    {% if pending_blogs %}
+                    {% for blog in pending_blogs %}
+                    <div class="list-card-item">
+                        <div class="list-card-item-info">
+                            <span class="list-card-item-title">{{ blog.title or 'Untitled' }}</span>
+                            <span class="list-card-item-meta">{{ blog.author or 'Unknown' }}</span>
+                        </div>
+                        <span class="list-card-badge badge-under_review">Under Review</span>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="list-card-empty">
+                        <i class="bi bi-check-circle"></i>
+                        <p>No pending reviews. All caught up!</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
 
-            </div> -->
+            <!-- Published Card -->
+            <div class="dashboard-list-card">
+                <div class="list-card-header">
+                    <h4 class="list-card-title"><i class="bi bi-check2-circle"></i> Published</h4>
+                    <a href="{{ url_for('blog.drafts_page') }}" class="list-card-viewall">View All <i class="bi bi-arrow-right"></i></a>
+                </div>
+                <div class="list-card-body">
+                    {% if published_blogs %}
+                    {% for blog in published_blogs %}
+                    <div class="list-card-item">
+                        <div class="list-card-item-info">
+                            <span class="list-card-item-title">{{ blog.title or 'Untitled' }}</span>
+                            <span class="list-card-item-meta">{{ blog.category or 'Uncategorized' }}</span>
+                        </div>
+                        <span class="list-card-badge badge-published">Published</span>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="list-card-empty">
+                        <i class="bi bi-megaphone"></i>
+                        <p>No published blogs yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
 
         </div>
 

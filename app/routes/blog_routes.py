@@ -103,13 +103,12 @@ def home():
         # Optimized: Fetch all dashboard data in parallel
         dashboard_data = db_service.get_dashboard_data(user_id)
 
-        # Process activities for the template
-        recent_activities = []
-        for act in dashboard_data['recent_activity']:
-            title = act.get('blog_title', '')
-            action = act.get('action_text', 'performed an action')
-            act['description'] = f"{action} \"{title}\"" if title else action
-            recent_activities.append(act)
+        # Get published blogs list (reuse author_id query)
+        published_blogs = db_service.get_blogs_by_status("PUBLISHED", user_id)
+
+        # Get the lists limited for dashboard display
+        all_blogs = dashboard_data['drafts'] + dashboard_data['pending'] + published_blogs
+        all_blogs.sort(key=lambda x: x.get('updated_at') or x.get('created_at') or '', reverse=True)
 
         return render_template(
             'home.html',
@@ -119,7 +118,9 @@ def home():
             published_count=dashboard_data['published_count'],
             drafts_count=len(dashboard_data['drafts']),
             pending_count=len(dashboard_data['pending']),
-            recent_activities=recent_activities
+            all_blogs=all_blogs[:5],
+            pending_blogs=dashboard_data['pending'][:5],
+            published_blogs=published_blogs[:5]
         )
 
     except Exception as e:
@@ -127,11 +128,14 @@ def home():
         return render_template(
             'home.html',
             greeting="Welcome",
+            username="User",
             total_blogs=0,
             published_count=0,
             drafts_count=0,
             pending_count=0,
-            recent_activities=[]
+            all_blogs=[],
+            pending_blogs=[],
+            published_blogs=[]
         )
         
 @blog_bp.route('/create')
