@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}All Blogs | ScriptlyAI{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/all_blogs.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+
+  {% include 'partials/sidebar.html' %}
+
+  <main class="dashboard-main">
+    <header class="dashboard-header">
+      <div>
+        <div class="header-welcome-text">Content Management</div>
+        <h1 class="header-title">All Blogs</h1>
+      </div>
+    </header>
+
+    <div class="dashboard-content-wrapper animate-fade-up">
+
+      <!-- Filter Bar -->
+      <div class="blogs-filters">
+        <div class="blogs-filter-tabs">
+          <button class="filter-tab active" data-filter="all">All</button>
+          <button class="filter-tab" data-filter="DRAFT">Draft</button>
+          <button class="filter-tab" data-filter="UNDER_REVIEW">Under Review</button>
+          <button class="filter-tab" data-filter="PUBLISHED">Published</button>
+          <button class="filter-tab" data-filter="REJECTED">Rejected</button>
+        </div>
+        <div class="blogs-filter-controls">
+          <select id="categoryFilter" class="filter-select">
+            <option value="all">All Categories</option>
+            {% for cat in categories %}
+            <option value="{{ cat.name }}">{{ cat.name }}</option>
+            {% endfor %}
+          </select>
+          <div class="filter-search-wrap">
+            <i class="bi bi-search"></i>
+            <input type="text" id="searchInput" class="filter-search" placeholder="Search blogs...">
+          </div>
+          <button class="filter-date-btn" id="dateFilterBtn" onclick="openDateModal()">
+            <i class="bi bi-calendar3"></i> <span id="dateFilterLabel">Date Range</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Blogs Table -->
+      <div class="blogs-container">
+        <div class="blogs-list-header">
+          <div class="col-blog-title">Title</div>
+          <div class="col-blog-author">Author</div>
+          <div class="col-blog-category">Category</div>
+          <div class="col-blog-status">Status</div>
+          <div class="col-blog-date">Updated</div>
+        </div>
+        <div id="blogsList">
+          <div class="text-center py-5">
+            <div class="spinner-border spinner-border-sm text-primary opacity-50"></div>
+            <p class="text-secondary fw-medium mt-2 mb-0">Loading blogs...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="blogs-pagination" id="blogsPagination"></div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Date Range Modal -->
+<div class="modal fade" id="dateRangeModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content custom-modal">
+      <div class="custom-modal-header">
+        <h5 class="custom-modal-title"><i class="bi bi-calendar3"></i> Select Date Range</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="custom-modal-body">
+        <div class="date-range-field">
+          <label class="form-label">From</label>
+          <input type="date" id="dateFrom" class="form-control">
+        </div>
+        <div class="date-range-field">
+          <label class="form-label">To</label>
+          <input type="date" id="dateTo" class="form-control">
+        </div>
+        <div class="date-range-presets">
+          <button class="preset-btn" onclick="setDatePreset('today')">Today</button>
+          <button class="preset-btn" onclick="setDatePreset('week')">Last 7 days</button>
+          <button class="preset-btn" onclick="setDatePreset('month')">Last 30 days</button>
+          <button class="preset-btn" onclick="setDatePreset('all')">All Time</button>
+        </div>
+      </div>
+      <div class="custom-modal-footer">
+        <button class="btn-modal btn-modal-secondary" onclick="clearDateFilter()">Clear</button>
+        <button class="btn-modal btn-modal-primary" onclick="applyDateFilter()">
+          <i class="bi bi-check-lg"></i> Apply
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/pages/all_blogs.js') }}"></script>
+{% endblock %}

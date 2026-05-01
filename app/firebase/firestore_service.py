@@ -284,6 +284,83 @@ class FirestoreService:
             print(f"❌ Error fetching paginated drafts: {e}")
             return [], 0
 
+    def get_all_blogs_filtered(self, user_ids, status_filter='all', category_filter='all',
+                                search='', date_from='', date_to='', page=1, per_page=15):
+        try:
+            all_blogs = []
+            for i in range(0, len(user_ids), 30):
+                batch_ids = user_ids[i:i+30]
+                docs = (self.db.collection(self.collection_name)
+                        .where(filter=FieldFilter("author_id", "in", batch_ids))
+                        .stream())
+                for doc in docs:
+                    data = doc.to_dict()
+                    data['id'] = doc.id
+                    all_blogs.append(data)
+
+            all_blogs.sort(key=lambda x: x.get('updated_at') or x.get('created_at') or datetime.min, reverse=True)
+
+            filtered = []
+            for b in all_blogs:
+                if status_filter != 'all' and b.get('status', '').upper() != status_filter.upper():
+                    continue
+
+                if category_filter != 'all' and b.get('category', '').lower() != category_filter.lower():
+                    continue
+
+                if date_from:
+                    try:
+                        from_date = datetime.strptime(date_from, '%Y-%m-%d')
+                        updated = b.get('updated_at') or b.get('created_at')
+                        if updated and hasattr(updated, 'replace'):
+                            updated = updated.replace(tzinfo=None)
+                        if isinstance(updated, datetime) and updated < from_date:
+                            continue
+                    except (ValueError, TypeError):
+                        pass
+
+                if date_to:
+                    try:
+                        to_date = datetime.strptime(date_to, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
+                        updated = b.get('updated_at') or b.get('created_at')
+                        if updated and hasattr(updated, 'replace'):
+                            updated = updated.replace(tzinfo=None)
+                        if isinstance(updated, datetime) and updated > to_date:
+                            continue
+                    except (ValueError, TypeError):
+                        pass
+
+                if search:
+                    search_lower = search.lower()
+                    searchable = f"{b.get('title', '')} {b.get('category', '')} {b.get('author', '')}".lower()
+                    if search_lower not in searchable:
+                        continue
+
+                filtered.append(b)
+
+            total = len(filtered)
+            total_pages = max(1, (total + per_page - 1) // per_page)
+            start = (page - 1) * per_page
+            page_blogs = filtered[start:start + per_page]
+
+            # Serialize timestamps
+            for b in page_blogs:
+                for field in ['updated_at', 'created_at']:
+                    val = b.get(field)
+                    if val and hasattr(val, 'isoformat'):
+                        b[field] = val.isoformat()
+
+            return {
+                "blogs": page_blogs,
+                "total": total,
+                "page": page,
+                "per_page": per_page,
+                "total_pages": total_pages
+            }
+        except Exception as e:
+            print(f"❌ Error fetching filtered blogs: {e}")
+            return {"blogs": [], "total": 0, "page": 1, "per_page": per_page, "total_pages": 1}
+
     def delete_blog(self, blog_id):
         try:
             blog_ref = self.db.collection(self.collection_name).document(blog_id)
