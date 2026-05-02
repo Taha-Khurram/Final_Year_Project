@@ -31,31 +31,34 @@ def schedule_list():
     if user_role != 'ADMIN':
         return jsonify({"success": False, "error": "Admin only"}), 403
 
-    site_owner_id = db_service.get_site_owner_for_user(user_id)
+    try:
+        site_owner_id = db_service.get_site_owner_for_user(user_id)
+        blogs = db_service.get_all_scheduled_for_calendar(site_owner_id)
 
-    blogs = db_service.get_all_scheduled_for_calendar(site_owner_id)
+        result = []
+        for blog in blogs:
+            scheduled_at = blog.get('scheduled_at')
+            if not scheduled_at:
+                continue
 
-    result = []
-    for blog in blogs:
-        scheduled_at = blog.get('scheduled_at')
-        if not scheduled_at:
-            continue
+            if hasattr(scheduled_at, 'isoformat'):
+                display_date = scheduled_at.isoformat()
+            else:
+                display_date = str(scheduled_at)
 
-        if hasattr(scheduled_at, 'isoformat'):
-            display_date = scheduled_at.isoformat()
-        else:
-            display_date = str(scheduled_at)
+            result.append({
+                "id": blog.get("id"),
+                "title": (blog.get("title") or "Untitled").replace("**", ""),
+                "category": blog.get("category", "General"),
+                "author": blog.get("author", "Unknown"),
+                "status": blog.get("status"),
+                "scheduled_at": display_date
+            })
 
-        result.append({
-            "id": blog.get("id"),
-            "title": (blog.get("title") or "Untitled").replace("**", ""),
-            "category": blog.get("category", "General"),
-            "author": blog.get("author", "Unknown"),
-            "status": blog.get("status"),
-            "scheduled_at": display_date
-        })
-
-    return jsonify({"success": True, "blogs": result})
+        return jsonify({"success": True, "blogs": result})
+    except Exception as e:
+        print(f"❌ Schedule list error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 @schedule_bp.route('/api/schedule/<blog_id>', methods=['POST'])

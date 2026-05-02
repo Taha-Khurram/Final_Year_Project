@@ -77,6 +77,18 @@ function updateMonthTitle() {
 async function loadScheduleData() {
   try {
     const res = await fetch('/api/schedule/list');
+
+    if (!res.ok) {
+      let msg = 'Failed to load schedule data.';
+      try {
+        const errData = await res.json();
+        msg = errData.error || msg;
+      } catch (_) {}
+      showToast({ type: 'error', title: 'Error', message: msg, duration: 4000 });
+      renderEmptyTimeline();
+      return;
+    }
+
     const data = await res.json();
 
     if (data.success) {
@@ -84,11 +96,25 @@ async function loadScheduleData() {
       updateStats();
       renderTimeline();
     } else {
-      showToast({ type: 'error', title: 'Error', message: 'Failed to load schedule data.', duration: 4000 });
+      showToast({ type: 'error', title: 'Error', message: data.error || 'Failed to load schedule data.', duration: 4000 });
+      renderEmptyTimeline();
     }
   } catch (err) {
+    console.error('Schedule load error:', err);
     showToast({ type: 'error', title: 'Error', message: 'Connection error loading schedule.', duration: 4000 });
+    renderEmptyTimeline();
   }
+}
+
+function renderEmptyTimeline() {
+  const container = document.getElementById('timelineContainer');
+  container.innerHTML = `
+    <div class="schedule-empty">
+      <i class="bi bi-calendar-x"></i>
+      <p>No scheduled blogs found.</p>
+      <p class="empty-sub">Use the approval page to schedule blogs for future publishing.</p>
+    </div>
+  `;
 }
 
 function updateStats() {
