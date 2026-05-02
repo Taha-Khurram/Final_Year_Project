@@ -2,6 +2,9 @@ flask
 python-dotenv
 firebase-admin
 google-generativeai
+google-analytics-data
+google-analytics-admin
+google-auth-oauthlib
 requests
 gunicorn
 waitress

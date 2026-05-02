@@ -1,0 +1,521 @@
+/* ==========================================================================
+   Analytics Dashboard Styles
+   ========================================================================== */
+
+/* ==================== CONNECT CARD ==================== */
+.analytics-connect-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 3.5rem 2rem;
+    text-align: center;
+    max-width: 520px;
+    margin: 2rem auto;
+}
+
+.connect-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgba(67, 24, 255, 0.08);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    margin: 0 auto 1.5rem;
+}
+
+.connect-icon.connected {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+}
+
+.analytics-connect-card h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+}
+
+.analytics-connect-card p {
+    font-size: 0.88rem;
+    color: #64748b;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    max-width: 380px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.analytics-connect-card code {
+    background: rgba(67, 24, 255, 0.06);
+    color: var(--primary-color);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+}
+
+.btn-connect {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.75rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 16px rgba(67, 24, 255, 0.3);
+}
+
+.btn-connect:hover {
+    opacity: 0.9;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn-disconnect {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1.25rem;
+    background: white;
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 50px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-disconnect:hover {
+    background: rgba(239, 68, 68, 0.05);
+    border-color: #ef4444;
+}
+
+/* ==================== CONNECT STEPS ==================== */
+.connect-steps {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.connect-steps .step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.connect-steps .step span {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(67, 24, 255, 0.08);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.68rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* ==================== PROPERTY LIST ==================== */
+.property-list {
+    max-width: 400px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.property-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.property-item:hover {
+    border-color: var(--primary-color);
+    background: rgba(67, 24, 255, 0.03);
+}
+
+.property-item-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.property-item-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.property-item-account {
+    font-size: 0.72rem;
+    color: #94a3b8;
+}
+
+.property-item i {
+    color: #cbd5e1;
+    transition: color 0.15s;
+}
+
+.property-item:hover i {
+    color: var(--primary-color);
+}
+
+/* ==================== PROPERTY BAR ==================== */
+.analytics-property-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 0.85rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.property-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.property-info i {
+    color: var(--primary-color);
+}
+
+.period-selector {
+    display: flex;
+    gap: 0.35rem;
+}
+
+.period-btn {
+    padding: 0.4rem 0.9rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 50px;
+    background: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.period-btn:hover {
+    border-color: #cbd5e1;
+    color: #475569;
+}
+
+.period-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(67, 24, 255, 0.25);
+}
+
+/* ==================== STATS ROW ==================== */
+.analytics-stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.analytics-stats-row .stat-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.analytics-stats-row .stat-card:hover {
+    box-shadow: var(--shadow-card);
+    transform: translateY(-2px);
+}
+
+.analytics-stats-row .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.stat-realtime { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+.stat-views { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+.stat-sessions { background: rgba(67, 24, 255, 0.1); color: var(--primary-color); }
+.stat-users { background: rgba(16, 185, 129, 0.1); color: #059669; }
+
+.analytics-stats-row .stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.analytics-stats-row .stat-count {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.2;
+}
+
+.analytics-stats-row .stat-label {
+    font-size: 0.78rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Real-time pulse */
+.realtime-pulse {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 8px;
+    height: 8px;
+    background: #ef4444;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* ==================== SECONDARY STATS ==================== */
+.analytics-secondary-row {
+    display: flex;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.secondary-stat {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 0.85rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.secondary-label {
+    font-size: 0.78rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.secondary-value {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+/* ==================== ANALYTICS GRID ==================== */
+.analytics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.analytics-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+}
+
+.analytics-card-header {
+    padding: 1.15rem 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.analytics-card-header h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.analytics-card-header h3 i {
+    color: var(--primary-color);
+    font-size: 1rem;
+}
+
+.analytics-card-body {
+    padding: 0;
+}
+
+/* ==================== TABLE ROWS ==================== */
+.analytics-table-header {
+    display: flex;
+    padding: 0.65rem 1.5rem;
+    background: var(--bg-body);
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.analytics-table-row {
+    display: flex;
+    align-items: center;
+    padding: 0.7rem 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    transition: background 0.15s ease;
+}
+
+.analytics-table-row:hover {
+    background: var(--bg-body);
+}
+
+.analytics-table-row:last-child {
+    border-bottom: none;
+}
+
+.col-page-path {
+    flex: 3;
+    min-width: 0;
+    overflow: hidden;
+    padding-right: 1rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #1e293b;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.col-page-views {
+    flex: 1;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #475569;
+    text-align: right;
+}
+
+.col-page-time {
+    flex: 1;
+    font-size: 0.82rem;
+    color: #94a3b8;
+    text-align: right;
+}
+
+.col-source-name {
+    flex: 2;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #1e293b;
+    padding-right: 1rem;
+}
+
+.col-source-sessions {
+    flex: 1;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #475569;
+    text-align: right;
+}
+
+.col-source-users {
+    flex: 1;
+    font-size: 0.82rem;
+    color: #94a3b8;
+    text-align: right;
+}
+
+/* ==================== EMPTY STATE ==================== */
+.analytics-empty {
+    padding: 2.5rem 1rem;
+    text-align: center;
+}
+
+.analytics-empty i {
+    font-size: 2rem;
+    color: #cbd5e1;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.analytics-empty p {
+    color: #94a3b8;
+    font-weight: 500;
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 1200px) {
+    .analytics-stats-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .analytics-stats-row {
+        grid-template-columns: 1fr;
+    }
+
+    .analytics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .analytics-property-bar {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: stretch;
+    }
+
+    .period-selector {
+        justify-content: center;
+    }
+
+    .connect-steps {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: center;
+    }
+
+    .analytics-secondary-row {
+        flex-direction: column;
+    }
+
+    .analytics-connect-card {
+        padding: 2.5rem 1.25rem;
+    }
+}

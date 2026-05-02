@@ -19,6 +19,10 @@ class Config:
     # Get your key at: https://rapidapi.com
     RAPIDAPI_KEY = os.getenv('RAPIDAPI_KEY')
 
+    # Google OAuth for Analytics integration
+    GOOGLE_OAUTH_CLIENT_ID = os.getenv('GOOGLE_OAUTH_CLIENT_ID')
+    GOOGLE_OAUTH_CLIENT_SECRET = os.getenv('GOOGLE_OAUTH_CLIENT_SECRET')
+
     # Firebase Web SDK Configuration (from environment variables)
     FIREBASE_CONFIG = {
         "apiKey": os.getenv("FB_API_KEY"),
