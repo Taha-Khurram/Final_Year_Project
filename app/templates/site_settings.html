@@ -1316,28 +1316,6 @@
                         </div>
                     </div>
 
-                    <div class="section-divider">
-                        <div class="section-title">Site Verification</div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="form-label">Google Search Console</label>
-                                <input type="text" class="form-control" id="seo_google_verification" name="seo_google_verification"
-                                       value="{{ settings.seo.google_site_verification if settings.seo else '' }}" placeholder="verification-code">
-                                <p class="form-hint">Verification code from Google Search Console</p>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="form-label">Bing Webmaster</label>
-                                <input type="text" class="form-control" id="seo_bing_verification" name="seo_bing_verification"
-                                       value="{{ settings.seo.bing_site_verification if settings.seo else '' }}" placeholder="verification-code">
-                                <p class="form-hint">Verification code from Bing Webmaster Tools</p>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="row">
                         <div class="col-md-6">
@@ -2427,9 +2405,7 @@
                 og_site_name: document.getElementById('seo_og_site_name').value,
                 og_default_image: document.getElementById('og_image_url').value,
                 twitter_card: document.getElementById('seo_twitter_card').value,
-                twitter_site: document.getElementById('seo_twitter_site').value,
-                google_site_verification: document.getElementById('seo_google_verification').value,
-                bing_site_verification: document.getElementById('seo_bing_verification').value
+                twitter_site: document.getElementById('seo_twitter_site').value
             },
 
             // RSS Feed
