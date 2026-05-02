@@ -10,8 +10,14 @@
     }
 
     function loadProperties() {
-        fetch('/analytics/properties')
-            .then(function(r) { return r.json(); })
+        var controller = new AbortController();
+        var timeoutId = setTimeout(function() { controller.abort(); }, 20000);
+
+        fetch('/analytics/properties', { signal: controller.signal })
+            .then(function(r) {
+                clearTimeout(timeoutId);
+                return r.json();
+            })
             .then(function(data) {
                 if (data.error) {
                     propertyList.innerHTML = '<p class="text-danger small text-center">' + data.error + '</p>';
@@ -35,8 +41,13 @@
                 });
                 propertyList.innerHTML = html;
             })
-            .catch(function() {
-                propertyList.innerHTML = '<p class="text-danger small text-center">Failed to load properties.</p>';
+            .catch(function(err) {
+                clearTimeout(timeoutId);
+                if (err.name === 'AbortError') {
+                    propertyList.innerHTML = '<p class="text-danger small text-center">Request timed out. Make sure the Google Analytics Admin API is enabled in your Google Cloud project.</p>';
+                } else {
+                    propertyList.innerHTML = '<p class="text-danger small text-center">Failed to load properties. Check your console for errors.</p>';
+                }
             });
     }
 
@@ -49,6 +60,13 @@
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.success) {
+                var msg = '';
+                if (data.measurement_id && data.domain) {
+                    msg = 'Auto-linked: ' + data.measurement_id + ' \u2022 ' + data.domain;
+                } else if (data.measurement_id) {
+                    msg = 'Tracking linked: ' + data.measurement_id;
+                }
+                if (msg) showAutoLinkToast(msg);
                 window.location.reload();
             }
         });
@@ -209,5 +227,17 @@
         var div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
+    }
+
+    function showAutoLinkToast(message) {
+        var toast = document.createElement('div');
+        toast.className = 'analytics-toast';
+        toast.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + escapeHtml(message);
+        document.body.appendChild(toast);
+        setTimeout(function() { toast.classList.add('show'); }, 10);
+        setTimeout(function() {
+            toast.classList.remove('show');
+            setTimeout(function() { toast.remove(); }, 300);
+        }, 3000);
     }
 })();

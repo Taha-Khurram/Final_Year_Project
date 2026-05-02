@@ -55,6 +55,31 @@ def _get_credentials(user_id):
     return creds
 
 
+def _fetch_measurement_id(creds, property_id):
+    try:
+        from google.analytics.admin_v1beta import AnalyticsAdminServiceClient
+        client = AnalyticsAdminServiceClient(credentials=creds)
+        streams = client.list_data_streams(parent=property_id, timeout=15)
+        for stream in streams:
+            if stream.web_stream_data and stream.web_stream_data.measurement_id:
+                return (
+                    stream.web_stream_data.measurement_id,
+                    stream.web_stream_data.default_uri or ''
+                )
+    except Exception as e:
+        print(f"Error fetching measurement ID: {e}")
+    return (None, None)
+
+
+def _extract_domain(url):
+    if not url:
+        return ''
+    url = url.strip().rstrip('/')
+    if '://' in url:
+        url = url.split('://')[1]
+    return url.split('/')[0]
+
+
 # ==================== PAGES ====================
 
 @analytics_bp.route('/analytics')
@@ -65,12 +90,22 @@ def analytics_page():
     connected = bool(config and config.get('connected'))
     property_id = config.get('property_id', '') if config else ''
     property_name = config.get('property_name', '') if config else ''
+    measurement_id = config.get('measurement_id', '') if config else ''
+    stream_url = config.get('stream_url', '') if config else ''
     has_oauth = bool(current_app.config.get('GOOGLE_OAUTH_CLIENT_ID'))
+
+    site_settings = db_service.get_site_settings(user_id) if connected else {}
+    custom_domain = site_settings.get('custom_domain', '') if site_settings else ''
+    site_analytics_id = site_settings.get('analytics_id', '') if site_settings else ''
 
     return render_template('analytics.html',
                            connected=connected,
                            property_id=property_id,
                            property_name=property_name,
+                           measurement_id=measurement_id,
+                           stream_url=stream_url,
+                           custom_domain=custom_domain,
+                           site_analytics_id=site_analytics_id,
                            has_oauth=has_oauth)
 
 
@@ -170,6 +205,9 @@ def callback():
 def disconnect():
     user_id = session.get('user_id')
     db_service.db.collection("analytics_config").document(user_id).delete()
+    db_service.db.collection("site_settings").document(user_id).set(
+        {'analytics_id': ''}, merge=True
+    )
 
     db_service.log_activity(
         user_id=user_id,
@@ -189,6 +227,7 @@ def disconnect():
 @admin_required
 def list_properties():
     from google.analytics.admin_v1beta import AnalyticsAdminServiceClient
+    from google.api_core import timeout as api_timeout
 
     user_id = session.get('user_id')
     creds = _get_credentials(user_id)
@@ -197,7 +236,7 @@ def list_properties():
 
     try:
         client = AnalyticsAdminServiceClient(credentials=creds)
-        accounts = client.list_account_summaries()
+        accounts = client.list_account_summaries(timeout=15)
 
         properties = []
         for account in accounts:
@@ -207,6 +246,9 @@ def list_properties():
                     'display_name': prop.display_name,
                     'account_name': account.display_name
                 })
+
+        if not properties:
+            return jsonify({"success": True, "properties": [], "message": "No GA4 properties found in this account."})
 
         return jsonify({"success": True, "properties": properties})
     except Exception as e:
@@ -225,12 +267,39 @@ def select_property():
     if not property_id:
         return jsonify({"error": "Property ID required"}), 400
 
-    db_service.db.collection("analytics_config").document(user_id).update({
+    update_data = {
         'property_id': property_id,
         'property_name': property_name
-    })
+    }
 
-    return jsonify({"success": True})
+    creds = _get_credentials(user_id)
+    measurement_id, stream_url = (None, None)
+    domain = ''
+    if creds:
+        measurement_id, stream_url = _fetch_measurement_id(creds, property_id)
+        domain = _extract_domain(stream_url)
+        if measurement_id:
+            update_data['measurement_id'] = measurement_id
+            update_data['stream_url'] = stream_url or ''
+
+            site_update = {
+                'analytics_id': measurement_id
+            }
+            if domain:
+                site_update['custom_domain'] = domain
+
+            db_service.db.collection("site_settings").document(user_id).set(
+                site_update, merge=True
+            )
+
+    db_service.db.collection("analytics_config").document(user_id).update(update_data)
+
+    return jsonify({
+        "success": True,
+        "measurement_id": measurement_id or '',
+        "stream_url": stream_url or '',
+        "domain": domain
+    })
 
 
 # ==================== DATA API ENDPOINTS ====================
@@ -291,6 +360,7 @@ def overview_data():
     try:
         client = BetaAnalyticsDataClient(credentials=creds)
         property_id = config['property_id']
+        period = request.args.get('period', '7')
 
         response = client.run_report(
             RunReportRequest(

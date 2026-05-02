@@ -86,6 +86,27 @@
         </div>
       </div>
 
+      <!-- Tracking Status Banner -->
+      <div class="tracking-status-banner">
+        <div class="tracking-status-item">
+          <i class="bi bi-globe2"></i>
+          <span class="tracking-label">Domain</span>
+          <span class="tracking-value">{{ custom_domain or 'Not set' }}</span>
+        </div>
+        <div class="tracking-status-item">
+          <i class="bi bi-tag"></i>
+          <span class="tracking-label">Measurement ID</span>
+          <span class="tracking-value">{{ measurement_id or 'Not linked' }}</span>
+        </div>
+        <div class="tracking-status-item">
+          <i class="bi bi-{% if measurement_id and site_analytics_id == measurement_id %}check-circle-fill{% else %}x-circle{% endif %}"></i>
+          <span class="tracking-label">Tracking</span>
+          <span class="tracking-value tracking-{{ 'active' if measurement_id and site_analytics_id == measurement_id else 'inactive' }}">
+            {{ 'Live' if measurement_id and site_analytics_id == measurement_id else 'Inactive' }}
+          </span>
+        </div>
+      </div>
+
       <!-- Real-time + Stats -->
       <div class="analytics-stats-row">
         <div class="stat-card realtime-card">
