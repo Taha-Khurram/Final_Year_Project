@@ -386,11 +386,12 @@ def overview_data():
         client = BetaAnalyticsDataClient(credentials=creds)
         property_id = config['property_id']
         period = request.args.get('period', '7')
+        start_date = "today" if period == "1" else f"{period}daysAgo"
 
         response = client.run_report(
             RunReportRequest(
                 property=property_id,
-                date_ranges=[DateRange(start_date=f"{period}daysAgo", end_date="today")],
+                date_ranges=[DateRange(start_date=start_date, end_date="today")],
                 metrics=[
                     Metric(name="screenPageViews"),
                     Metric(name="sessions"),
@@ -444,11 +445,12 @@ def top_pages():
         client = BetaAnalyticsDataClient(credentials=creds)
         property_id = config['property_id']
         period = request.args.get('period', '7')
+        start_date = "today" if period == "1" else f"{period}daysAgo"
 
         response = client.run_report(
             RunReportRequest(
                 property=property_id,
-                date_ranges=[DateRange(start_date=f"{period}daysAgo", end_date="today")],
+                date_ranges=[DateRange(start_date=start_date, end_date="today")],
                 dimensions=[Dimension(name="pagePath"), Dimension(name="pageTitle")],
                 metrics=[
                     Metric(name="screenPageViews"),
@@ -495,11 +497,12 @@ def traffic_sources():
         client = BetaAnalyticsDataClient(credentials=creds)
         property_id = config['property_id']
         period = request.args.get('period', '7')
+        start_date = "today" if period == "1" else f"{period}daysAgo"
 
         response = client.run_report(
             RunReportRequest(
                 property=property_id,
-                date_ranges=[DateRange(start_date=f"{period}daysAgo", end_date="today")],
+                date_ranges=[DateRange(start_date=start_date, end_date="today")],
                 dimensions=[Dimension(name="sessionDefaultChannelGroup")],
                 metrics=[
                     Metric(name="sessions"),
