@@ -291,7 +291,6 @@ def overview_data():
     try:
         client = BetaAnalyticsDataClient(credentials=creds)
         property_id = config['property_id']
-        period = request.args.get('period', '7')
 
         response = client.run_report(
             RunReportRequest(
