@@ -285,7 +285,7 @@ class FirestoreService:
             return [], 0
 
     def get_all_blogs_filtered(self, user_ids, status_filter='all', category_filter='all',
-                                search='', date_from='', date_to='', page=1, per_page=15):
+                                search='', date_from='', date_to='', page=1, per_page=10):
         try:
             # Build user name lookup map
             user_name_map = {}
@@ -650,7 +650,7 @@ class FirestoreService:
             return []
 
     def get_all_activity_for_admin(self, admin_id, type_filter='all', user_filter='all',
-                                    search='', date_from='', date_to='', page=1, per_page=20):
+                                    search='', date_from='', date_to='', page=1, per_page=10):
         try:
             sub_users = self.get_my_sub_users(admin_id)
             user_ids = [admin_id] + [u.get('uid') for u in sub_users if u.get('uid')]
