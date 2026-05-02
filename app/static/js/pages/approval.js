@@ -429,23 +429,28 @@ async function loadBestTimeSuggestions() {
     </div>`;
 
   try {
-    const res = await fetch('/api/schedule/best-time');
+    const res = await fetch('/api/schedule/best-time?t=' + Date.now());
     const data = await res.json();
 
     if (data.success && data.suggestions && data.suggestions.length > 0) {
       renderSuggestionChips(list, data.suggestions, 'scheduleDateTime', true);
     } else {
-      renderSuggestionChips(list, FALLBACK_SUGGESTIONS, 'scheduleDateTime', false);
+      renderSuggestionChips(list, FALLBACK_SUGGESTIONS, 'scheduleDateTime', false, data.message || null);
     }
   } catch (err) {
-    renderSuggestionChips(list, FALLBACK_SUGGESTIONS, 'scheduleDateTime', false);
+    renderSuggestionChips(list, FALLBACK_SUGGESTIONS, 'scheduleDateTime', false, null);
   }
 }
 
-function renderSuggestionChips(listEl, suggestions, inputId, fromAnalytics) {
-  const sourceLabel = fromAnalytics
-    ? '<span class="best-time-source"><i class="bi bi-check-circle-fill"></i> Based on your Google Analytics data</span>'
-    : '<span class="best-time-source"><i class="bi bi-lightbulb-fill"></i> General best practices (connect Analytics for personalized suggestions)</span>';
+function renderSuggestionChips(listEl, suggestions, inputId, fromAnalytics, apiMessage) {
+  let sourceLabel;
+  if (fromAnalytics) {
+    sourceLabel = '<span class="best-time-source best-time-source-analytics"><i class="bi bi-check-circle-fill"></i> Based on your Google Analytics data (last 28 days)</span>';
+  } else if (apiMessage) {
+    sourceLabel = `<span class="best-time-source best-time-source-warning"><i class="bi bi-exclamation-triangle-fill"></i> ${apiMessage}</span>`;
+  } else {
+    sourceLabel = '<span class="best-time-source"><i class="bi bi-lightbulb-fill"></i> General best practices</span>';
+  }
 
   listEl.innerHTML = sourceLabel + suggestions.map(s =>
     `<button type="button" class="best-time-chip" onclick="applyBestTime(${s.day_index}, ${s.hour}, '${inputId}')" title="${s.reasoning}">

@@ -583,3 +583,11 @@
 .best-time-source .bi-lightbulb-fill {
     color: #f59e0b;
 }
+
+.best-time-source-warning {
+    color: #d97706;
+}
+
+.best-time-source-warning i {
+    color: #d97706;
+}

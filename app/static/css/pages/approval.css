@@ -435,6 +435,14 @@
     color: #f59e0b;
 }
 
+.best-time-source-warning {
+    color: #d97706;
+}
+
+.best-time-source-warning i {
+    color: #d97706;
+}
+
 /* ==================== REQUESTED SCHEDULE BADGE ==================== */
 .requested-schedule-badge {
     display: inline-flex;

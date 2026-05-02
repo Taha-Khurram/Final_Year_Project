@@ -76,30 +76,55 @@ def best_publish_time():
     else:
         analytics_user_id = user_id
 
+    print(f"[BestTime] user_id={user_id}, role={user_role}, analytics_user_id={analytics_user_id}")
+
     cache_key = f"best_publish_time:{analytics_user_id}"
     cached = cache.get(cache_key)
     if cached:
+        print(f"[BestTime] Returning cached result")
         return jsonify(cached)
 
     try:
         from app.routes.analytics_routes import _get_analytics_config, _get_credentials
         config = _get_analytics_config(analytics_user_id)
+        print(f"[BestTime] Analytics config: {config}")
+
         if not config or not config.get('property_id'):
-            return jsonify({"success": True, "suggestions": [], "reason": "no_analytics"})
+            print(f"[BestTime] NO ANALYTICS CONFIG FOUND for user {analytics_user_id}")
+            result = {"success": True, "suggestions": [], "reason": "no_analytics",
+                      "message": "Connect Google Analytics in Settings to get personalized suggestions."}
+            return jsonify(result)
+
+        property_id = config['property_id']
+        print(f"[BestTime] Property ID: {property_id}")
 
         creds = _get_credentials(analytics_user_id)
         if not creds:
-            return jsonify({"success": True, "suggestions": [], "reason": "no_credentials"})
+            print(f"[BestTime] CREDENTIALS FAILED - token refresh may have failed")
+            result = {"success": True, "suggestions": [], "reason": "no_credentials",
+                      "message": "Analytics credentials expired. Please reconnect in Settings."}
+            return jsonify(result)
+
+        print(f"[BestTime] Credentials OK, calling PublishTimeAgent...")
 
         from app.agents.publish_time_agent import PublishTimeAgent
         agent = PublishTimeAgent()
-        result = agent.get_best_times(creds, config['property_id'])
+        result = agent.get_best_times(creds, property_id)
+
+        print(f"[BestTime] Agent result: success={result.get('success')}, suggestions={len(result.get('suggestions', []))}, reason={result.get('reason', 'none')}")
+
+        if result.get('suggestions'):
+            for s in result['suggestions']:
+                print(f"[BestTime]   -> {s['display_time']} (score={s['score']}, {s['reasoning']})")
 
         cache.set(cache_key, result, ttl=21600)
         return jsonify(result)
     except Exception as e:
-        print(f"Best time API error: {e}")
-        return jsonify({"success": True, "suggestions": [], "reason": "error"})
+        import traceback
+        print(f"[BestTime] EXCEPTION: {e}")
+        traceback.print_exc()
+        return jsonify({"success": True, "suggestions": [], "reason": "error",
+                        "message": f"Analytics error: {str(e)}"})
 
 
 @schedule_bp.route('/api/schedule/<blog_id>', methods=['POST'])
