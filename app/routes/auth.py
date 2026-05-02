@@ -86,6 +86,26 @@ def create_sub_user():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
+@auth_bp.route('/forgot-password')
+def forgot_password():
+    if session.get('logged_in'):
+        return redirect(url_for('blog.home'))
+    return render_template('forgot_password.html', firebase_config=current_app.config['FIREBASE_CONFIG'])
+
+@auth_bp.route('/api/auth/check-email', methods=['POST'])
+def check_email():
+    data = request.json
+    email = data.get('email', '').strip()
+    if not email:
+        return jsonify({"exists": False, "error": "Email is required"}), 400
+    try:
+        admin_auth.get_user_by_email(email)
+        return jsonify({"exists": True})
+    except Exception as e:
+        if 'USER_NOT_FOUND' in str(e) or 'not found' in str(e).lower():
+            return jsonify({"exists": False, "error": "No account found with this email address"}), 404
+        return jsonify({"exists": False, "error": "Something went wrong. Please try again"}), 500
+
 @auth_bp.route('/logout')
 def logout():
     session.clear()

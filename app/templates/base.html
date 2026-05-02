@@ -9,6 +9,8 @@
     <!-- Favicon -->
     {% if app_config and app_config.app_favicon %}
     <link rel="icon" href="{{ app_config.app_favicon }}">
+    {% else %}
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/logo.png') }}">
     {% endif %}
 
     <!-- Fonts - Inter -->

@@ -13,6 +13,10 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 - **Newsletter System** - Generate and send newsletters to subscribers
 - **Team Collaboration** - Multi-user support with role management and approval workflows
 - **User Management** - Invite users, assign roles, edit roles, and delete users with full activity logging
+- **Forgot Password** - Secure password reset via Firebase email verification
+- **Google Analytics** - Real-time analytics with Today/7 Days/30 Days period filters
+- **Activity Log** - Paginated activity tracking for admin users
+- **Schedule & Publish** - Schedule blogs for future publishing with AI-recommended times
 
 ## Tech Stack
 
@@ -20,7 +24,7 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 |-------|------------|
 | Backend | Flask, Python |
 | Database | Firebase Firestore |
-| Auth | Firebase Authentication |
+| Auth | Firebase Authentication (Email/Password, Google, Password Reset) |
 | AI | Google Gemini (gemini-3-flash-preview) |
 | Embeddings | Google gemini-embedding-001 |
 | Email | Resend API |

@@ -9,7 +9,7 @@ let currentSearch = '';
 let currentDateFrom = '';
 let currentDateTo = '';
 let currentPage = 1;
-const perPage = 20;
+const perPage = 10;
 let searchTimeout = null;
 
 document.addEventListener('DOMContentLoaded', function () {

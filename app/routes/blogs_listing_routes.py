@@ -47,7 +47,7 @@ def api_get_all_blogs():
     date_from = request.args.get('date_from', '')
     date_to = request.args.get('date_to', '')
     page = int(request.args.get('page', 1))
-    per_page = int(request.args.get('per_page', 10))
+    per_page = 10
 
     result = db_service.get_all_blogs_filtered(
         user_ids=user_ids,
