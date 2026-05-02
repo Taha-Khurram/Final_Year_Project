@@ -19,7 +19,12 @@ def login_required(f):
 @login_required
 def all_blogs_page():
     user_id = session.get('user_id')
-    categories = db_service.get_all_categories(user_id=user_id)
+    user_role = session.get('user_role', 'USER')
+
+    if user_role == 'ADMIN':
+        categories = db_service.get_all_categories(user_id=user_id)
+    else:
+        categories = db_service.get_user_blog_categories(user_id)
     return render_template('all_blogs.html', categories=categories)
 
 

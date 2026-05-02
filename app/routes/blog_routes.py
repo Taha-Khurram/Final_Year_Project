@@ -100,13 +100,13 @@ def home():
         user_role = session.get('user_role', 'USER')
         username = session.get('user_name', 'User')
 
-        # Optimized: Fetch all dashboard data in parallel
-        dashboard_data = db_service.get_dashboard_data(user_id)
+        if user_role == 'ADMIN':
+            dashboard_data = db_service.get_admin_dashboard_data(user_id)
+        else:
+            dashboard_data = db_service.get_dashboard_data(user_id)
 
-        # Get published blogs list (reuse author_id query)
-        published_blogs = db_service.get_blogs_by_status("PUBLISHED", user_id)
+        published_blogs = dashboard_data.get('published_blogs', [])
 
-        # Get the lists limited for dashboard display
         all_blogs = dashboard_data['drafts'] + dashboard_data['pending'] + published_blogs
         all_blogs.sort(key=lambda x: x.get('updated_at') or x.get('created_at') or '', reverse=True)
 
@@ -190,7 +190,13 @@ def approval_page():
 
 @blog_bp.route('/categories')
 def categories_page():
-    categories = db_service.get_all_categories(user_id=session.get('user_id'))
+    user_id = session.get('user_id')
+    user_role = session.get('user_role', 'USER')
+
+    if user_role == 'ADMIN':
+        categories = db_service.get_all_categories(user_id=user_id)
+    else:
+        categories = db_service.get_user_blog_categories(user_id)
     return render_template('categories.html', categories=categories)
 
 
