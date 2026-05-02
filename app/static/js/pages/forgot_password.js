@@ -29,26 +29,44 @@ document.addEventListener('DOMContentLoaded', function () {
         submitBtn.disabled = true;
         submitBtn.classList.add('loading');
 
-        auth.sendPasswordResetEmail(email)
-            .then(function () {
-                sentEmail.textContent = email;
-                emailStep.style.display = 'none';
-                successStep.style.display = 'block';
-            })
-            .catch(function (error) {
+        fetch('/api/auth/check-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email })
+        })
+        .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+        .then(function (result) {
+            if (!result.ok || !result.data.exists) {
                 submitBtn.disabled = false;
                 submitBtn.classList.remove('loading');
-
-                if (error.code === 'auth/user-not-found') {
-                    emailError.textContent = 'No account found with this email address';
-                } else if (error.code === 'auth/invalid-email') {
-                    emailError.textContent = 'Please enter a valid email address';
-                } else if (error.code === 'auth/too-many-requests') {
-                    emailError.textContent = 'Too many attempts. Please try again later';
-                } else {
-                    emailError.textContent = 'Something went wrong. Please try again';
-                }
+                emailError.textContent = result.data.error || 'No account found with this email address';
                 emailError.classList.add('show');
-            });
+                return;
+            }
+
+            auth.sendPasswordResetEmail(email)
+                .then(function () {
+                    sentEmail.textContent = email;
+                    emailStep.style.display = 'none';
+                    successStep.style.display = 'block';
+                })
+                .catch(function (error) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('loading');
+
+                    if (error.code === 'auth/too-many-requests') {
+                        emailError.textContent = 'Too many attempts. Please try again later';
+                    } else {
+                        emailError.textContent = 'Something went wrong. Please try again';
+                    }
+                    emailError.classList.add('show');
+                });
+        })
+        .catch(function () {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('loading');
+            emailError.textContent = 'No email found, please check and try again';
+            emailError.classList.add('show');
+        });
     });
 });
