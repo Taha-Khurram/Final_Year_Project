@@ -86,6 +86,12 @@ def create_sub_user():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
+@auth_bp.route('/forgot-password')
+def forgot_password():
+    if session.get('logged_in'):
+        return redirect(url_for('blog.home'))
+    return render_template('forgot_password.html', firebase_config=current_app.config['FIREBASE_CONFIG'])
+
 @auth_bp.route('/logout')
 def logout():
     session.clear()
