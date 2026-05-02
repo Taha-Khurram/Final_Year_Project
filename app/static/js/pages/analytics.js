@@ -172,7 +172,14 @@
     // ==================== DISCONNECT ====================
 
     window.disconnectAnalytics = function() {
-        if (!confirm('Disconnect Google Analytics? You can reconnect anytime.')) return;
+        document.getElementById('disconnectModal').style.display = 'flex';
+    };
+
+    window.closeDisconnectModal = function() {
+        document.getElementById('disconnectModal').style.display = 'none';
+    };
+
+    window.confirmDisconnect = function() {
         fetch('/analytics/disconnect', { method: 'POST' })
             .then(function(r) { return r.json(); })
             .then(function(data) {
