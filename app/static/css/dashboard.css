@@ -137,7 +137,7 @@ a {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding-bottom: 2rem;
+    padding-bottom: 0.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     margin-bottom: 1.5rem;
     white-space: nowrap;
@@ -156,6 +156,18 @@ a {
     position: relative;
     filter: drop-shadow(0 2px 10px rgba(123, 90, 255, 0.3));
     transition: filter 0.3s ease;
+}
+
+.logo-img {
+    height: 85px;
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 10px rgba(123, 90, 255, 0.3)) brightness(0) saturate(100%) invert(18%) sepia(80%) saturate(6000%) hue-rotate(254deg) brightness(95%);
+    transition: filter 0.3s ease;
+}
+
+.sidebar-logo:hover .logo-img {
+    filter: drop-shadow(0 4px 20px rgba(123, 90, 255, 0.5)) brightness(0) saturate(100%) invert(18%) sepia(80%) saturate(6000%) hue-rotate(254deg) brightness(95%);
 }
 
 .sidebar-logo:hover .logo-wordmark {
@@ -229,17 +241,8 @@ a {
     vertical-align: middle;
 }
 
-/* Individual Icon Colors — data-page attribute selectors */
-.sidebar-menu a[data-page="dashboard"] i { color: #4318FF; }
-.sidebar-menu a[data-page="create"] i { color: #FF6B6B; }
-.sidebar-menu a[data-page="drafts"] i { color: #FFB347; }
-.sidebar-menu a[data-page="categories"] i { color: #8B5CF6; }
-.sidebar-menu a[data-page="seo"] i { color: #06B6D4; }
-.sidebar-menu a[data-page="newsletter"] i { color: #EC4899; }
-.sidebar-menu a[data-page="site-settings"] i { color: #10B981; }
-.sidebar-menu a[data-page="approval"] i { color: #05CD99; }
-.sidebar-menu a[data-page="comments"] i { color: #F59E0B; }
-.sidebar-menu a[data-page="users"] i { color: #6366F1; }
+/* Sidebar Icon Color — consistent across all items */
+.sidebar-menu a i { color: #4318FF; }
 
 .sidebar-menu a:hover {
     color: white;
