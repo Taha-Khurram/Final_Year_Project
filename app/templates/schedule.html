@@ -31,13 +31,6 @@
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon stat-awaiting"><i class="bi bi-hourglass-split"></i></div>
-          <div class="stat-info">
-            <div class="stat-count" id="stat-awaiting">0</div>
-            <div class="stat-label">Awaiting Approval</div>
-          </div>
-        </div>
-        <div class="stat-card">
           <div class="stat-icon stat-month"><i class="bi bi-calendar-range"></i></div>
           <div class="stat-info">
             <div class="stat-count" id="stat-month">0</div>
@@ -46,13 +39,8 @@
         </div>
       </div>
 
-      <!-- Calendar Navigation + Filters -->
+      <!-- Calendar Navigation -->
       <div class="schedule-calendar-nav">
-        <div class="schedule-filter-tabs">
-          <button class="filter-tab active" data-filter="all">All</button>
-          <button class="filter-tab" data-filter="SCHEDULED">Scheduled</button>
-          <button class="filter-tab" data-filter="UNDER_REVIEW">Awaiting Approval</button>
-        </div>
         <div class="calendar-nav-center">
           <button class="btn-nav" id="prevMonth"><i class="bi bi-chevron-left"></i></button>
           <h3 class="calendar-month-title" id="monthTitle">May 2026</h3>
@@ -99,8 +87,5 @@
   </div>
 </div>
 
-<script>
-  const USER_ROLE = "{{ user_role }}";
-</script>
 <script src="{{ url_for('static', filename='js/pages/schedule.js') }}"></script>
 {% endblock %}

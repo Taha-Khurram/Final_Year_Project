@@ -5,7 +5,7 @@
 /* ==================== STATS ROW ==================== */
 .schedule-stats-row {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.25rem;
     margin-bottom: 2rem;
 }
@@ -68,7 +68,7 @@
     margin-bottom: 1.5rem;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
 }
 
 .calendar-nav-center {
@@ -147,8 +147,16 @@
     background: white;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-card);
-    overflow: hidden;
+    overflow: visible;
     margin-top: 1.5rem;
+}
+
+.schedule-timeline > .timeline-date-group:first-child .timeline-date-header {
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.schedule-timeline > .schedule-empty {
+    border-radius: var(--radius-lg);
 }
 
 .timeline-loading {
@@ -279,24 +287,67 @@
 .badge-published { background: rgba(16, 185, 129, 0.1); color: #059669; }
 
 /* ==================== ACTION DROPDOWN ==================== */
+.schedule-card-actions {
+    position: relative;
+}
+
 .schedule-card-actions .btn-dropdown-trigger {
     width: 32px;
     height: 32px;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    background: white;
+    border: none;
+    background: transparent;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
     color: #94a3b8;
-    transition: all 0.2s ease;
+    cursor: pointer;
+    transition: all 0.15s ease;
 }
 
 .schedule-card-actions .btn-dropdown-trigger:hover {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.schedule-card-actions .dropdown-menu {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    padding: 0.5rem;
+    min-width: 200px;
+}
+
+.schedule-card-actions .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #334155;
+    transition: all 0.15s ease;
+}
+
+.schedule-card-actions .dropdown-item:hover {
     background: #f8fafc;
-    color: #475569;
-    border-color: #cbd5e1;
+    color: #1e293b;
+}
+
+.schedule-card-actions .dropdown-item i {
+    font-size: 1rem;
+    width: 20px;
+    text-align: center;
+}
+
+.schedule-card-actions .dropdown-item.text-danger {
+    color: #ef4444;
+}
+
+.schedule-card-actions .dropdown-item.text-danger:hover {
+    background: #fef2f2;
+    color: #dc2626;
 }
 
 /* ==================== EMPTY STATE ==================== */
@@ -346,7 +397,7 @@
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 1200px) {
     .schedule-stats-row {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 

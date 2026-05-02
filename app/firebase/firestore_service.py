@@ -1015,13 +1015,12 @@ class FirestoreService:
             return []
 
     def get_all_scheduled_for_calendar(self, site_owner_id):
-        """Returns scheduled + under_review blogs with schedule info for the calendar page."""
+        """Returns scheduled blogs for the calendar page."""
         try:
             from datetime import timezone
             blogs_ref = self.db.collection("blogs")
             results = []
 
-            # Get SCHEDULED blogs - query by status only, filter site_owner in Python
             scheduled_docs = (
                 blogs_ref
                 .where(filter=FieldFilter("status", "==", "SCHEDULED"))
@@ -1034,21 +1033,8 @@ class FirestoreService:
                     data["id"] = doc.id
                     results.append(data)
 
-            # Get UNDER_REVIEW blogs that have a requested_schedule_at
-            review_docs = (
-                blogs_ref
-                .where(filter=FieldFilter("status", "==", "UNDER_REVIEW"))
-                .stream()
-            )
-            for doc in review_docs:
-                data = doc.to_dict()
-                owner = data.get("site_owner_id") or data.get("author_id")
-                if owner == site_owner_id and data.get("requested_schedule_at"):
-                    data["id"] = doc.id
-                    results.append(data)
-
             def sort_key(x):
-                dt = x.get("scheduled_at") or x.get("requested_schedule_at")
+                dt = x.get("scheduled_at")
                 if dt is None:
                     return datetime.min.replace(tzinfo=timezone.utc)
                 if hasattr(dt, 'tzinfo') and dt.tzinfo is None:

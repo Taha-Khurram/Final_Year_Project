@@ -5,13 +5,11 @@
 let allBlogs = [];
 let currentMonth = new Date().getMonth();
 let currentYear = new Date().getFullYear();
-let currentFilter = 'all';
 let rescheduleBlogId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   loadScheduleData();
   setupNavigation();
-  setupFilters();
   setupRescheduleModal();
 });
 
@@ -31,17 +29,6 @@ function setupNavigation() {
   });
 
   updateMonthTitle();
-}
-
-function setupFilters() {
-  document.querySelectorAll('.schedule-filter-tabs .filter-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.schedule-filter-tabs .filter-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      currentFilter = tab.dataset.filter;
-      renderTimeline();
-    });
-  });
 }
 
 function setupRescheduleModal() {
@@ -106,7 +93,6 @@ async function loadScheduleData() {
 
 function updateStats() {
   const scheduled = allBlogs.filter(b => b.status === 'SCHEDULED').length;
-  const awaiting = allBlogs.filter(b => b.is_requested).length;
 
   const now = new Date();
   const thisMonth = allBlogs.filter(b => {
@@ -116,28 +102,17 @@ function updateStats() {
   }).length;
 
   document.getElementById('stat-scheduled').textContent = scheduled;
-  document.getElementById('stat-awaiting').textContent = awaiting;
   document.getElementById('stat-month').textContent = thisMonth;
 }
 
 function renderTimeline() {
   const container = document.getElementById('timelineContainer');
 
-  // Filter blogs for current month
   let filtered = allBlogs.filter(blog => {
     if (!blog.scheduled_at) return false;
     const d = new Date(blog.scheduled_at);
     return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
   });
-
-  // Apply status filter
-  if (currentFilter !== 'all') {
-    if (currentFilter === 'UNDER_REVIEW') {
-      filtered = filtered.filter(b => b.is_requested);
-    } else {
-      filtered = filtered.filter(b => b.status === currentFilter);
-    }
-  }
 
   if (filtered.length === 0) {
     container.innerHTML = `
@@ -150,7 +125,6 @@ function renderTimeline() {
     return;
   }
 
-  // Group by date
   const grouped = {};
   filtered.forEach(blog => {
     const d = new Date(blog.scheduled_at);
@@ -159,7 +133,6 @@ function renderTimeline() {
     grouped[dateKey].push(blog);
   });
 
-  // Sort dates
   const sortedDates = Object.keys(grouped).sort();
 
   let html = '';
@@ -175,15 +148,21 @@ function renderTimeline() {
         <span class="date-day">${dayText}</span>
       </div>`;
 
-    // Sort blogs within a day by time
     grouped[dateKey].sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
 
     grouped[dateKey].forEach(blog => {
       const time = new Date(blog.scheduled_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-      const badgeClass = blog.is_requested ? 'badge-awaiting' : 'badge-scheduled';
-      const badgeText = blog.is_requested ? 'Awaiting Approval' : 'Scheduled';
 
-      const actionsHtml = USER_ROLE === 'ADMIN' && !blog.is_requested ? `
+      html += `<div class="schedule-card" id="schedule-card-${blog.id}">
+        <div class="schedule-card-time">${time}</div>
+        <div class="schedule-card-info">
+          <div class="schedule-card-title">${blog.title}</div>
+          <div class="schedule-card-meta">
+            <span><i class="bi bi-folder2"></i> ${blog.category}</span>
+            <span><i class="bi bi-person"></i> ${blog.author}</span>
+          </div>
+        </div>
+        <span class="schedule-badge badge-scheduled">Scheduled</span>
         <div class="schedule-card-actions">
           <div class="dropdown">
             <button class="btn-dropdown-trigger" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -202,19 +181,7 @@ function renderTimeline() {
               </button></li>
             </ul>
           </div>
-        </div>` : '';
-
-      html += `<div class="schedule-card" id="schedule-card-${blog.id}">
-        <div class="schedule-card-time">${time}</div>
-        <div class="schedule-card-info">
-          <div class="schedule-card-title">${blog.title}</div>
-          <div class="schedule-card-meta">
-            <span><i class="bi bi-folder2"></i> ${blog.category}</span>
-            <span><i class="bi bi-person"></i> ${blog.author}</span>
-          </div>
         </div>
-        <span class="schedule-badge ${badgeClass}">${badgeText}</span>
-        ${actionsHtml}
       </div>`;
     });
 

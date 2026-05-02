@@ -11,8 +11,11 @@ def schedule_page():
     if not session.get('logged_in'):
         return redirect(url_for('auth_bp.login'))
 
-    user_id = session.get('user_id')
     user_role = session.get('user_role', 'USER')
+    if user_role != 'ADMIN':
+        return redirect(url_for('blog.home'))
+
+    user_id = session.get('user_id')
     site_owner_id = db_service.get_site_owner_for_user(user_id)
 
     return render_template('schedule.html', user_role=user_role, site_owner_id=site_owner_id)
@@ -25,36 +28,23 @@ def schedule_list():
         return jsonify({"success": False, "error": "Unauthorized"}), 401
 
     user_role = session.get('user_role', 'USER')
+    if user_role != 'ADMIN':
+        return jsonify({"success": False, "error": "Admin only"}), 403
+
     site_owner_id = db_service.get_site_owner_for_user(user_id)
 
-    # Also fetch directly by author_id as fallback
     blogs = db_service.get_all_scheduled_for_calendar(site_owner_id)
-
-    # Fallback: if no results, try querying all SCHEDULED blogs for this user directly
-    if not blogs:
-        try:
-            from google.cloud.firestore_v1.base_query import FieldFilter
-            blogs_ref = db_service.db.collection("blogs")
-            docs = blogs_ref.where(filter=FieldFilter("status", "==", "SCHEDULED")).stream()
-            for doc in docs:
-                data = doc.to_dict()
-                blog_owner = data.get("site_owner_id") or data.get("author_id")
-                if blog_owner == site_owner_id or blog_owner == user_id:
-                    data["id"] = doc.id
-                    blogs.append(data)
-        except Exception as e:
-            print(f"Fallback schedule query error: {e}")
 
     result = []
     for blog in blogs:
         scheduled_at = blog.get('scheduled_at')
-        requested_schedule_at = blog.get('requested_schedule_at')
-        display_date = scheduled_at or requested_schedule_at
+        if not scheduled_at:
+            continue
 
-        if display_date and hasattr(display_date, 'isoformat'):
-            display_date = display_date.isoformat()
-        elif display_date:
-            display_date = str(display_date)
+        if hasattr(scheduled_at, 'isoformat'):
+            display_date = scheduled_at.isoformat()
+        else:
+            display_date = str(scheduled_at)
 
         result.append({
             "id": blog.get("id"),
@@ -62,8 +52,7 @@ def schedule_list():
             "category": blog.get("category", "General"),
             "author": blog.get("author", "Unknown"),
             "status": blog.get("status"),
-            "scheduled_at": display_date,
-            "is_requested": blog.get("status") == "UNDER_REVIEW"
+            "scheduled_at": display_date
         })
 
     return jsonify({"success": True, "blogs": result})
