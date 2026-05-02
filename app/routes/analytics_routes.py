@@ -31,9 +31,30 @@ def _get_analytics_config(user_id):
 
 def _get_credentials(user_id):
     from google.oauth2.credentials import Credentials
+    from google.auth.transport.requests import Request
+    from datetime import datetime, timezone
     config = _get_analytics_config(user_id)
     if not config or not config.get('refresh_token'):
         return None
+
+    expiry = None
+    token_expiry = config.get('token_expiry')
+    if token_expiry:
+        try:
+            if isinstance(token_expiry, str):
+                dt = datetime.fromisoformat(token_expiry.replace('Z', '+00:00'))
+            elif hasattr(token_expiry, 'timestamp'):
+                dt = datetime.utcfromtimestamp(token_expiry.timestamp())
+            elif hasattr(token_expiry, 'isoformat'):
+                dt = token_expiry
+            else:
+                dt = None
+            if dt:
+                if dt.tzinfo is not None:
+                    dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+                expiry = dt
+        except (ValueError, TypeError, OSError):
+            expiry = None
 
     creds = Credentials(
         token=config.get('access_token'),
@@ -41,16 +62,20 @@ def _get_credentials(user_id):
         token_uri='https://oauth2.googleapis.com/token',
         client_id=current_app.config['GOOGLE_OAUTH_CLIENT_ID'],
         client_secret=current_app.config['GOOGLE_OAUTH_CLIENT_SECRET'],
-        scopes=SCOPES
+        scopes=SCOPES,
+        expiry=expiry
     )
 
-    if creds.expired and creds.refresh_token:
-        from google.auth.transport.requests import Request
-        creds.refresh(Request())
-        db_service.db.collection("analytics_config").document(user_id).update({
-            'access_token': creds.token,
-            'token_expiry': creds.expiry.isoformat() if creds.expiry else None
-        })
+    if (creds.expired or not creds.token) and creds.refresh_token:
+        try:
+            creds.refresh(Request())
+            db_service.db.collection("analytics_config").document(user_id).update({
+                'access_token': creds.token,
+                'token_expiry': creds.expiry.isoformat() if creds.expiry else None
+            })
+        except Exception as e:
+            print(f"Token refresh failed: {e}")
+            return None
 
     return creds
 

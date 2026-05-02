@@ -32,6 +32,12 @@
         <div class="draft-row" id="row-{{ blog.id }}">
           <div class="col-title title text-truncate pe-3">
             {{ blog.title.replace('**', '') if blog.title else 'Untitled' }}
+            {% if blog.requested_schedule_at %}
+            <span class="requested-schedule-badge">
+              <i class="bi bi-calendar-event"></i>
+              Requested: {{ blog.requested_schedule_at.strftime('%b %d, %Y at %I:%M %p') }}
+            </span>
+            {% endif %}
           </div>
           <div class="col-tags">
             <span class="badge-tag">{{ blog.category or 'General' }}</span>
@@ -54,6 +60,11 @@
                 <li>
                   <button class="dropdown-item" onclick="openReviewModal('{{ blog.id }}')">
                     <i class="bi bi-check-circle" style="color: #10b981;"></i> Review & Publish
+                  </button>
+                </li>
+                <li>
+                  <button class="dropdown-item" onclick="openScheduleModal('{{ blog.id }}')">
+                    <i class="bi bi-calendar-event" style="color: #4318FF;"></i> Schedule
                   </button>
                 </li>
                 <li>
@@ -167,8 +178,11 @@
         <button type="button" class="btn-modal btn-modal-danger" id="view-reject-btn">
           <i class="bi bi-arrow-return-left"></i> Reject
         </button>
+        <button type="button" class="btn-modal btn-modal-primary" id="view-schedule-btn" style="background: var(--primary-color, #4318FF); color: #fff;">
+          <i class="bi bi-calendar-event"></i> Schedule
+        </button>
         <button type="button" class="btn-modal btn-modal-success" id="view-approve-btn">
-          <i class="bi bi-check-circle"></i> Approve
+          <i class="bi bi-check-circle"></i> Publish Now
         </button>
       </div>
     </div>
@@ -236,8 +250,52 @@
         <button type="button" class="btn-modal btn-modal-danger" id="modalRejectBtn">
           <i class="bi bi-arrow-return-left"></i> Reject
         </button>
+        <button type="button" class="btn-modal btn-modal-primary" id="modalScheduleBtn" style="background: var(--primary-color, #4318FF); color: #fff;">
+          <i class="bi bi-calendar-event"></i> Schedule
+        </button>
         <button type="button" class="btn-modal btn-modal-success" id="modalApproveBtn">
-          <i class="bi bi-check-circle"></i> Approve
+          <i class="bi bi-check-circle"></i> Publish Now
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Schedule Modal -->
+<div class="modal fade" id="scheduleModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="custom-modal-header">
+        <h5 class="custom-modal-title">
+          <i class="bi bi-calendar-event"></i>
+          Schedule for Publishing
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="custom-modal-body">
+        <p class="text-muted mb-3">Choose when this blog should be published:</p>
+        <p class="fw-bold mb-3" id="schedule-modal-title">Blog Title</p>
+        <input type="datetime-local" class="form-control" id="scheduleDateTime"
+               style="padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid #e2e8f0;">
+        <div id="bestTimeSuggestions" class="best-time-container mt-3">
+          <div class="best-time-header">
+            <i class="bi bi-robot"></i>
+            <span>AI Publish Time Agent — Recommended Times</span>
+          </div>
+          <div id="bestTimeSuggestionsList" class="best-time-list">
+            <div class="best-time-loading">
+              <div class="spinner-border spinner-border-sm text-primary"></div>
+              <span>Analyzing best publish times...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="custom-modal-footer">
+        <button type="button" class="btn-modal btn-modal-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Cancel
+        </button>
+        <button type="button" class="btn-modal btn-modal-success" id="confirmScheduleBtn">
+          <i class="bi bi-calendar-check"></i> Schedule
         </button>
       </div>
     </div>

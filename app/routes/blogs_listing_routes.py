@@ -19,7 +19,12 @@ def login_required(f):
 @login_required
 def all_blogs_page():
     user_id = session.get('user_id')
-    categories = db_service.get_all_categories(user_id=user_id)
+    user_role = session.get('user_role', 'USER')
+
+    if user_role == 'ADMIN':
+        categories = db_service.get_all_categories(user_id=user_id)
+    else:
+        categories = db_service.get_user_blog_categories(user_id)
     return render_template('all_blogs.html', categories=categories)
 
 
@@ -42,7 +47,7 @@ def api_get_all_blogs():
     date_from = request.args.get('date_from', '')
     date_to = request.args.get('date_to', '')
     page = int(request.args.get('page', 1))
-    per_page = int(request.args.get('per_page', 15))
+    per_page = int(request.args.get('per_page', 10))
 
     result = db_service.get_all_blogs_filtered(
         user_ids=user_ids,

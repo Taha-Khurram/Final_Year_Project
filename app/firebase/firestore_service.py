@@ -446,21 +446,23 @@ class FirestoreService:
     
     def get_all_categories(self, user_id=None, limit=None, use_cache=True):
         """
-        Fetch all categories with id, name, and count.
-        Optional limit to prevent timeouts.
-        Caches results for 5 minutes by default.
+        Fetch all categories for the user's team (stored under site owner).
         """
-        # Try cache first
-        if use_cache and user_id:
-            cache_key = f"categories:{user_id}:{limit}"
+        if user_id:
+            site_owner_id = self.get_site_owner_for_user(user_id)
+        else:
+            site_owner_id = None
+
+        if use_cache and site_owner_id:
+            cache_key = f"categories:{site_owner_id}:{limit}"
             cached_result = cache.get(cache_key)
             if cached_result is not None:
                 return cached_result
 
         try:
             query = self.db.collection("categories")
-            if user_id:
-                query = query.where(filter=FieldFilter("created_by", "==", user_id))
+            if site_owner_id:
+                query = query.where(filter=FieldFilter("created_by", "==", site_owner_id))
             if limit:
                 query = query.limit(limit)
             docs = query.stream()
@@ -473,57 +475,112 @@ class FirestoreService:
                     "count": data.get("count", 0)
                 })
 
-            # Cache the result for 5 minutes
-            if use_cache and user_id:
+            if use_cache and site_owner_id:
                 cache.set(cache_key, categories, ttl=300)
 
             return categories
         except Exception as e:
-            print(f"❌ FirestoreService.get_all_categories Error: {e}")
+            print(f"FirestoreService.get_all_categories Error: {e}")
+            return []
+
+    def get_team_categories(self, admin_id):
+        """Fetch categories for admin and all their sub-users, merging duplicates."""
+        try:
+            sub_users = self.get_my_sub_users(admin_id)
+            all_ids = [admin_id] + [u.get('uid') for u in sub_users if u.get('uid')]
+
+            merged = {}
+            for i in range(0, len(all_ids), 30):
+                batch = all_ids[i:i+30]
+                docs = (self.db.collection("categories")
+                        .where(filter=FieldFilter("created_by", "in", batch))
+                        .stream())
+                for doc in docs:
+                    data = doc.to_dict()
+                    name = data.get("name", "").lower()
+                    if name in merged:
+                        merged[name]["count"] += data.get("count", 0)
+                    else:
+                        merged[name] = {
+                            "id": doc.id,
+                            "name": data.get("name"),
+                            "count": data.get("count", 0)
+                        }
+
+            return list(merged.values())
+        except Exception as e:
+            print(f"Error fetching team categories: {e}")
+            return []
+
+    def get_user_blog_categories(self, user_id):
+        """Get categories from the user's own blogs with counts."""
+        try:
+            docs = (self.db.collection(self.collection_name)
+                    .where(filter=FieldFilter("author_id", "==", user_id))
+                    .stream())
+
+            cat_counts = {}
+            for doc in docs:
+                data = doc.to_dict()
+                cat_name = data.get("category")
+                if cat_name:
+                    if cat_name in cat_counts:
+                        cat_counts[cat_name] += 1
+                    else:
+                        cat_counts[cat_name] = 1
+
+            categories = []
+            for name, count in cat_counts.items():
+                categories.append({
+                    "id": name.lower().replace(" ", "-"),
+                    "name": name,
+                    "count": count
+                })
+            return categories
+        except Exception as e:
+            print(f"Error fetching user blog categories: {e}")
             return []
 
     def update_category_count(self, category_name, increment_by, user_id):
         try:
+            site_owner_id = self.get_site_owner_for_user(user_id)
             cat_query = self.db.collection("categories")\
                 .where(filter=FieldFilter("name", "==", category_name))\
-                .where(filter=FieldFilter("created_by", "==", user_id)).limit(1).get()
+                .where(filter=FieldFilter("created_by", "==", site_owner_id)).limit(1).get()
 
             if cat_query:
                 cat_ref = cat_query[0].reference
                 cat_ref.update({"count": firestore.Increment(increment_by)})
             else:
-                # Create new category
                 self.db.collection("categories").add({
                     "name": category_name,
                     "count": 1 if increment_by > 0 else 0,
-                    "created_by": user_id,
+                    "created_by": site_owner_id,
                     "created_at": firestore.SERVER_TIMESTAMP
                 })
-                # Invalidate category cache since we created a new one
-                cache.clear_prefix(f"categories:{user_id}")
+                cache.clear_prefix(f"categories:{site_owner_id}")
         except Exception as e:
-            print(f"❌ Error updating category count: {e}")
+            print(f"Error updating category count: {e}")
 
     def delete_category(self, category_id, user_id):
         """
-        Deletes a category only if it belongs to the user.
+        Deletes a category if it belongs to the user's team.
         """
         try:
+            site_owner_id = self.get_site_owner_for_user(user_id)
             doc_ref = self.db.collection("categories").document(category_id)
             doc = doc_ref.get()
             if not doc.exists:
                 return False
-            # Only allow deletion if created_by matches current user
-            if doc.to_dict().get("created_by") != user_id:
+            if doc.to_dict().get("created_by") != site_owner_id:
                 return False
             doc_ref.delete()
 
-            # Invalidate category cache for this user
-            cache.clear_prefix(f"categories:{user_id}")
+            cache.clear_prefix(f"categories:{site_owner_id}")
 
             return True
         except Exception as e:
-            print(f"❌ Error deleting category: {e}")
+            print(f"Error deleting category: {e}")
             return False
 
     def update_category(self, category_id, update_data):
@@ -906,7 +963,6 @@ class FirestoreService:
     def get_published_count(self, user_id):
         """Get count of published blogs for a site owner (includes team members' blogs)."""
         try:
-            # Count by site_owner_id
             count_query = self.db.collection(self.collection_name)\
                                 .where(filter=FieldFilter('site_owner_id', '==', user_id))\
                                 .where(filter=FieldFilter('status', '==', 'PUBLISHED'))\
@@ -914,7 +970,6 @@ class FirestoreService:
             count_result = count_query.get()
             site_owner_count = count_result[0][0].value
 
-            # Also count by author_id for backwards compatibility (older blogs)
             fallback_query = self.db.collection(self.collection_name)\
                                 .where(filter=FieldFilter('author_id', '==', user_id))\
                                 .where(filter=FieldFilter('status', '==', 'PUBLISHED'))\
@@ -922,15 +977,27 @@ class FirestoreService:
             fallback_result = fallback_query.get()
             author_count = fallback_result[0][0].value
 
-            # Return max to avoid double counting (site_owner_id blogs are also author_id blogs for admins)
             return max(site_owner_count, author_count)
         except Exception as e:
-            print(f"❌ Error getting published blogs count: {e}")
+            print(f"Error getting published blogs count: {e}")
+            return 0
+
+    def get_user_published_count(self, user_id):
+        """Get count of published blogs authored by this specific user only."""
+        try:
+            count_query = self.db.collection(self.collection_name)\
+                                .where(filter=FieldFilter('author_id', '==', user_id))\
+                                .where(filter=FieldFilter('status', '==', 'PUBLISHED'))\
+                                .count()
+            count_result = count_query.get()
+            return count_result[0][0].value
+        except Exception as e:
+            print(f"Error getting user published count: {e}")
             return 0
         
         
         
-    def update_blog_status(self, blog_id, new_status):
+    def update_blog_status(self, blog_id, new_status, scheduled_at=None, scheduled_by=None):
         """Updates blog status and invalidates published blogs cache."""
         try:
             doc_ref = self.db.collection("blogs").document(blog_id)
@@ -942,10 +1009,19 @@ class FirestoreService:
                 data = doc.to_dict()
                 site_owner_id = data.get('site_owner_id') or data.get('author_id')
 
-            doc_ref.update({
+            update_data = {
                 "status": new_status,
                 "updated_at": datetime.utcnow()
-            })
+            }
+
+            if new_status == "SCHEDULED" and scheduled_at:
+                update_data["scheduled_at"] = scheduled_at
+                update_data["scheduled_by"] = scheduled_by
+            elif new_status != "SCHEDULED":
+                update_data["scheduled_at"] = firestore.DELETE_FIELD
+                update_data["scheduled_by"] = firestore.DELETE_FIELD
+
+            doc_ref.update(update_data)
 
             # Invalidate published blogs cache for this site owner
             if site_owner_id:
@@ -955,6 +1031,88 @@ class FirestoreService:
         except Exception as e:
             print("Firestore Status Error:", e)
             return False
+
+    def get_scheduled_blogs(self, site_owner_id):
+        """Returns all scheduled blogs for a site owner, sorted by scheduled_at."""
+        try:
+            blogs_ref = self.db.collection("blogs")
+            docs = (
+                blogs_ref
+                .where(filter=FieldFilter("status", "==", "SCHEDULED"))
+                .stream()
+            )
+            results = []
+            for doc in docs:
+                data = doc.to_dict()
+                owner = data.get("site_owner_id") or data.get("author_id")
+                if owner == site_owner_id:
+                    data["id"] = doc.id
+                    results.append(data)
+            results.sort(key=lambda x: x.get("scheduled_at") or datetime.min)
+            return results
+        except Exception as e:
+            print(f"Error fetching scheduled blogs: {e}")
+            return []
+
+    def get_due_scheduled_blogs(self):
+        """Returns blogs that are SCHEDULED and past their scheduled_at time."""
+        try:
+            from datetime import timezone
+            now = datetime.now(timezone.utc)
+            blogs_ref = self.db.collection("blogs")
+            docs = (
+                blogs_ref
+                .where(filter=FieldFilter("status", "==", "SCHEDULED"))
+                .stream()
+            )
+            results = []
+            for doc in docs:
+                data = doc.to_dict()
+                scheduled_at = data.get("scheduled_at")
+                if scheduled_at:
+                    # Ensure both are timezone-aware for comparison
+                    if scheduled_at.tzinfo is None:
+                        scheduled_at = scheduled_at.replace(tzinfo=timezone.utc)
+                    if scheduled_at <= now:
+                        data["id"] = doc.id
+                        results.append(data)
+            return results
+        except Exception as e:
+            print(f"Error fetching due scheduled blogs: {e}")
+            return []
+
+    def get_all_scheduled_for_calendar(self, site_owner_id):
+        """Returns scheduled blogs for the calendar page."""
+        try:
+            from datetime import timezone
+            blogs_ref = self.db.collection("blogs")
+            results = []
+
+            scheduled_docs = (
+                blogs_ref
+                .where(filter=FieldFilter("status", "==", "SCHEDULED"))
+                .stream()
+            )
+            for doc in scheduled_docs:
+                data = doc.to_dict()
+                owner = data.get("site_owner_id") or data.get("author_id")
+                if owner == site_owner_id:
+                    data["id"] = doc.id
+                    results.append(data)
+
+            def sort_key(x):
+                dt = x.get("scheduled_at")
+                if dt is None:
+                    return datetime.min.replace(tzinfo=timezone.utc)
+                if hasattr(dt, 'tzinfo') and dt.tzinfo is None:
+                    return dt.replace(tzinfo=timezone.utc)
+                return dt
+
+            results.sort(key=sort_key)
+            return results
+        except Exception as e:
+            print(f"Error fetching calendar blogs: {e}")
+            return []
         
 # Categories functions
     def get_category_by_id(self, category_id, user_id=None):
@@ -964,12 +1122,14 @@ class FirestoreService:
             if not doc.exists:
                 return None
             data = doc.to_dict()
-            if user_id and data.get("created_by") != user_id:
-                return None  # Unauthorized access
+            if user_id:
+                site_owner_id = self.get_site_owner_for_user(user_id)
+                if data.get("created_by") != site_owner_id:
+                    return None
             data["id"] = doc.id
             return data
         except Exception as e:
-            print(f"❌ Error fetching category {category_id}: {e}")
+            print(f"Error fetching category {category_id}: {e}")
             return None
         
         
@@ -994,29 +1154,30 @@ class FirestoreService:
         
     def update_category_name(self, category_id, new_name, user_id):
         try:
+            site_owner_id = self.get_site_owner_for_user(user_id)
             doc_ref = self.db.collection("categories").document(category_id)
             doc = doc_ref.get()
             if not doc.exists:
                 return False
             data = doc.to_dict()
-            if data.get("created_by") != user_id:
-                return False  # unauthorized
+            if data.get("created_by") != site_owner_id:
+                return False
             doc_ref.update({"name": new_name})
 
-            # Invalidate category cache for this user
-            cache.clear_prefix(f"categories:{user_id}")
+            cache.clear_prefix(f"categories:{site_owner_id}")
 
             return True
         except Exception as e:
-            print(f"❌ Error updating category name: {e}")
+            print(f"Error updating category name: {e}")
             return False
 
     def create_category(self, name, user_id):
         try:
-            # Check if exists first
+            site_owner_id = self.get_site_owner_for_user(user_id)
+
             existing = self.db.collection("categories")\
                 .where(filter=FieldFilter("name", "==", name))\
-                .where(filter=FieldFilter("created_by", "==", user_id)).limit(1).get()
+                .where(filter=FieldFilter("created_by", "==", site_owner_id)).limit(1).get()
 
             if len(existing) > 0:
                 return False, "Category already exists"
@@ -1024,55 +1185,149 @@ class FirestoreService:
             doc_ref = self.db.collection("categories").add({
                 "name": name,
                 "count": 0,
-                "created_by": user_id,
+                "created_by": site_owner_id,
                 "created_at": firestore.SERVER_TIMESTAMP
             })
 
-            # Invalidate category cache for this user
-            cache.clear_prefix(f"categories:{user_id}")
+            cache.clear_prefix(f"categories:{site_owner_id}")
 
             return True, doc_ref[1].id
         except Exception as e:
-            print(f"❌ Error creating category: {e}")
+            print(f"Error creating category: {e}")
             return False, str(e)
 
     # ---------------- OPTIMIZED BATCH METHODS ----------------
 
     def get_dashboard_data(self, user_id):
         """
-        Fetch all dashboard data in parallel for better performance.
-        Returns dict with all dashboard metrics.
+        Fetch dashboard data for a regular user (their own blogs only).
         """
         from app.utils.parallel import run_parallel_simple
 
         try:
-            # Define all queries to run in parallel
             queries = [
-                (self.get_published_count, (user_id,)),
+                (self.get_user_published_count, (user_id,)),
                 (self.get_blogs_by_status, ("DRAFT", user_id)),
                 (self.get_blogs_by_status, ("UNDER_REVIEW", user_id)),
+                (self.get_blogs_by_status, ("PUBLISHED", user_id)),
                 (self.get_total_blogs_count, (user_id,)),
-                (self.get_all_categories, (user_id,)),
+                (self.get_user_blog_categories, (user_id,)),
                 (self.get_recent_activity, (user_id, 10)),
             ]
 
-            # Run all queries in parallel
-            results = run_parallel_simple(queries, max_workers=6)
+            results = run_parallel_simple(queries, max_workers=7)
 
             return {
                 "published_count": results[0] or 0,
                 "drafts": results[1] or [],
                 "pending": results[2] or [],
-                "total_blogs": results[3] or 0,
-                "categories": results[4] or [],
-                "recent_activity": results[5] or [],
+                "published_blogs": results[3] or [],
+                "total_blogs": results[4] or 0,
+                "categories": results[5] or [],
+                "recent_activity": results[6] or [],
             }
         except Exception as e:
-            print(f"❌ Error fetching dashboard data: {e}")
+            print(f"Error fetching dashboard data: {e}")
             return {
                 "published_count": 0,
                 "drafts": [],
                 "pending": [],
+                "published_blogs": [],
+                "total_blogs": 0,
+                "categories": [],
+                "recent_activity": [],
+            }
+
+    def get_admin_dashboard_data(self, admin_id):
+        """
+        Fetch dashboard data for admin including all team members' blogs.
+        """
+        from app.utils.parallel import run_parallel_simple
+
+        try:
+            sub_users = self.get_my_sub_users(admin_id)
+            all_user_ids = [admin_id] + [u.get('uid') for u in sub_users if u.get('uid')]
+
+            def get_team_blogs_by_status(status):
+                blogs = []
+                for i in range(0, len(all_user_ids), 30):
+                    batch = all_user_ids[i:i+30]
+                    docs = (self.db.collection(self.collection_name)
+                            .where(filter=FieldFilter("author_id", "in", batch))
+                            .where(filter=FieldFilter("status", "==", status))
+                            .stream())
+                    for doc in docs:
+                        data = doc.to_dict()
+                        data['id'] = doc.id
+                        blogs.append(data)
+                return blogs
+
+            def get_team_total_count():
+                total = 0
+                for i in range(0, len(all_user_ids), 30):
+                    batch = all_user_ids[i:i+30]
+                    count_query = (self.db.collection(self.collection_name)
+                                   .where(filter=FieldFilter("author_id", "in", batch))
+                                   .count())
+                    count_result = count_query.get()
+                    total += count_result[0][0].value
+                return total
+
+            def get_team_recent_activity():
+                activities = []
+                now = datetime.utcnow()
+                for i in range(0, len(all_user_ids), 30):
+                    batch = all_user_ids[i:i+30]
+                    docs = (self.db.collection(self.activity_collection)
+                            .where(filter=FieldFilter("user_id", "in", batch))
+                            .order_by("timestamp", direction=firestore.Query.DESCENDING)
+                            .limit(10)
+                            .stream())
+                    for doc in docs:
+                        data = doc.to_dict()
+                        if 'timestamp' in data:
+                            ts = data['timestamp'].replace(tzinfo=None)
+                            diff = now - ts
+                            if diff.days > 0:
+                                data['timestamp'] = f"{diff.days}d ago"
+                            elif diff.seconds > 3600:
+                                data['timestamp'] = f"{diff.seconds // 3600}h ago"
+                            elif diff.seconds > 60:
+                                data['timestamp'] = f"{diff.seconds // 60}m ago"
+                            else:
+                                data['timestamp'] = "Just now"
+                        activities.append(data)
+                activities.sort(key=lambda x: x.get('timestamp', ''), reverse=False)
+                return activities[:10]
+
+            queries = [
+                (self.get_published_count, (admin_id,)),
+                (get_team_blogs_by_status, ("DRAFT",)),
+                (get_team_blogs_by_status, ("UNDER_REVIEW",)),
+                (get_team_blogs_by_status, ("PUBLISHED",)),
+                (get_team_total_count, ()),
+                (self.get_all_categories, (admin_id,)),
+                (get_team_recent_activity, ()),
+            ]
+
+            results = run_parallel_simple(queries, max_workers=7)
+
+            return {
+                "published_count": results[0] or 0,
+                "drafts": results[1] or [],
+                "pending": results[2] or [],
+                "published_blogs": results[3] or [],
+                "total_blogs": results[4] or 0,
+                "categories": results[5] or [],
+                "recent_activity": results[6] or [],
+            }
+        except Exception as e:
+            print(f"Error fetching admin dashboard data: {e}")
+            return {
+                "published_count": 0,
+                "drafts": [],
+                "pending": [],
+                "published_blogs": [],
                 "total_blogs": 0,
                 "categories": [],
                 "recent_activity": [],
