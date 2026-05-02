@@ -30,6 +30,10 @@ Scriptly is a full-stack blog platform that automates content creation using AI.
 - **Semantic Search**: AI-powered search using embeddings and LLM reranking
 - **Newsletter System**: Generate and send newsletters to subscribers
 - **Team Collaboration**: Multi-user support with approval workflows
+- **Forgot Password**: Secure password reset via Firebase Auth email verification
+- **Google Analytics Integration**: Real-time analytics dashboard with configurable date periods
+- **Activity Log**: Paginated admin activity tracking (10 entries per page)
+- **Schedule & Publish**: Schedule blogs with AI-recommended publish times
 
 ---
 
@@ -319,6 +323,31 @@ Customize via Dashboard > Site Settings:
 | GET | `/api/get_blog/<id>` | Get blog by ID |
 | POST | `/api/update_status/<id>` | Change blog status |
 | DELETE | `/api/delete_blog/<id>` | Delete blog |
+| GET | `/api/all-blogs` | List all blogs (paginated, 10 per page) |
+
+### Authentication
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/verify` | Verify Firebase token and create session |
+| POST | `/api/auth/check-email` | Check if email exists before password reset |
+| GET | `/forgot-password` | Forgot password page |
+
+### Analytics
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/analytics/realtime` | Real-time active users |
+| GET | `/api/analytics/overview?period=<days>` | Page views, sessions, users (1/7/30 days) |
+| GET | `/api/analytics/top-pages?period=<days>` | Top pages by views |
+| GET | `/api/analytics/traffic-sources?period=<days>` | Traffic sources breakdown |
+
+### Activity
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/activity` | Paginated activity log (10 per page) |
+| GET | `/api/activity/stats` | Activity statistics |
 
 ### SEO Tools
 
@@ -466,4 +495,4 @@ For issues, open a ticket at [GitHub Issues](https://github.com/Taha-Khurram/Fin
 
 ---
 
-*Last Updated: April 2026*
+*Last Updated: May 2026*
