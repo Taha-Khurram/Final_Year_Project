@@ -61,6 +61,47 @@ def schedule_list():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@schedule_bp.route('/api/schedule/best-time')
+def best_publish_time():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    from app.utils.cache import cache
+
+    # For non-admin users, use their site owner's analytics
+    user_role = session.get('user_role', 'USER')
+    if user_role != 'ADMIN':
+        analytics_user_id = db_service.get_site_owner_for_user(user_id) or user_id
+    else:
+        analytics_user_id = user_id
+
+    cache_key = f"best_publish_time:{analytics_user_id}"
+    cached = cache.get(cache_key)
+    if cached:
+        return jsonify(cached)
+
+    try:
+        from app.routes.analytics_routes import _get_analytics_config, _get_credentials
+        config = _get_analytics_config(analytics_user_id)
+        if not config or not config.get('property_id'):
+            return jsonify({"success": True, "suggestions": [], "reason": "no_analytics"})
+
+        creds = _get_credentials(analytics_user_id)
+        if not creds:
+            return jsonify({"success": True, "suggestions": [], "reason": "no_credentials"})
+
+        from app.agents.publish_time_agent import PublishTimeAgent
+        agent = PublishTimeAgent()
+        result = agent.get_best_times(creds, config['property_id'])
+
+        cache.set(cache_key, result, ttl=21600)
+        return jsonify(result)
+    except Exception as e:
+        print(f"Best time API error: {e}")
+        return jsonify({"success": True, "suggestions": [], "reason": "error"})
+
+
 @schedule_bp.route('/api/schedule/<blog_id>', methods=['POST'])
 def schedule_blog(blog_id):
     user_id = session.get('user_id')

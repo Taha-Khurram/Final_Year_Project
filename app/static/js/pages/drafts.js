@@ -503,3 +503,128 @@ async function deleteDraft(id) {
     });
   }
 }
+
+// ==================== SCHEDULE & SUBMIT ====================
+
+let scheduleBlogId = null;
+
+const FALLBACK_SUGGESTIONS = [
+  { day: "Tuesday", day_index: 2, hour: 10, display_time: "Tuesday, 10:00 AM", reasoning: "Tuesdays mid-morning have high engagement across most blogs" },
+  { day: "Thursday", day_index: 4, hour: 14, display_time: "Thursday, 2:00 PM", reasoning: "Thursday afternoons are peak reading time for most audiences" },
+  { day: "Wednesday", day_index: 3, hour: 9, display_time: "Wednesday, 9:00 AM", reasoning: "Mid-week mornings capture early readers checking content" }
+];
+
+function openScheduleModal(blogId) {
+  scheduleBlogId = blogId;
+
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  document.getElementById('scheduleDateTime').min = now.toISOString().slice(0, 16);
+  document.getElementById('scheduleDateTime').value = '';
+
+  const modal = new bootstrap.Modal(document.getElementById('scheduleModal'));
+  modal.show();
+  loadBestTimeSuggestions();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const confirmBtn = document.getElementById('confirmScheduleBtn');
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', async function() {
+      const dateTime = document.getElementById('scheduleDateTime').value;
+      if (!dateTime) {
+        showToast({ type: 'error', title: 'Error', message: 'Please select a date and time.', duration: 3000 });
+        return;
+      }
+
+      const btn = this;
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div> Submitting...';
+
+      try {
+        const isoDate = new Date(dateTime).toISOString();
+        const res = await fetch(`/api/schedule/${scheduleBlogId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scheduled_at: isoDate })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          showToast({ type: 'success', title: 'Scheduled!', message: 'Blog submitted for approval with your requested schedule.', duration: 4000 });
+          bootstrap.Modal.getInstance(document.getElementById('scheduleModal')).hide();
+          const row = document.getElementById(`row-${scheduleBlogId}`);
+          if (row) {
+            row.style.transition = 'all 0.3s ease';
+            row.style.opacity = '0';
+            row.style.transform = 'translateX(20px)';
+            setTimeout(() => { row.remove(); checkEmptyState(); }, 300);
+          }
+        } else {
+          showToast({ type: 'error', title: 'Error', message: data.error || 'Failed to schedule.', duration: 4000 });
+        }
+      } catch (err) {
+        showToast({ type: 'error', title: 'Error', message: 'Connection error.', duration: 4000 });
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-calendar-check"></i> Schedule & Submit';
+      }
+    });
+  }
+});
+
+async function loadBestTimeSuggestions() {
+  const container = document.getElementById('bestTimeSuggestions');
+  const list = document.getElementById('bestTimeSuggestionsList');
+
+  list.innerHTML = `
+    <div class="best-time-loading">
+      <div class="spinner-border spinner-border-sm text-primary"></div>
+      <span>Analyzing best publish times...</span>
+    </div>`;
+
+  try {
+    const res = await fetch('/api/schedule/best-time');
+    const data = await res.json();
+
+    if (data.success && data.suggestions && data.suggestions.length > 0) {
+      renderSuggestionChips(list, data.suggestions, true);
+    } else {
+      renderSuggestionChips(list, FALLBACK_SUGGESTIONS, false);
+    }
+  } catch (err) {
+    renderSuggestionChips(list, FALLBACK_SUGGESTIONS, false);
+  }
+}
+
+function renderSuggestionChips(listEl, suggestions, fromAnalytics) {
+  const sourceLabel = fromAnalytics
+    ? '<span class="best-time-source"><i class="bi bi-check-circle-fill"></i> Based on your site\'s traffic data</span>'
+    : '<span class="best-time-source"><i class="bi bi-lightbulb-fill"></i> General best practices</span>';
+
+  listEl.innerHTML = sourceLabel + suggestions.map(s =>
+    `<button type="button" class="best-time-chip" onclick="applyBestTime(${s.day_index}, ${s.hour})" title="${s.reasoning}">
+      <i class="bi bi-clock"></i> ${s.display_time}
+      <span class="best-time-score">${s.reasoning}</span>
+    </button>`
+  ).join('');
+}
+
+function applyBestTime(dayIndex, hour) {
+  const now = new Date();
+  const currentDay = now.getDay();
+  let daysUntil = dayIndex - currentDay;
+  if (daysUntil < 0) daysUntil += 7;
+  if (daysUntil === 0 && hour <= now.getHours()) daysUntil = 7;
+
+  const target = new Date(now);
+  target.setDate(target.getDate() + daysUntil);
+  target.setHours(hour, 0, 0, 0);
+
+  const year = target.getFullYear();
+  const month = String(target.getMonth() + 1).padStart(2, '0');
+  const day = String(target.getDate()).padStart(2, '0');
+  const hrs = String(target.getHours()).padStart(2, '0');
+
+  document.getElementById('scheduleDateTime').value = `${year}-${month}-${day}T${hrs}:00`;
+}

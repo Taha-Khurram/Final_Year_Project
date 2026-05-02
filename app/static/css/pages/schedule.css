@@ -437,3 +437,93 @@
         flex: 1 1 60%;
     }
 }
+
+/* ==================== BEST TIME SUGGESTIONS ==================== */
+.best-time-container {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.best-time-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 0.75rem;
+}
+
+.best-time-header i {
+    color: var(--primary-color);
+}
+
+.best-time-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.best-time-chip {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+    padding: 0.5rem 0.85rem;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.best-time-chip:hover {
+    border-color: var(--primary-color);
+    background: #f0ecff;
+    color: var(--primary-color);
+}
+
+.best-time-chip i {
+    color: var(--primary-color);
+}
+
+.best-time-score {
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: #64748b;
+}
+
+.best-time-loading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: #64748b;
+    padding: 0.25rem 0;
+}
+
+.best-time-source {
+    display: block;
+    width: 100%;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+}
+
+.best-time-source i {
+    font-size: 0.7rem;
+}
+
+.best-time-source .bi-check-circle-fill {
+    color: #059669;
+}
+
+.best-time-source .bi-lightbulb-fill {
+    color: #f59e0b;
+}

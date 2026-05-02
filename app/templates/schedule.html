@@ -74,6 +74,18 @@
         <p class="text-muted mb-3">Choose a new date and time for publishing:</p>
         <p class="fw-bold mb-3" id="reschedule-blog-title">Blog Title</p>
         <input type="datetime-local" class="schedule-datetime-input" id="rescheduleDateTime">
+        <div id="bestTimeSuggestionsReschedule" class="best-time-container mt-3">
+          <div class="best-time-header">
+            <i class="bi bi-robot"></i>
+            <span>AI Publish Time Agent — Recommended Times</span>
+          </div>
+          <div id="bestTimeSuggestionsListReschedule" class="best-time-list">
+            <div class="best-time-loading">
+              <div class="spinner-border spinner-border-sm text-primary"></div>
+              <span>Analyzing best publish times...</span>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="custom-modal-footer">
         <button type="button" class="btn-modal btn-modal-secondary" data-bs-dismiss="modal">

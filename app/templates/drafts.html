@@ -72,6 +72,11 @@
                   </button>
                 </li>
                 <li>
+                  <button class="dropdown-item" onclick="openScheduleModal('{{ draft.id }}')">
+                    <i class="bi bi-calendar-event" style="color: #4318FF;"></i> Schedule & Submit
+                  </button>
+                </li>
+                <li>
                   <hr class="dropdown-divider">
                 </li>
                 <li>
@@ -231,5 +236,46 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" referrerpolicy="origin"></script>
+
+<!-- Schedule Modal -->
+<div class="modal fade" id="scheduleModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="custom-modal-header">
+        <h5 class="custom-modal-title">
+          <i class="bi bi-calendar-event"></i>
+          Schedule & Submit for Approval
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="custom-modal-body">
+        <p class="text-muted mb-3">Choose when you'd like this blog to be published. It will be sent to your admin for approval.</p>
+        <input type="datetime-local" class="form-control" id="scheduleDateTime"
+               style="padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid #e2e8f0;">
+        <div id="bestTimeSuggestions" class="best-time-container mt-3">
+          <div class="best-time-header">
+            <i class="bi bi-robot"></i>
+            <span>AI Publish Time Agent — Recommended Times</span>
+          </div>
+          <div id="bestTimeSuggestionsList" class="best-time-list">
+            <div class="best-time-loading">
+              <div class="spinner-border spinner-border-sm text-primary"></div>
+              <span>Analyzing best publish times...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="custom-modal-footer">
+        <button type="button" class="btn-modal btn-modal-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Cancel
+        </button>
+        <button type="button" class="btn-modal btn-modal-success" id="confirmScheduleBtn">
+          <i class="bi bi-calendar-check"></i> Schedule & Submit
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="{{ url_for('static', filename='js/pages/drafts.js') }}"></script>
 {% endblock %}

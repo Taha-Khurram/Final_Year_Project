@@ -229,6 +229,7 @@ function openReschedule(blogId, title) {
 
   const modal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
   modal.show();
+  loadBestTimeSuggestions();
 }
 
 async function publishNow(blogId) {
@@ -285,4 +286,69 @@ async function cancelSchedule(blogId) {
   } catch (err) {
     showToast({ type: 'error', title: 'Error', message: 'Connection error.', duration: 4000 });
   }
+}
+
+// ==================== BEST TIME SUGGESTIONS ====================
+
+const FALLBACK_SUGGESTIONS = [
+  { day: "Tuesday", day_index: 2, hour: 10, display_time: "Tuesday, 10:00 AM", reasoning: "Tuesdays mid-morning have high engagement across most blogs" },
+  { day: "Thursday", day_index: 4, hour: 14, display_time: "Thursday, 2:00 PM", reasoning: "Thursday afternoons are peak reading time for most audiences" },
+  { day: "Wednesday", day_index: 3, hour: 9, display_time: "Wednesday, 9:00 AM", reasoning: "Mid-week mornings capture early readers checking content" }
+];
+
+async function loadBestTimeSuggestions() {
+  const container = document.getElementById('bestTimeSuggestionsReschedule');
+  const list = document.getElementById('bestTimeSuggestionsListReschedule');
+
+  list.innerHTML = `
+    <div class="best-time-loading">
+      <div class="spinner-border spinner-border-sm text-primary"></div>
+      <span>Analyzing your traffic data...</span>
+    </div>`;
+
+  try {
+    const res = await fetch('/api/schedule/best-time');
+    const data = await res.json();
+
+    if (data.success && data.suggestions && data.suggestions.length > 0) {
+      renderSuggestionChips(list, data.suggestions, 'rescheduleDateTime', true);
+    } else {
+      renderSuggestionChips(list, FALLBACK_SUGGESTIONS, 'rescheduleDateTime', false);
+    }
+  } catch (err) {
+    renderSuggestionChips(list, FALLBACK_SUGGESTIONS, 'rescheduleDateTime', false);
+  }
+}
+
+function renderSuggestionChips(listEl, suggestions, inputId, fromAnalytics) {
+  const sourceLabel = fromAnalytics
+    ? '<span class="best-time-source"><i class="bi bi-check-circle-fill"></i> Based on your Google Analytics data</span>'
+    : '<span class="best-time-source"><i class="bi bi-lightbulb-fill"></i> General best practices (connect Analytics for personalized suggestions)</span>';
+
+  listEl.innerHTML = sourceLabel + suggestions.map(s =>
+    `<button type="button" class="best-time-chip" onclick="applyBestTime(${s.day_index}, ${s.hour}, '${inputId}')" title="${s.reasoning}">
+      <i class="bi bi-clock"></i> ${s.display_time}
+      <span class="best-time-score">${s.reasoning}</span>
+    </button>`
+  ).join('');
+}
+
+function applyBestTime(dayIndex, hour, inputId) {
+  const now = new Date();
+  const currentDay = now.getDay();
+  let daysUntil = dayIndex - currentDay;
+  if (daysUntil < 0) daysUntil += 7;
+  if (daysUntil === 0 && hour <= now.getHours()) daysUntil = 7;
+
+  const target = new Date(now);
+  target.setDate(target.getDate() + daysUntil);
+  target.setHours(hour, 0, 0, 0);
+
+  const year = target.getFullYear();
+  const month = String(target.getMonth() + 1).padStart(2, '0');
+  const day = String(target.getDate()).padStart(2, '0');
+  const hrs = String(target.getHours()).padStart(2, '0');
+  const mins = '00';
+
+  document.getElementById(inputId).value = `${year}-${month}-${day}T${hrs}:${mins}`;
 }
