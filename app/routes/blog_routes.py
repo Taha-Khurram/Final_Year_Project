@@ -539,7 +539,7 @@ def update_status(blog_id):
         data = request.get_json()
         new_status = data.get('status', '').upper()
 
-        allowed_statuses = ["DRAFT", "UNDER_REVIEW", "PUBLISHED"]
+        allowed_statuses = ["DRAFT", "UNDER_REVIEW", "PUBLISHED", "SCHEDULED"]
 
         if new_status not in allowed_statuses:
             return jsonify({"success": False, "error": "Invalid status"}), 400
@@ -548,9 +548,12 @@ def update_status(blog_id):
         if not blog_data:
             return jsonify({"success": False, "error": "Blog not found"}), 404
 
-        # Only admin can publish
+        # Only admin can publish or schedule
         if new_status == "PUBLISHED" and user_role != "ADMIN":
             return jsonify({"success": False, "error": "Only admin can publish"}), 403
+
+        if new_status == "SCHEDULED" and user_role != "ADMIN":
+            return jsonify({"success": False, "error": "Only admin can schedule"}), 403
 
         # Only owner or admin can change status
         if blog_data.get("author_id") != user_id and user_role != "ADMIN":

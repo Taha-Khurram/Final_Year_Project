@@ -1,0 +1,282 @@
+from flask import Blueprint, render_template, request, session, jsonify, redirect, url_for
+from app.firebase.firestore_service import FirestoreService
+from datetime import datetime
+
+schedule_bp = Blueprint('schedule', __name__)
+db_service = FirestoreService()
+
+
+@schedule_bp.route('/schedule')
+def schedule_page():
+    if not session.get('logged_in'):
+        return redirect(url_for('auth_bp.login'))
+
+    user_id = session.get('user_id')
+    user_role = session.get('user_role', 'USER')
+    site_owner_id = db_service.get_site_owner_for_user(user_id)
+
+    return render_template('schedule.html', user_role=user_role, site_owner_id=site_owner_id)
+
+
+@schedule_bp.route('/api/schedule/list')
+def schedule_list():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    user_role = session.get('user_role', 'USER')
+    site_owner_id = db_service.get_site_owner_for_user(user_id)
+
+    # Also fetch directly by author_id as fallback
+    blogs = db_service.get_all_scheduled_for_calendar(site_owner_id)
+
+    # Fallback: if no results, try querying all SCHEDULED blogs for this user directly
+    if not blogs:
+        try:
+            from google.cloud.firestore_v1.base_query import FieldFilter
+            blogs_ref = db_service.db.collection("blogs")
+            docs = blogs_ref.where(filter=FieldFilter("status", "==", "SCHEDULED")).stream()
+            for doc in docs:
+                data = doc.to_dict()
+                blog_owner = data.get("site_owner_id") or data.get("author_id")
+                if blog_owner == site_owner_id or blog_owner == user_id:
+                    data["id"] = doc.id
+                    blogs.append(data)
+        except Exception as e:
+            print(f"Fallback schedule query error: {e}")
+
+    result = []
+    for blog in blogs:
+        scheduled_at = blog.get('scheduled_at')
+        requested_schedule_at = blog.get('requested_schedule_at')
+        display_date = scheduled_at or requested_schedule_at
+
+        if display_date and hasattr(display_date, 'isoformat'):
+            display_date = display_date.isoformat()
+        elif display_date:
+            display_date = str(display_date)
+
+        result.append({
+            "id": blog.get("id"),
+            "title": (blog.get("title") or "Untitled").replace("**", ""),
+            "category": blog.get("category", "General"),
+            "author": blog.get("author", "Unknown"),
+            "status": blog.get("status"),
+            "scheduled_at": display_date,
+            "is_requested": blog.get("status") == "UNDER_REVIEW"
+        })
+
+    return jsonify({"success": True, "blogs": result})
+
+
+@schedule_bp.route('/api/schedule/<blog_id>', methods=['POST'])
+def schedule_blog(blog_id):
+    user_id = session.get('user_id')
+    user_role = session.get('user_role', 'USER')
+    user_name = session.get('user_name', 'User')
+
+    if not user_id:
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    data = request.get_json()
+    scheduled_at_str = data.get('scheduled_at')
+
+    if not scheduled_at_str:
+        return jsonify({"success": False, "error": "scheduled_at is required"}), 400
+
+    try:
+        scheduled_at = datetime.fromisoformat(scheduled_at_str.replace('Z', '+00:00'))
+        scheduled_at = scheduled_at.replace(tzinfo=None)
+    except (ValueError, TypeError):
+        return jsonify({"success": False, "error": "Invalid date format"}), 400
+
+    if scheduled_at <= datetime.utcnow():
+        return jsonify({"success": False, "error": "Scheduled time must be in the future"}), 400
+
+    blog_data = db_service.get_blog_by_id(blog_id)
+    if not blog_data:
+        return jsonify({"success": False, "error": "Blog not found"}), 404
+
+    if user_role == 'ADMIN':
+        # Admin can schedule directly - apply formatting first
+        try:
+            from app.agents.formatting_agent import FormattingAgent
+
+            content = blog_data.get('content', '')
+            if isinstance(content, dict):
+                markdown_content = content.get('markdown') or content.get('body') or content.get('text', '')
+            else:
+                markdown_content = str(content)
+
+            title = blog_data.get('title', '')
+            formatter = FormattingAgent()
+            formatted = formatter.format_blog(markdown_content, title)
+
+            formatted_content = {
+                'body': markdown_content,
+                'markdown': markdown_content,
+                'html': formatted['html'],
+                'toc': formatted['toc'],
+                'toc_html': formatted['toc_html'],
+                'reading_time': formatted['reading_time_text'],
+                'statistics': formatted['statistics']
+            }
+
+            db_service.update_blog_content(blog_id, title, formatted_content)
+        except Exception as e:
+            print(f"⚠ Formatting warning during schedule (continuing): {e}")
+
+        # Generate embedding
+        try:
+            from app.agents.semantic_search_agent import SemanticSearchAgent
+            search_agent = SemanticSearchAgent()
+            search_agent.generate_and_store_embedding(blog_id)
+        except Exception as e:
+            print(f"⚠ Embedding warning during schedule (continuing): {e}")
+
+        success = db_service.update_blog_status(blog_id, "SCHEDULED", scheduled_at=scheduled_at, scheduled_by=user_id)
+
+        if success:
+            db_service.log_activity(
+                user_id=user_id,
+                user_name=user_name,
+                type="status_change",
+                action_text=f"scheduled for {scheduled_at.strftime('%b %d, %Y at %I:%M %p')}",
+                blog_title=blog_data.get('title', 'Untitled')
+            )
+            return jsonify({"success": True, "message": "Blog scheduled successfully"})
+        return jsonify({"success": False, "error": "Failed to schedule blog"}), 500
+
+    else:
+        # Non-admin: set requested_schedule_at and submit for review
+        doc_ref = db_service.db.collection("blogs").document(blog_id)
+        doc_ref.update({
+            "requested_schedule_at": scheduled_at,
+            "status": "UNDER_REVIEW",
+            "updated_at": datetime.utcnow()
+        })
+
+        db_service.log_activity(
+            user_id=user_id,
+            user_name=user_name,
+            type="status_change",
+            action_text=f"submitted for scheduled publishing on {scheduled_at.strftime('%b %d, %Y at %I:%M %p')}",
+            blog_title=blog_data.get('title', 'Untitled')
+        )
+
+        return jsonify({"success": True, "message": "Blog submitted for approval with schedule request"})
+
+
+@schedule_bp.route('/api/schedule/<blog_id>/reschedule', methods=['POST'])
+def reschedule_blog(blog_id):
+    user_id = session.get('user_id')
+    user_role = session.get('user_role', 'USER')
+
+    if not user_id:
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    if user_role != 'ADMIN':
+        return jsonify({"success": False, "error": "Only admin can reschedule"}), 403
+
+    data = request.get_json()
+    scheduled_at_str = data.get('scheduled_at')
+
+    if not scheduled_at_str:
+        return jsonify({"success": False, "error": "scheduled_at is required"}), 400
+
+    try:
+        scheduled_at = datetime.fromisoformat(scheduled_at_str.replace('Z', '+00:00'))
+        scheduled_at = scheduled_at.replace(tzinfo=None)
+    except (ValueError, TypeError):
+        return jsonify({"success": False, "error": "Invalid date format"}), 400
+
+    if scheduled_at <= datetime.utcnow():
+        return jsonify({"success": False, "error": "Scheduled time must be in the future"}), 400
+
+    blog_data = db_service.get_blog_by_id(blog_id)
+    if not blog_data:
+        return jsonify({"success": False, "error": "Blog not found"}), 404
+
+    if blog_data.get('status') != 'SCHEDULED':
+        return jsonify({"success": False, "error": "Blog is not currently scheduled"}), 400
+
+    success = db_service.update_blog_status(blog_id, "SCHEDULED", scheduled_at=scheduled_at, scheduled_by=user_id)
+
+    if success:
+        db_service.log_activity(
+            user_id=user_id,
+            user_name=session.get('user_name', 'User'),
+            type="status_change",
+            action_text=f"rescheduled to {scheduled_at.strftime('%b %d, %Y at %I:%M %p')}",
+            blog_title=blog_data.get('title', 'Untitled')
+        )
+        return jsonify({"success": True, "message": "Blog rescheduled successfully"})
+    return jsonify({"success": False, "error": "Failed to reschedule"}), 500
+
+
+@schedule_bp.route('/api/schedule/<blog_id>/cancel', methods=['POST'])
+def cancel_schedule(blog_id):
+    user_id = session.get('user_id')
+    user_role = session.get('user_role', 'USER')
+
+    if not user_id:
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    if user_role != 'ADMIN':
+        return jsonify({"success": False, "error": "Only admin can cancel schedule"}), 403
+
+    blog_data = db_service.get_blog_by_id(blog_id)
+    if not blog_data:
+        return jsonify({"success": False, "error": "Blog not found"}), 404
+
+    if blog_data.get('status') != 'SCHEDULED':
+        return jsonify({"success": False, "error": "Blog is not currently scheduled"}), 400
+
+    success = db_service.update_blog_status(blog_id, "DRAFT")
+
+    if success:
+        db_service.log_activity(
+            user_id=user_id,
+            user_name=session.get('user_name', 'User'),
+            type="status_change",
+            action_text="cancelled schedule and moved to draft",
+            blog_title=blog_data.get('title', 'Untitled')
+        )
+        return jsonify({"success": True, "message": "Schedule cancelled"})
+    return jsonify({"success": False, "error": "Failed to cancel schedule"}), 500
+
+
+@schedule_bp.route('/api/schedule/<blog_id>/publish-now', methods=['POST'])
+def publish_now(blog_id):
+    user_id = session.get('user_id')
+    user_role = session.get('user_role', 'USER')
+
+    if not user_id:
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    if user_role != 'ADMIN':
+        return jsonify({"success": False, "error": "Only admin can publish"}), 403
+
+    blog_data = db_service.get_blog_by_id(blog_id)
+    if not blog_data:
+        return jsonify({"success": False, "error": "Blog not found"}), 404
+
+    if blog_data.get('status') != 'SCHEDULED':
+        return jsonify({"success": False, "error": "Blog is not currently scheduled"}), 400
+
+    success = db_service.update_blog_status(blog_id, "PUBLISHED")
+
+    if success:
+        from app.utils.cache import cache
+        site_owner_id = blog_data.get('site_owner_id') or blog_data.get('author_id') or user_id
+        cache.clear_prefix(f"published_blogs:{site_owner_id}")
+
+        db_service.log_activity(
+            user_id=user_id,
+            user_name=session.get('user_name', 'User'),
+            type="status_change",
+            action_text="published immediately (was scheduled)",
+            blog_title=blog_data.get('title', 'Untitled')
+        )
+        return jsonify({"success": True, "message": "Blog published"})
+    return jsonify({"success": False, "error": "Failed to publish"}), 500

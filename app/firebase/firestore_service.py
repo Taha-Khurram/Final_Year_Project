@@ -930,7 +930,7 @@ class FirestoreService:
         
         
         
-    def update_blog_status(self, blog_id, new_status):
+    def update_blog_status(self, blog_id, new_status, scheduled_at=None, scheduled_by=None):
         """Updates blog status and invalidates published blogs cache."""
         try:
             doc_ref = self.db.collection("blogs").document(blog_id)
@@ -942,10 +942,19 @@ class FirestoreService:
                 data = doc.to_dict()
                 site_owner_id = data.get('site_owner_id') or data.get('author_id')
 
-            doc_ref.update({
+            update_data = {
                 "status": new_status,
                 "updated_at": datetime.utcnow()
-            })
+            }
+
+            if new_status == "SCHEDULED" and scheduled_at:
+                update_data["scheduled_at"] = scheduled_at
+                update_data["scheduled_by"] = scheduled_by
+            elif new_status != "SCHEDULED":
+                update_data["scheduled_at"] = firestore.DELETE_FIELD
+                update_data["scheduled_by"] = firestore.DELETE_FIELD
+
+            doc_ref.update(update_data)
 
             # Invalidate published blogs cache for this site owner
             if site_owner_id:
@@ -955,6 +964,102 @@ class FirestoreService:
         except Exception as e:
             print("Firestore Status Error:", e)
             return False
+
+    def get_scheduled_blogs(self, site_owner_id):
+        """Returns all scheduled blogs for a site owner, sorted by scheduled_at."""
+        try:
+            blogs_ref = self.db.collection("blogs")
+            docs = (
+                blogs_ref
+                .where(filter=FieldFilter("status", "==", "SCHEDULED"))
+                .stream()
+            )
+            results = []
+            for doc in docs:
+                data = doc.to_dict()
+                owner = data.get("site_owner_id") or data.get("author_id")
+                if owner == site_owner_id:
+                    data["id"] = doc.id
+                    results.append(data)
+            results.sort(key=lambda x: x.get("scheduled_at") or datetime.min)
+            return results
+        except Exception as e:
+            print(f"Error fetching scheduled blogs: {e}")
+            return []
+
+    def get_due_scheduled_blogs(self):
+        """Returns blogs that are SCHEDULED and past their scheduled_at time."""
+        try:
+            from datetime import timezone
+            now = datetime.now(timezone.utc)
+            blogs_ref = self.db.collection("blogs")
+            docs = (
+                blogs_ref
+                .where(filter=FieldFilter("status", "==", "SCHEDULED"))
+                .stream()
+            )
+            results = []
+            for doc in docs:
+                data = doc.to_dict()
+                scheduled_at = data.get("scheduled_at")
+                if scheduled_at:
+                    # Ensure both are timezone-aware for comparison
+                    if scheduled_at.tzinfo is None:
+                        scheduled_at = scheduled_at.replace(tzinfo=timezone.utc)
+                    if scheduled_at <= now:
+                        data["id"] = doc.id
+                        results.append(data)
+            return results
+        except Exception as e:
+            print(f"Error fetching due scheduled blogs: {e}")
+            return []
+
+    def get_all_scheduled_for_calendar(self, site_owner_id):
+        """Returns scheduled + under_review blogs with schedule info for the calendar page."""
+        try:
+            from datetime import timezone
+            blogs_ref = self.db.collection("blogs")
+            results = []
+
+            # Get SCHEDULED blogs - query by status only, filter site_owner in Python
+            scheduled_docs = (
+                blogs_ref
+                .where(filter=FieldFilter("status", "==", "SCHEDULED"))
+                .stream()
+            )
+            for doc in scheduled_docs:
+                data = doc.to_dict()
+                owner = data.get("site_owner_id") or data.get("author_id")
+                if owner == site_owner_id:
+                    data["id"] = doc.id
+                    results.append(data)
+
+            # Get UNDER_REVIEW blogs that have a requested_schedule_at
+            review_docs = (
+                blogs_ref
+                .where(filter=FieldFilter("status", "==", "UNDER_REVIEW"))
+                .stream()
+            )
+            for doc in review_docs:
+                data = doc.to_dict()
+                owner = data.get("site_owner_id") or data.get("author_id")
+                if owner == site_owner_id and data.get("requested_schedule_at"):
+                    data["id"] = doc.id
+                    results.append(data)
+
+            def sort_key(x):
+                dt = x.get("scheduled_at") or x.get("requested_schedule_at")
+                if dt is None:
+                    return datetime.min.replace(tzinfo=timezone.utc)
+                if hasattr(dt, 'tzinfo') and dt.tzinfo is None:
+                    return dt.replace(tzinfo=timezone.utc)
+                return dt
+
+            results.sort(key=sort_key)
+            return results
+        except Exception as e:
+            print(f"Error fetching calendar blogs: {e}")
+            return []
         
 # Categories functions
     def get_category_by_id(self, category_id, user_id=None):

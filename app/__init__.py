@@ -110,6 +110,7 @@ def create_app(config_class=Config):
     from app.routes.activity_routes import activity_bp
     from app.routes.blogs_listing_routes import blogs_bp
     from app.routes.analytics_routes import analytics_bp
+    from app.routes.schedule_routes import schedule_bp
 
     app.register_blueprint(blog_bp)
     app.register_blueprint(auth_bp)
@@ -119,6 +120,7 @@ def create_app(config_class=Config):
     app.register_blueprint(activity_bp)
     app.register_blueprint(blogs_bp)
     app.register_blueprint(analytics_bp)
+    app.register_blueprint(schedule_bp)
 
     # FIX: Register with url_prefix to match your JS calls (/users/list, etc.)
     app.register_blueprint(user_bp, url_prefix='/users')
@@ -149,5 +151,9 @@ def create_app(config_class=Config):
                     return redirect(url_for('auth_bp.login', expired=1))
             # Reset activity timestamp
             session['last_activity'] = datetime.now(timezone.utc).isoformat()
+
+    # Initialize background scheduler for scheduled blog publishing
+    from app.scheduler import init_scheduler
+    init_scheduler(app)
 
     return app

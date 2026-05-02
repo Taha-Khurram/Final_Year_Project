@@ -3,6 +3,7 @@
  */
 
 let currentBlogId = null;
+let currentBlogTitle = '';
 
 // Check if there are remaining approvals and show empty state if needed
 function checkEmptyState() {
@@ -26,6 +27,68 @@ function checkEmptyState() {
       </div>
     `;
   }
+}
+
+// Setup schedule modal confirm button
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('confirmScheduleBtn').addEventListener('click', async () => {
+    const dateTime = document.getElementById('scheduleDateTime').value;
+    if (!dateTime) {
+      showToast({ type: 'error', title: 'Error', message: 'Please select a date and time.', duration: 3000 });
+      return;
+    }
+
+    const btn = document.getElementById('confirmScheduleBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div> Scheduling...';
+
+    try {
+      const isoDate = new Date(dateTime).toISOString();
+      const res = await fetch(`/api/schedule/${currentBlogId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scheduled_at: isoDate })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast({ type: 'success', title: 'Scheduled!', message: data.message || 'Blog scheduled successfully.', duration: 4000 });
+        bootstrap.Modal.getInstance(document.getElementById('scheduleModal')).hide();
+        const row = document.getElementById(`row-${currentBlogId}`);
+        if (row) {
+          row.style.transition = 'all 0.3s ease';
+          row.style.opacity = '0';
+          row.style.transform = 'translateX(20px)';
+          setTimeout(() => { row.remove(); checkEmptyState(); }, 300);
+        }
+      } else {
+        showToast({ type: 'error', title: 'Error', message: data.error || 'Failed to schedule.', duration: 5000 });
+      }
+    } catch (err) {
+      showToast({ type: 'error', title: 'Error', message: 'Connection error.', duration: 5000 });
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-calendar-check"></i> Schedule';
+    }
+  });
+});
+
+function openScheduleModal(blogId) {
+  currentBlogId = blogId;
+
+  // Set min to now
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  document.getElementById('scheduleDateTime').min = now.toISOString().slice(0, 16);
+  document.getElementById('scheduleDateTime').value = '';
+
+  // Try to get the title from the row
+  const row = document.getElementById(`row-${blogId}`);
+  const title = row ? row.querySelector('.col-title').textContent.trim() : 'Blog';
+  document.getElementById('schedule-modal-title').textContent = title;
+
+  const modal = new bootstrap.Modal(document.getElementById('scheduleModal'));
+  modal.show();
 }
 
 async function openViewModal(id) {
@@ -104,6 +167,11 @@ async function openViewModal(id) {
       document.getElementById('view-reject-btn').onclick = function() {
         bootstrap.Modal.getInstance(document.getElementById('viewModal')).hide();
         rejectToDraft(id);
+      };
+
+      document.getElementById('view-schedule-btn').onclick = function() {
+        bootstrap.Modal.getInstance(document.getElementById('viewModal')).hide();
+        openScheduleModal(id);
       };
 
       // Show modal
@@ -187,6 +255,14 @@ async function openReviewModal(id) {
         const modalInstance = bootstrap.Modal.getInstance(modalElem);
         if (modalInstance) modalInstance.hide();
         approveBlog(id);
+      };
+
+      const modalScheduleBtn = document.getElementById('modalScheduleBtn');
+      modalScheduleBtn.onclick = function () {
+        const modalElem = document.getElementById('reviewModal');
+        const modalInstance = bootstrap.Modal.getInstance(modalElem);
+        if (modalInstance) modalInstance.hide();
+        openScheduleModal(id);
       };
 
       const modalRejectBtn = document.getElementById('modalRejectBtn');
