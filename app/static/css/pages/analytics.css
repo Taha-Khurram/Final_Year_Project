@@ -235,6 +235,48 @@
     box-shadow: 0 4px 12px rgba(67, 24, 255, 0.25);
 }
 
+/* ==================== TRACKING STATUS BANNER ==================== */
+.tracking-status-banner {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.tracking-status-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.tracking-status-item i {
+    font-size: 1rem;
+    color: var(--text-muted);
+}
+
+.tracking-label {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.tracking-value {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.tracking-value.tracking-active {
+    color: #10b981;
+}
+
+.tracking-value.tracking-inactive {
+    color: #ef4444;
+}
+
 /* ==================== STATS ROW ==================== */
 .analytics-stats-row {
     display: grid;
@@ -518,6 +560,12 @@
     .analytics-connect-card {
         padding: 2.5rem 1.25rem;
     }
+
+    .tracking-status-banner {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: flex-start;
+    }
 }
 
 /* ==================== DISCONNECT MODAL ==================== */
@@ -627,4 +675,34 @@
 .btn-modal-confirm:hover {
     background: #dc2626;
     transform: translateY(-1px);
+}
+
+/* ==================== AUTO-LINK TOAST ==================== */
+.analytics-toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1e293b;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.analytics-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.analytics-toast i {
+    color: #10b981;
 }

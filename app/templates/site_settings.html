@@ -1348,6 +1348,14 @@
                                 <p class="form-hint">Your GA4 measurement ID for tracking</p>
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Custom Domain</label>
+                                <input type="text" class="form-control" id="custom_domain" name="custom_domain"
+                                       value="{{ settings.custom_domain }}" placeholder="yourdomain.com">
+                                <p class="form-hint">Your custom domain for the public site</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="section-divider">
@@ -2319,6 +2327,7 @@
             meta_description: document.getElementById('meta_description').value,
             og_image_url: document.getElementById('og_image_url').value,
             analytics_id: document.getElementById('analytics_id').value,
+            custom_domain: document.getElementById('custom_domain').value,
             // Social
             social_twitter: document.getElementById('social_twitter').value,
             social_linkedin: document.getElementById('social_linkedin').value,

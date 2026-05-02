@@ -1163,6 +1163,7 @@ class FirestoreService:
             "meta_description": "",
             "og_image_url": "",
             "analytics_id": "",
+            "custom_domain": "",
             # Social
             "social_links": {
                 "twitter": "",
@@ -1496,6 +1497,7 @@ For questions about these Terms, contact us at {contact_email}.
             'meta_description': 160,
             'og_image_url': 500,
             'analytics_id': 50,
+            'custom_domain': 253,
             'contact_email': 100,
             'about_content': 5000,
             'timezone': 50,

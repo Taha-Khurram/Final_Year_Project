@@ -1123,6 +1123,7 @@ def update_site_settings():
             'meta_description': data.get('meta_description', '').strip(),
             'og_image_url': data.get('og_image_url', '').strip(),
             'analytics_id': data.get('analytics_id', '').strip(),
+            'custom_domain': data.get('custom_domain', '').strip(),
             # SEO (advanced) - nested object
             'seo': data.get('seo', {}),
             # Social
