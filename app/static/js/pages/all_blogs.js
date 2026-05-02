@@ -13,10 +13,25 @@ const perPage = 15;
 let searchTimeout = null;
 
 document.addEventListener('DOMContentLoaded', function () {
+    applyUrlParams();
     setupFilterTabs();
     setupControls();
     loadBlogs();
 });
+
+function applyUrlParams() {
+    var params = new URLSearchParams(window.location.search);
+    var status = params.get('status');
+    if (status) {
+        currentStatus = status;
+        document.querySelectorAll('.blogs-filter-tabs .filter-tab').forEach(function(tab) {
+            tab.classList.remove('active');
+            if (tab.dataset.filter === status) {
+                tab.classList.add('active');
+            }
+        });
+    }
+}
 
 // ==================== FILTER TABS ====================
 

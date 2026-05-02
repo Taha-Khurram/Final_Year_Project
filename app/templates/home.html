@@ -59,7 +59,7 @@
             <div class="dashboard-list-card">
                 <div class="list-card-header">
                     <h4 class="list-card-title"><i class="bi bi-file-post"></i> All Blogs</h4>
-                    <a href="{{ url_for('blog.drafts_page') }}" class="list-card-viewall">View All <i class="bi bi-arrow-right"></i></a>
+                    <a href="{{ url_for('blogs_listing.all_blogs_page') }}" class="list-card-viewall">View All <i class="bi bi-arrow-right"></i></a>
                 </div>
                 <div class="list-card-body">
                     {% if all_blogs %}
@@ -85,9 +85,7 @@
             <div class="dashboard-list-card">
                 <div class="list-card-header">
                     <h4 class="list-card-title"><i class="bi bi-hourglass-split"></i> Pending Review</h4>
-                    {% if session.get('user_role') == 'ADMIN' %}
-                    <a href="{{ url_for('blog.approval_page') }}" class="list-card-viewall">View All <i class="bi bi-arrow-right"></i></a>
-                    {% endif %}
+                    <a href="{{ url_for('blogs_listing.all_blogs_page') }}?status=UNDER_REVIEW" class="list-card-viewall">View All <i class="bi bi-arrow-right"></i></a>
                 </div>
                 <div class="list-card-body">
                     {% if pending_blogs %}
@@ -113,7 +111,7 @@
             <div class="dashboard-list-card">
                 <div class="list-card-header">
                     <h4 class="list-card-title"><i class="bi bi-check2-circle"></i> Published</h4>
-                    <a href="{{ url_for('blog.drafts_page') }}" class="list-card-viewall">View All <i class="bi bi-arrow-right"></i></a>
+                    <a href="{{ url_for('blogs_listing.all_blogs_page') }}?status=PUBLISHED" class="list-card-viewall">View All <i class="bi bi-arrow-right"></i></a>
                 </div>
                 <div class="list-card-body">
                     {% if published_blogs %}
