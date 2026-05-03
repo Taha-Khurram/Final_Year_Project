@@ -251,6 +251,17 @@ AI-powered comment moderation with a single Gemini API call per comment:
 | **Stats Cards** | Total, Published, Removed counts |
 | **Filter Tabs** | All / Published / Removed |
 
+### User Management
+
+| Feature | Description |
+|---------|-------------|
+| **Invite Users** | Send email invitations with signup link |
+| **Role Assignment** | Assign Admin or Editor roles on invite |
+| **Edit Role** | Change user roles via 3-dot action dropdown |
+| **Delete User** | Remove users from Firebase Auth and Firestore |
+| **Activity Logging** | All user management actions are logged |
+| **Self-Delete Protection** | Admins cannot delete their own account |
+
 ---
 
 ## Public Site
@@ -314,6 +325,17 @@ Customize via Dashboard > Site Settings:
 ---
 
 ## API Reference
+
+### User Management
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/users/manage-users` | User management page (Admin) |
+| GET | `/users/list` | List users and pending invitations |
+| POST | `/users/invite` | Send user invitation |
+| POST | `/users/resend-invite` | Resend invitation email |
+| POST | `/users/update-role` | Update user role |
+| POST | `/users/delete-user` | Delete user from system |
 
 ### Blog Management
 
@@ -394,8 +416,10 @@ FYP-main/
 ├── app/
 │   ├── agents/                 # AI agents
 │   │   ├── blog_agent.py
+│   │   ├── comment_agent.py
 │   │   ├── content_agent.py
 │   │   ├── formatting_agent.py
+│   │   ├── humanize_agent.py
 │   │   ├── newsletter_agent.py
 │   │   ├── outline_agent.py
 │   │   ├── semantic_search_agent.py
@@ -404,8 +428,11 @@ FYP-main/
 │   │   ├── firebase_admin.py
 │   │   └── firestore_service.py
 │   ├── routes/                 # API routes
+│   │   ├── activity_routes.py
+│   │   ├── all_blogs_routes.py
 │   │   ├── auth.py
 │   │   ├── blog_routes.py
+│   │   ├── comment_routes.py
 │   │   ├── newsletter_routes.py
 │   │   ├── settings_routes.py
 │   │   ├── site_routes.py
