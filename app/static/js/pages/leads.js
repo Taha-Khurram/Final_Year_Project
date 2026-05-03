@@ -136,9 +136,6 @@ function renderLeads(leads, total) {
                             <button class="dropdown-item" onclick="viewLeadById('${lead.id}')">
                                 <i class="bi bi-eye"></i> View
                             </button>
-                            ${isUnread ? `<button class="dropdown-item" onclick="markAsRead('${lead.id}')">
-                                <i class="bi bi-envelope-open"></i> Mark as Read
-                            </button>` : ''}
                             <button class="dropdown-item dropdown-item-danger" onclick="showDeleteConfirm('${lead.id}')">
                                 <i class="bi bi-trash"></i> Delete
                             </button>
