@@ -2547,27 +2547,6 @@ For questions about these Terms, contact us at {contact_email}.
             print(f"❌ Error saving newsletter subscriber: {e}")
             return (None, False)
 
-    def get_contact_submissions(self, user_id, limit=50):
-        """
-        Fetches contact submissions for a site owner.
-        """
-        try:
-            docs = self.db.collection('contact_submissions')\
-                .where(filter=FieldFilter('site_owner_id', '==', user_id))\
-                .order_by('created_at', direction=firestore.Query.DESCENDING)\
-                .limit(limit)\
-                .stream()
-
-            submissions = []
-            for doc in docs:
-                data = doc.to_dict()
-                data['id'] = doc.id
-                submissions.append(data)
-            return submissions
-        except Exception as e:
-            print(f"❌ Error fetching contact submissions: {e}")
-            return []
-
     def get_newsletter_subscribers(self, user_id, limit=100):
         """
         Fetches newsletter subscribers for a site owner.
