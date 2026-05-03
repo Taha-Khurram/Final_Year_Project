@@ -169,7 +169,7 @@
 .col-lead-email { flex: 2.5; min-width: 0; overflow: hidden; padding-right: 1rem; }
 .col-lead-subject { flex: 3; min-width: 0; overflow: hidden; padding-right: 1rem; }
 .col-lead-date { flex: 1.5; min-width: 0; padding-right: 1rem; }
-.col-lead-actions { flex: 0.8; min-width: 0; text-align: right; }
+.col-lead-actions { flex: 0.8; min-width: 0; text-align: center; }
 
 /* ==================== LEAD ROW ==================== */
 .lead-row {
@@ -253,12 +253,14 @@
 
 .lead-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
 }
 
 /* ==================== 3-DOT DROPDOWN ==================== */
 .lead-dropdown {
     position: relative;
+    display: flex;
+    justify-content: center;
 }
 
 .lead-dots-btn {
