@@ -2212,6 +2212,87 @@ For questions about these Terms, contact us at {contact_email}.
             print(f"❌ Error saving contact submission: {e}")
             return None
 
+    def get_contact_submissions(self, user_id, page=1, per_page=10, status_filter='all', search=''):
+        """Get paginated contact submissions for a site owner."""
+        try:
+            query = self.db.collection('contact_submissions')\
+                .where(filter=FieldFilter('site_owner_id', '==', user_id))\
+                .order_by('created_at', direction=firestore.Query.DESCENDING)
+
+            docs = list(query.stream())
+
+            if status_filter == 'unread':
+                docs = [d for d in docs if not d.to_dict().get('read', False)]
+            elif status_filter == 'read':
+                docs = [d for d in docs if d.to_dict().get('read', False)]
+
+            if search:
+                search_lower = search.lower()
+                filtered = []
+                for d in docs:
+                    data = d.to_dict()
+                    if (search_lower in data.get('name', '').lower() or
+                        search_lower in data.get('email', '').lower() or
+                        search_lower in data.get('subject', '').lower()):
+                        filtered.append(d)
+                docs = filtered
+
+            total = len(docs)
+            start = (page - 1) * per_page
+            page_docs = docs[start:start + per_page]
+
+            submissions = []
+            for doc in page_docs:
+                data = doc.to_dict()
+                data['id'] = doc.id
+                if data.get('created_at'):
+                    data['created_at'] = data['created_at'].isoformat() if hasattr(data['created_at'], 'isoformat') else str(data['created_at'])
+                submissions.append(data)
+
+            return {
+                'submissions': submissions,
+                'total': total,
+                'page': page,
+                'per_page': per_page,
+                'total_pages': (total + per_page - 1) // per_page
+            }
+        except Exception as e:
+            print(f"Error fetching contact submissions: {e}")
+            return {'submissions': [], 'total': 0, 'page': 1, 'per_page': per_page, 'total_pages': 0}
+
+    def get_contact_stats(self, user_id):
+        """Get contact submission statistics."""
+        try:
+            docs = list(
+                self.db.collection('contact_submissions')
+                .where(filter=FieldFilter('site_owner_id', '==', user_id))
+                .stream()
+            )
+            total = len(docs)
+            unread = sum(1 for d in docs if not d.to_dict().get('read', False))
+            return {'total': total, 'unread': unread, 'read': total - unread}
+        except Exception as e:
+            print(f"Error fetching contact stats: {e}")
+            return {'total': 0, 'unread': 0, 'read': 0}
+
+    def mark_contact_read(self, submission_id):
+        """Mark a contact submission as read."""
+        try:
+            self.db.collection('contact_submissions').document(submission_id).update({'read': True})
+            return True
+        except Exception as e:
+            print(f"Error marking contact read: {e}")
+            return False
+
+    def delete_contact_submission(self, submission_id):
+        """Delete a contact submission."""
+        try:
+            self.db.collection('contact_submissions').document(submission_id).delete()
+            return True
+        except Exception as e:
+            print(f"Error deleting contact submission: {e}")
+            return False
+
     # ---------------- COMMENT METHODS ----------------
 
     def create_comment(self, comment_data):
