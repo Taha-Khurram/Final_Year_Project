@@ -600,18 +600,91 @@
 .cover-image-preview {
     position: relative;
     width: 100%;
-    max-width: 320px;
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
     margin-bottom: 0.75rem;
     border: 1px solid #e2e8f0;
+    background: #f8fafc;
 }
 
 .cover-image-preview img {
     width: 100%;
-    height: 160px;
+    height: 180px;
     object-fit: cover;
     display: block;
+}
+
+.cover-image-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 6px;
+}
+
+.cover-img-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.95);
+    color: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.cover-img-action-btn:hover {
+    background: white;
+    color: var(--primary-color);
+    transform: scale(1.05);
+}
+
+.cover-img-action-btn.danger:hover {
+    color: #ef4444;
+}
+
+.cover-image-placeholder {
+    width: 100%;
+    padding: 1.75rem 1rem;
+    border: 2px dashed #e2e8f0;
+    border-radius: 12px;
+    background: #fafbfc;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cover-image-placeholder:hover {
+    border-color: var(--primary-color);
+    background: rgba(67, 24, 255, 0.02);
+}
+
+.cover-placeholder-icon {
+    font-size: 1.75rem;
+    color: #94a3b8;
+    margin-bottom: 0.5rem;
+    transition: color 0.2s ease;
+}
+
+.cover-image-placeholder:hover .cover-placeholder-icon {
+    color: var(--primary-color);
+}
+
+.cover-placeholder-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 0.2rem;
+}
+
+.cover-placeholder-hint {
+    font-size: 0.75rem;
+    color: #94a3b8;
 }
 
 .cover-image-remove {
@@ -771,4 +844,32 @@
     padding: 2rem 1rem;
     color: #94a3b8;
     font-size: 0.85rem;
+}
+
+.image-picker-footer {
+    padding: 0.85rem 1.5rem;
+    border-top: 1px solid #f1f5f9;
+    background: #fafbfc;
+    border-radius: 0 0 16px 16px;
+    text-align: center;
+}
+
+.image-picker-upload-link {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: opacity 0.15s ease;
+}
+
+.image-picker-upload-link:hover {
+    opacity: 0.8;
+}
+
+.image-picker-item.selected {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.15);
 }

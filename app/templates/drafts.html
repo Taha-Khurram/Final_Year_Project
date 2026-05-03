@@ -3,7 +3,7 @@
 {% block title %}Drafts | ScriptlyAI{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/drafts.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/drafts.css') }}?v=2">
 {% endblock %}
 
 {% block content %}
@@ -133,13 +133,20 @@
           <label class="slug-label">Feature Image</label>
           <div class="cover-image-preview" id="coverImagePreview" style="display:none;">
             <img id="coverImageImg" src="" alt="Cover">
-            <button type="button" class="cover-image-remove" onclick="removeCoverImage()">
-              <i class="bi bi-x-lg"></i>
-            </button>
+            <div class="cover-image-actions">
+              <button type="button" class="cover-img-action-btn" onclick="openImagePicker()" title="Change image">
+                <i class="bi bi-arrow-repeat"></i>
+              </button>
+              <button type="button" class="cover-img-action-btn danger" onclick="removeCoverImage()" title="Remove image">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
           </div>
-          <button type="button" class="cover-image-choose-btn" id="chooseCoverBtn" onclick="openImagePicker()">
-            <i class="bi bi-images"></i> Choose from Gallery
-          </button>
+          <div class="cover-image-placeholder" id="coverImagePlaceholder" onclick="openImagePicker()">
+            <div class="cover-placeholder-icon"><i class="bi bi-image"></i></div>
+            <div class="cover-placeholder-text">Click to select a feature image</div>
+            <div class="cover-placeholder-hint">Choose from your gallery</div>
+          </div>
         </div>
 
         <!-- SEO Settings -->
@@ -295,16 +302,19 @@
 <div class="image-picker-overlay" id="imagePickerOverlay" onclick="closeImagePicker(event)">
   <div class="image-picker-modal" onclick="event.stopPropagation()">
     <div class="image-picker-header">
-      <h4 class="image-picker-title"><i class="bi bi-images"></i> Select Image</h4>
+      <h4 class="image-picker-title"><i class="bi bi-images"></i> Choose from Gallery</h4>
       <button class="image-picker-close" onclick="closeImagePicker()"><i class="bi bi-x-lg"></i></button>
     </div>
     <div class="image-picker-body">
       <div class="image-picker-grid" id="imagePickerGrid">
-        <div class="text-center py-4">
+        <div class="text-center py-4" style="grid-column:1/-1;">
           <div class="spinner-border spinner-border-sm text-primary opacity-50"></div>
           <p class="text-secondary mt-2 mb-0" style="font-size:0.82rem;">Loading gallery...</p>
         </div>
       </div>
+    </div>
+    <div class="image-picker-footer">
+      <a href="/gallery" class="image-picker-upload-link"><i class="bi bi-cloud-arrow-up"></i> Upload new images in Gallery</a>
     </div>
   </div>
 </div>

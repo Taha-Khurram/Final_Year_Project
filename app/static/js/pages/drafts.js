@@ -647,18 +647,18 @@ function applyBestTime(dayIndex, hour) {
 // ==================== COVER IMAGE PICKER ====================
 
 function setCoverImagePreview(url) {
-  const preview = document.getElementById('coverImagePreview');
-  const img = document.getElementById('coverImageImg');
-  const chooseBtn = document.getElementById('chooseCoverBtn');
+  var preview = document.getElementById('coverImagePreview');
+  var img = document.getElementById('coverImageImg');
+  var placeholder = document.getElementById('coverImagePlaceholder');
 
   if (url) {
     img.src = url;
     preview.style.display = 'block';
-    chooseBtn.innerHTML = '<i class="bi bi-images"></i> Change Image';
+    if (placeholder) placeholder.style.display = 'none';
   } else {
     img.src = '';
     preview.style.display = 'none';
-    chooseBtn.innerHTML = '<i class="bi bi-images"></i> Choose from Gallery';
+    if (placeholder) placeholder.style.display = '';
   }
 }
 
