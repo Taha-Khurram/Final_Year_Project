@@ -169,7 +169,7 @@
 .col-lead-email { flex: 2.5; min-width: 0; overflow: hidden; padding-right: 1rem; }
 .col-lead-subject { flex: 3; min-width: 0; overflow: hidden; padding-right: 1rem; }
 .col-lead-date { flex: 1.5; min-width: 0; padding-right: 1rem; }
-.col-lead-actions { flex: 1.2; min-width: 0; text-align: right; }
+.col-lead-actions { flex: 0.8; min-width: 0; text-align: right; }
 
 /* ==================== LEAD ROW ==================== */
 .lead-row {
@@ -253,35 +253,87 @@
 
 .lead-actions {
     display: flex;
-    gap: 0.4rem;
     justify-content: flex-end;
 }
 
-.lead-action-btn {
-    width: 30px;
-    height: 30px;
+/* ==================== 3-DOT DROPDOWN ==================== */
+.lead-dropdown {
+    position: relative;
+}
+
+.lead-dots-btn {
+    width: 32px;
+    height: 32px;
     border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    background: white;
+    border: none;
+    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.15s ease;
-    font-size: 0.8rem;
-    color: #64748b;
+    font-size: 1rem;
+    color: #94a3b8;
 }
 
-.lead-action-btn:hover {
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-    background: rgba(67, 24, 255, 0.05);
+.lead-dots-btn:hover {
+    background: #f1f5f9;
+    color: #475569;
 }
 
-.lead-action-btn.btn-delete:hover {
-    border-color: #ef4444;
+.lead-dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 4px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+    min-width: 160px;
+    padding: 0.4rem;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px) scale(0.95);
+    transition: all 0.15s ease;
+}
+
+.lead-dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+.lead-dropdown-menu .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.55rem 0.85rem;
+    border: none;
+    background: none;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #475569;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.12s ease;
+    text-align: left;
+}
+
+.lead-dropdown-menu .dropdown-item:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+.lead-dropdown-menu .dropdown-item-danger {
     color: #ef4444;
-    background: rgba(239, 68, 68, 0.05);
+}
+
+.lead-dropdown-menu .dropdown-item-danger:hover {
+    background: rgba(239, 68, 68, 0.08);
+    color: #dc2626;
 }
 
 /* ==================== EMPTY STATE ==================== */

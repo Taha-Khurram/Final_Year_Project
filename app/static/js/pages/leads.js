@@ -129,12 +129,22 @@ function renderLeads(leads, total) {
                     <span class="lead-date">${dateStr}</span>
                 </div>
                 <div class="col-lead-actions" onclick="event.stopPropagation()">
-                    <button class="lead-action-btn" onclick="viewLeadById('${lead.id}')" title="View">
-                        <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="lead-action-btn btn-delete" onclick="showDeleteConfirm('${lead.id}')" title="Delete">
-                        <i class="bi bi-trash"></i>
-                    </button>
+                    <div class="lead-dropdown">
+                        <button class="lead-dots-btn" onclick="toggleDropdown(event, '${lead.id}')">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <div class="lead-dropdown-menu" id="dropdown-${lead.id}">
+                            <button class="dropdown-item" onclick="viewLeadById('${lead.id}')">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                            ${isUnread ? `<button class="dropdown-item" onclick="markAsRead('${lead.id}')">
+                                <i class="bi bi-envelope-open"></i> Mark as Read
+                            </button>` : ''}
+                            <button class="dropdown-item dropdown-item-danger" onclick="showDeleteConfirm('${lead.id}')">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>`;
     }).join('');
@@ -192,6 +202,21 @@ function goToPage(page) {
     currentPage = page;
     loadLeads();
 }
+
+// ==================== DROPDOWN ====================
+
+function toggleDropdown(event, id) {
+    event.stopPropagation();
+    closeAllDropdowns();
+    const menu = document.getElementById('dropdown-' + id);
+    if (menu) menu.classList.toggle('show');
+}
+
+function closeAllDropdowns() {
+    document.querySelectorAll('.lead-dropdown-menu.show').forEach(m => m.classList.remove('show'));
+}
+
+document.addEventListener('click', closeAllDropdowns);
 
 // ==================== VIEW LEAD ====================
 
