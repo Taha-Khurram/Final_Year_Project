@@ -2216,10 +2216,10 @@ For questions about these Terms, contact us at {contact_email}.
         """Get paginated contact submissions for a site owner."""
         try:
             query = self.db.collection('contact_submissions')\
-                .where(filter=FieldFilter('site_owner_id', '==', user_id))\
-                .order_by('created_at', direction=firestore.Query.DESCENDING)
+                .where(filter=FieldFilter('site_owner_id', '==', user_id))
 
             docs = list(query.stream())
+            docs.sort(key=lambda d: d.to_dict().get('created_at') or '', reverse=True)
 
             if status_filter == 'unread':
                 docs = [d for d in docs if not d.to_dict().get('read', False)]
