@@ -76,7 +76,7 @@
     }
 
     .about-hero h1 span {
-        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -94,7 +94,7 @@
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
         color: white;
         padding: 0.5rem 1.5rem;
         border-radius: 30px;
@@ -194,7 +194,7 @@
     }
 
     .value-card:hover .value-icon {
-        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     }
 
     .value-icon i {
@@ -222,7 +222,7 @@
 
     /* ==================== STATS SECTION ==================== */
     .stats-section {
-        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
         border-radius: var(--radius-lg);
         padding: 3rem 2rem;
         margin-bottom: 3rem;
@@ -323,7 +323,7 @@
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
         color: white;
         padding: 1rem 2rem;
         border-radius: 30px;
@@ -483,19 +483,19 @@
             <rect x="157" y="168" width="80" height="4" rx="2" fill="rgba(255,255,255,0.4)"/>
             <rect x="157" y="177" width="70" height="4" rx="2" fill="rgba(255,255,255,0.4)"/>
             <rect x="157" y="186" width="75" height="4" rx="2" fill="rgba(255,255,255,0.4)"/>
-            <rect x="157" y="198" width="35" height="8" rx="4" fill="#8B5CF6"/>
+            <rect x="157" y="198" width="35" height="8" rx="4" style="fill:var(--secondary-color)"/>
 
             <!-- Person silhouette -->
-            <ellipse cx="200" cy="100" rx="28" ry="30" fill="#6366F1"/>
-            <ellipse cx="200" cy="170" rx="45" ry="50" fill="#6366F1"/>
+            <ellipse cx="200" cy="100" rx="28" ry="30" style="fill:var(--secondary-color)"/>
+            <ellipse cx="200" cy="170" rx="45" ry="50" style="fill:var(--secondary-color)"/>
             <!-- Face details -->
             <circle cx="192" cy="95" r="3" fill="white" opacity="0.8"/>
             <circle cx="208" cy="95" r="3" fill="white" opacity="0.8"/>
             <path d="M193 108 Q200 114 207 108" stroke="white" stroke-width="2" fill="none" opacity="0.8"/>
 
             <!-- Arms typing -->
-            <ellipse cx="160" cy="200" rx="12" ry="8" fill="#6366F1"/>
-            <ellipse cx="240" cy="200" rx="12" ry="8" fill="#6366F1"/>
+            <ellipse cx="160" cy="200" rx="12" ry="8" style="fill:var(--secondary-color)"/>
+            <ellipse cx="240" cy="200" rx="12" ry="8" style="fill:var(--secondary-color)"/>
 
             <!-- Keyboard -->
             <rect x="155" y="208" width="90" height="12" rx="2" fill="#CBD5E0"/>
@@ -520,7 +520,7 @@
             <!-- Coffee mug -->
             <rect x="60" y="195" width="22" height="25" rx="3" fill="#E2E8F0"/>
             <ellipse cx="71" cy="195" rx="11" ry="4" fill="#CBD5E0"/>
-            <ellipse cx="71" cy="197" rx="8" ry="3" fill="#805AD5"/>
+            <ellipse cx="71" cy="197" rx="8" ry="3" style="fill:var(--primary-color)"/>
             <path d="M82 202 Q92 202 92 210 Q92 218 82 218" stroke="#CBD5E0" stroke-width="3" fill="none"/>
             <!-- Steam -->
             <path d="M66 188 Q63 182 66 176" stroke="#A0AEC0" stroke-width="1.5" fill="none" opacity="0.5"/>
@@ -535,25 +535,25 @@
             <path d="M70 130 C70 120 85 120 85 130 C85 145 70 155 70 155 C70 155 55 145 55 130 C55 120 70 120 70 130" fill="#FC8181" opacity="0.9"/>
 
             <!-- Stars -->
-            <g fill="#6366F1" opacity="0.7">
+            <g style="fill:var(--secondary-color)" opacity="0.7">
                 <path d="M350 200 L352 206 L358 206 L353 210 L355 216 L350 212 L345 216 L347 210 L342 206 L348 206 Z"/>
                 <path d="M50 90 L51.5 95 L57 95 L53 98 L54.5 103 L50 100 L45.5 103 L47 98 L43 95 L48.5 95 Z" transform="scale(0.8) translate(10, 10)"/>
             </g>
 
             <!-- Chat bubbles -->
             <rect x="280" cy="50" width="50" height="25" rx="8" fill="white" filter="url(#shadow)"/>
-            <circle cx="290" cy="62" r="3" fill="#6366F1"/>
-            <circle cx="300" cy="62" r="3" fill="#6366F1"/>
-            <circle cx="310" cy="62" r="3" fill="#6366F1"/>
+            <circle cx="290" cy="62" r="3" style="fill:var(--secondary-color)"/>
+            <circle cx="300" cy="62" r="3" style="fill:var(--secondary-color)"/>
+            <circle cx="310" cy="62" r="3" style="fill:var(--secondary-color)"/>
 
             <defs>
                 <linearGradient id="aboutGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#6366F1"/>
-                    <stop offset="100%" style="stop-color:#8B5CF6"/>
+                    <stop offset="0%" style="stop-color:var(--secondary-color)"/>
+                    <stop offset="100%" style="stop-color:var(--secondary-color)"/>
                 </linearGradient>
                 <linearGradient id="aboutGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#4318FF"/>
-                    <stop offset="100%" style="stop-color:#6366F1"/>
+                    <stop offset="0%" style="stop-color:var(--primary-color)"/>
+                    <stop offset="100%" style="stop-color:var(--secondary-color)"/>
                 </linearGradient>
                 <linearGradient id="screenGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
                     <stop offset="0%" style="stop-color:#1A202C"/>

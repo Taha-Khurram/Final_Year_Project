@@ -1464,6 +1464,7 @@ class FirestoreService:
             "logo_url": "",
             "favicon_url": "",
             "primary_color": "#4318FF",
+            "secondary_color": "#6366F1",
             "cover_image_url": "",
             # Content
             "posts_per_page": 10,
@@ -1832,6 +1833,14 @@ For questions about these Terms, contact us at {contact_email}.
                 validated['primary_color'] = color
             else:
                 validated['primary_color'] = '#4318FF'
+
+        # Secondary color validation (hex format)
+        if 'secondary_color' in settings:
+            color = str(settings['secondary_color']).strip()
+            if color.startswith('#') and len(color) in [4, 7]:
+                validated['secondary_color'] = color
+            else:
+                validated['secondary_color'] = '#6366F1'
 
         # Integer fields with bounds
         if 'posts_per_page' in settings:

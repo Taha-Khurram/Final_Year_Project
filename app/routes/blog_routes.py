@@ -1135,6 +1135,7 @@ def update_site_settings():
             'logo_url': data.get('logo_url', '').strip(),
             'favicon_url': data.get('favicon_url', '').strip(),
             'primary_color': data.get('primary_color', '#4318FF').strip(),
+            'secondary_color': data.get('secondary_color', '#6366F1').strip(),
             'cover_image_url': data.get('cover_image_url', '').strip(),
             # Content
             'posts_per_page': int(data.get('posts_per_page', 10)),

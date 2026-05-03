@@ -74,6 +74,7 @@
         :root {
             --primary-color: {{ settings.primary_color or '#4318FF' }};
             --primary-light: {{ settings.primary_color or '#4318FF' }}15;
+            --secondary-color: {{ settings.secondary_color or '#6366F1' }};
         }
     </style>
 
@@ -184,7 +185,7 @@
             color: var(--primary-color);
         }
         .cookie-accept-btn {
-            background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
             border: none;
             padding: 0.6rem 1.5rem;

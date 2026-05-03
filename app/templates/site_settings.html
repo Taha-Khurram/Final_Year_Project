@@ -1268,6 +1268,22 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Secondary Color</label>
+                                <div class="color-picker-wrapper">
+                                    <input type="color" id="secondary_color_picker" value="{{ settings.secondary_color or '#6366F1' }}"
+                                           onchange="syncSecondaryColorInput(this.value)">
+                                    <input type="text" class="form-control" id="secondary_color" name="secondary_color"
+                                           value="{{ settings.secondary_color or '#6366F1' }}" placeholder="#6366F1"
+                                           pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                                           onchange="syncSecondaryColorPicker(this.value)">
+                                </div>
+                                <p class="form-hint">Secondary accent for gradients and SVG illustrations</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Content Tab -->
@@ -2585,6 +2601,7 @@
             logo_url: document.getElementById('logo_url').value,
             favicon_url: document.getElementById('favicon_url').value,
             primary_color: document.getElementById('primary_color').value,
+            secondary_color: document.getElementById('secondary_color').value,
             cover_image_url: document.getElementById('cover_image_url').value,
             // Content
             posts_per_page: parseInt(document.getElementById('posts_per_page').value),
@@ -2765,6 +2782,16 @@
     function syncColorPicker(value) {
         if (/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(value)) {
             document.getElementById('primary_color_picker').value = value;
+        }
+    }
+
+    function syncSecondaryColorInput(value) {
+        document.getElementById('secondary_color').value = value;
+    }
+
+    function syncSecondaryColorPicker(value) {
+        if (/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(value)) {
+            document.getElementById('secondary_color_picker').value = value;
         }
     }
 

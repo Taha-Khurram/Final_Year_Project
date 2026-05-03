@@ -57,7 +57,7 @@
     .error-code {
         font-size: 6rem;
         font-weight: 800;
-        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -99,7 +99,7 @@
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
         color: white;
         padding: 1rem 2rem;
         border-radius: 30px;
@@ -212,7 +212,7 @@
         right: 12%;
         width: 12px;
         height: 12px;
-        background: #6366f1;
+        background: var(--secondary-color);
         border-radius: 50%;
         animation: pulse 3s ease-in-out infinite 0.5s;
     }
@@ -349,17 +349,17 @@
 
                 <!-- Decorative dots -->
                 <circle cx="90" cy="260" r="4" fill="var(--primary-color, #4318FF)" opacity="0.2"/>
-                <circle cx="310" cy="250" r="3" fill="#6366f1" opacity="0.2"/>
+                <circle cx="310" cy="250" r="3" style="fill:var(--secondary-color)" opacity="0.2"/>
                 <circle cx="350" cy="140" r="5" fill="#8b5cf6" opacity="0.15"/>
 
                 <!-- Gradients -->
                 <defs>
                     <linearGradient id="errorGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop offset="0%" style="stop-color:var(--primary-color, #4318FF)"/>
-                        <stop offset="100%" style="stop-color:#6366f1"/>
+                        <stop offset="100%" style="stop-color:var(--secondary-color)"/>
                     </linearGradient>
                     <linearGradient id="errorGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#6366f1"/>
+                        <stop offset="0%" style="stop-color:var(--secondary-color)"/>
                         <stop offset="100%" style="stop-color:#8b5cf6"/>
                     </linearGradient>
                 </defs>
