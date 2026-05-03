@@ -23,8 +23,9 @@
                 <a href="{{ url_for('site_bp.site_home', site_identifier=settings.site_slug|default(user_id, true)) }}" class="footer-logo">
                     {% if settings.logo_url %}
                     <img src="{{ settings.logo_url }}" alt="{{ settings.site_name }}">
-                    {% endif %}
+                    {% else %}
                     <span>{{ settings.site_name }}</span>
+                    {% endif %}
                 </a>
                 <p class="footer-description">
                     {{ settings.site_description or 'Empowering creators with the world\'s most intuitive platform. From first draft to final cut, we handle the technicalities so you can focus on the story.' }}

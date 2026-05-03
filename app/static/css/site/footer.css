@@ -121,10 +121,9 @@
 }
 
 .footer-logo img {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    object-fit: cover;
+    height: 4rem;
+    width: auto;
+    object-fit: contain;
 }
 
 .footer-logo span {

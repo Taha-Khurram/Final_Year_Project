@@ -51,10 +51,9 @@
 }
 
 .site-logo .logo-image {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    object-fit: cover;
+    height: 4rem;
+    width: auto;
+    object-fit: contain;
 }
 
 .site-logo-text {
