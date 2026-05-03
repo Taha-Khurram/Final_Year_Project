@@ -111,6 +111,7 @@ def create_app(config_class=Config):
     from app.routes.blogs_listing_routes import blogs_bp
     from app.routes.analytics_routes import analytics_bp
     from app.routes.schedule_routes import schedule_bp
+    from app.routes.leads_routes import leads_bp
 
     app.register_blueprint(blog_bp)
     app.register_blueprint(auth_bp)
@@ -121,6 +122,7 @@ def create_app(config_class=Config):
     app.register_blueprint(blogs_bp)
     app.register_blueprint(analytics_bp)
     app.register_blueprint(schedule_bp)
+    app.register_blueprint(leads_bp)
 
     # FIX: Register with url_prefix to match your JS calls (/users/list, etc.)
     app.register_blueprint(user_bp, url_prefix='/users')
