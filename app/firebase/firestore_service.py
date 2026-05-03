@@ -847,6 +847,7 @@ class FirestoreService:
 
             if not existing_user.exists:
                 user_data["role"] = user_data.get("role", "ADMIN")
+                user_data["profile_image"] = user_data.get("profile_image", "")
                 user_data["created_at"] = firestore.SERVER_TIMESTAMP
                 user_data["created_by"] = user_data.get("created_by", None)
                 user_data["last_login"] = firestore.SERVER_TIMESTAMP
@@ -893,6 +894,17 @@ class FirestoreService:
             return None
         except Exception as e:
             print(f"❌ Error getting user: {e}")
+            return None
+
+    def update_user_profile(self, user_id, profile_data):
+        try:
+            if not user_id:
+                return None
+            user_ref = self.db.collection(self.user_collection).document(user_id)
+            user_ref.update(profile_data)
+            return self.get_user_by_id(user_id)
+        except Exception as e:
+            print(f"❌ Error updating user profile: {e}")
             return None
 
     def get_my_sub_users(self, admin_id):

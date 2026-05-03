@@ -50,6 +50,7 @@ def verify_token():
             'user_id': uid,
             'user_name': user_record['name'],
             'user_role': user_record.get('role', 'ADMIN'), # CRITICAL for routing
+            'profile_image': user_record.get('profile_image', ''),
             'logged_in': True,
             'last_activity': datetime.now(timezone.utc).isoformat()
         })
@@ -105,6 +106,36 @@ def check_email():
         if 'USER_NOT_FOUND' in str(e) or 'not found' in str(e).lower():
             return jsonify({"exists": False, "error": "No account found with this email address"}), 404
         return jsonify({"exists": False, "error": "Something went wrong. Please try again"}), 500
+
+@auth_bp.route('/profile')
+def profile_page():
+    if not session.get('logged_in'):
+        return redirect(url_for('auth_bp.login'))
+    user = db_service.get_user_by_id(session['user_id'])
+    return render_template('profile.html', user=user)
+
+@auth_bp.route('/api/profile/update', methods=['POST'])
+def update_profile():
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    data = request.json
+    update = {}
+    name = data.get('name', '').strip()
+    if name:
+        update['name'] = name
+    profile_image = data.get('profile_image')
+    if profile_image is not None:
+        update['profile_image'] = profile_image.strip()
+    if not update:
+        return jsonify({"error": "No changes provided"}), 400
+    result = db_service.update_user_profile(session['user_id'], update)
+    if result:
+        if 'name' in update:
+            session['user_name'] = update['name']
+        if 'profile_image' in update:
+            session['profile_image'] = update['profile_image']
+        return jsonify({"success": True})
+    return jsonify({"error": "Update failed"}), 500
 
 @auth_bp.route('/logout')
 def logout():

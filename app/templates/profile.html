@@ -1,0 +1,663 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile | ScriptlyAI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-page {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 2rem 0;
+    }
+
+    .profile-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .profile-back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #64748b;
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        transition: all 0.15s ease;
+        margin-bottom: 1rem;
+    }
+
+    .profile-back-btn:hover {
+        color: var(--primary-color, #4318FF);
+        background: rgba(67, 24, 255, 0.06);
+    }
+
+    .profile-header h1 {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: #1e293b;
+    }
+
+    .profile-header p {
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .profile-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.04);
+    }
+
+    .profile-avatar-section {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .profile-avatar-wrapper {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        margin: 0 auto 1rem;
+        position: relative;
+        cursor: pointer;
+    }
+
+    .profile-avatar-preview {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid #e2e8f0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: border-color 0.2s ease;
+    }
+
+    .profile-avatar-wrapper:hover .profile-avatar-preview {
+        border-color: var(--primary-color, #4318FF);
+    }
+
+    .profile-avatar-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .profile-avatar-preview svg {
+        opacity: 0.9;
+    }
+
+    .profile-avatar-overlay {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .profile-avatar-wrapper:hover .profile-avatar-overlay {
+        opacity: 1;
+    }
+
+    .profile-avatar-overlay i {
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .profile-avatar-hint {
+        font-size: 0.8rem;
+        color: #94a3b8;
+    }
+
+    .profile-avatar-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        margin-top: 0.75rem;
+    }
+
+    .profile-avatar-actions button {
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.35rem 0.85rem;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .btn-change-avatar {
+        background: rgba(67, 24, 255, 0.08);
+        color: var(--primary-color, #4318FF);
+    }
+
+    .btn-change-avatar:hover {
+        background: rgba(67, 24, 255, 0.15);
+    }
+
+    .btn-remove-avatar {
+        background: rgba(239, 68, 68, 0.08);
+        color: #ef4444;
+    }
+
+    .btn-remove-avatar:hover {
+        background: rgba(239, 68, 68, 0.15);
+    }
+
+    .profile-form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .profile-form-group label {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--primary-color, #4318FF);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .profile-form-group input {
+        width: 100%;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        color: #334155;
+        background-color: #fafbfc;
+        transition: all 0.2s ease;
+    }
+
+    .profile-form-group input:hover {
+        border-color: #cbd5e1;
+        background-color: white;
+    }
+
+    .profile-form-group input:focus {
+        outline: none;
+        border-color: var(--primary-color, #4318FF);
+        background-color: white;
+        box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.08);
+    }
+
+    .profile-info-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .profile-info-row:last-child {
+        border-bottom: none;
+    }
+
+    .profile-info-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .profile-info-value {
+        font-size: 0.9rem;
+        color: #475569;
+        font-weight: 500;
+    }
+
+    .profile-save-btn {
+        width: 100%;
+        padding: 0.85rem;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--primary-color, #4318FF) 0%, #6366f1 100%);
+        color: white;
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(67, 24, 255, 0.25);
+        margin-top: 0.5rem;
+    }
+
+    .profile-save-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(67, 24, 255, 0.35);
+    }
+
+    .profile-save-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .profile-toast {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        padding: 0.85rem 1.5rem;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        z-index: 10060;
+        transform: translateY(20px);
+        opacity: 0;
+        transition: all 0.3s ease;
+        pointer-events: none;
+    }
+
+    .profile-toast.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    .profile-toast.success {
+        background: #10b981;
+        color: white;
+    }
+
+    .profile-toast.error {
+        background: #ef4444;
+        color: white;
+    }
+
+    /* Image Picker Modal */
+    .image-picker-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10050;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.2s ease;
+        padding: 1rem;
+    }
+
+    .image-picker-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .image-picker-modal {
+        background: white;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 640px;
+        max-height: 80vh;
+        box-shadow: 0 24px 48px rgba(0, 0, 0, 0.16);
+        transform: translateY(10px) scale(0.97);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .image-picker-overlay.active .image-picker-modal {
+        transform: translateY(0) scale(1);
+    }
+
+    .image-picker-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .image-picker-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .image-picker-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #94a3b8;
+        transition: all 0.15s ease;
+        font-size: 0.9rem;
+    }
+
+    .image-picker-close:hover {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .image-picker-body {
+        padding: 1.5rem;
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    .image-picker-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .image-picker-item {
+        aspect-ratio: 1;
+        border-radius: 50%;
+        overflow: hidden;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.15s ease;
+    }
+
+    .image-picker-item:hover {
+        border-color: var(--primary-color, #4318FF);
+        transform: scale(1.03);
+    }
+
+    .image-picker-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .image-picker-empty {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: #94a3b8;
+        font-size: 0.85rem;
+    }
+
+    .image-picker-footer {
+        padding: 0.85rem 1.5rem;
+        border-top: 1px solid #f1f5f9;
+        background: #fafbfc;
+        border-radius: 0 0 16px 16px;
+        text-align: center;
+    }
+
+    .image-picker-upload-link {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--primary-color, #4318FF);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        transition: opacity 0.15s ease;
+    }
+
+    .image-picker-upload-link:hover {
+        opacity: 0.8;
+    }
+
+    @media (max-width: 768px) {
+        .profile-page {
+            padding: 1rem 0;
+        }
+
+        .profile-card {
+            padding: 1.5rem;
+            border-radius: 12px;
+        }
+
+        .profile-avatar-wrapper {
+            width: 100px;
+            height: 100px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-page" data-page="profile">
+    <div class="profile-header">
+        <a href="{{ url_for('blog.home') }}" class="profile-back-btn">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+        <h1>My Profile</h1>
+        <p>Manage your display name and profile image</p>
+    </div>
+
+    <div class="profile-card">
+        <!-- Avatar Section -->
+        <div class="profile-avatar-section">
+            <div class="profile-avatar-wrapper" onclick="openProfileImagePicker()">
+                <div class="profile-avatar-preview" id="profileAvatarPreview">
+                    {% if user.get('profile_image') %}
+                    <img src="{{ user.profile_image }}" alt="Profile" id="profileAvatarImg">
+                    {% else %}
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" id="profileAvatarSvg">
+                        <circle cx="24" cy="18" r="9" fill="white" opacity="0.9"/>
+                        <path d="M6 44c0-9.94 8.06-18 18-18s18 8.06 18 18" stroke="white" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
+                    </svg>
+                    {% endif %}
+                </div>
+                <div class="profile-avatar-overlay">
+                    <i class="bi bi-camera"></i>
+                </div>
+            </div>
+            <p class="profile-avatar-hint">Click to change photo</p>
+            {% if user.get('profile_image') %}
+            <div class="profile-avatar-actions" id="profileAvatarActions">
+                <button type="button" class="btn-change-avatar" onclick="openProfileImagePicker()">
+                    <i class="bi bi-arrow-repeat"></i> Change
+                </button>
+                <button type="button" class="btn-remove-avatar" onclick="removeProfileImage()">
+                    <i class="bi bi-trash3"></i> Remove
+                </button>
+            </div>
+            {% else %}
+            <div class="profile-avatar-actions" id="profileAvatarActions" style="display:none;">
+                <button type="button" class="btn-change-avatar" onclick="openProfileImagePicker()">
+                    <i class="bi bi-arrow-repeat"></i> Change
+                </button>
+                <button type="button" class="btn-remove-avatar" onclick="removeProfileImage()">
+                    <i class="bi bi-trash3"></i> Remove
+                </button>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Display Name -->
+        <div class="profile-form-group">
+            <label for="profileName">Display Name</label>
+            <input type="text" id="profileName" value="{{ user.get('name', '') }}" placeholder="Enter your display name" maxlength="50">
+        </div>
+
+        <!-- Read-only Info -->
+        <div style="margin-bottom: 1.5rem;">
+            <div class="profile-info-row">
+                <span class="profile-info-label">Email</span>
+                <span class="profile-info-value">{{ user.get('email', '') }}</span>
+            </div>
+            <div class="profile-info-row">
+                <span class="profile-info-label">Role</span>
+                <span class="profile-info-value">{{ user.get('role', 'User') | capitalize }}</span>
+            </div>
+        </div>
+
+        <input type="hidden" id="profileImage" value="{{ user.get('profile_image', '') }}">
+
+        <button class="profile-save-btn" onclick="saveProfile()" id="profileSaveBtn">
+            Save Changes
+        </button>
+    </div>
+</div>
+
+<!-- Image Picker Modal -->
+<div class="image-picker-overlay" id="imagePickerOverlay" onclick="closeProfileImagePicker(event)">
+    <div class="image-picker-modal" onclick="event.stopPropagation()">
+        <div class="image-picker-header">
+            <h4 class="image-picker-title"><i class="bi bi-images"></i> Choose Profile Photo</h4>
+            <button class="image-picker-close" onclick="closeProfileImagePicker()"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="image-picker-body">
+            <div class="image-picker-grid" id="imagePickerGrid">
+                <div class="text-center py-4" style="grid-column:1/-1;">
+                    <div class="spinner-border spinner-border-sm text-primary opacity-50"></div>
+                    <p class="text-secondary mt-2 mb-0" style="font-size:0.82rem;">Loading gallery...</p>
+                </div>
+            </div>
+        </div>
+        <div class="image-picker-footer">
+            <a href="/gallery" class="image-picker-upload-link"><i class="bi bi-cloud-arrow-up"></i> Upload new images in Gallery</a>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="profile-toast" id="profileToast"></div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function openProfileImagePicker() {
+        var overlay = document.getElementById('imagePickerOverlay');
+        var grid = document.getElementById('imagePickerGrid');
+
+        overlay.classList.add('active');
+        grid.innerHTML = '<div class="text-center py-4" style="grid-column:1/-1;"><div class="spinner-border spinner-border-sm text-primary opacity-50"></div><p class="text-secondary mt-2 mb-0" style="font-size:0.82rem;">Loading gallery...</p></div>';
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '/api/gallery/images?per_page=50', true);
+        xhr.timeout = 10000;
+
+        xhr.onload = function () {
+            try {
+                if (xhr.status === 200) {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.success && data.images && data.images.length > 0) {
+                        var html = '';
+                        for (var i = 0; i < data.images.length; i++) {
+                            var img = data.images[i];
+                            html += '<div class="image-picker-item" onclick="selectProfileImage(\'' + img.url + '\')">';
+                            html += '<img src="' + img.url + '" alt="' + (img.filename || '') + '" loading="lazy">';
+                            html += '</div>';
+                        }
+                        grid.innerHTML = html;
+                    } else {
+                        grid.innerHTML = '<div class="image-picker-empty" style="grid-column:1/-1;"><i class="bi bi-images" style="font-size:1.5rem;display:block;margin-bottom:0.5rem;"></i>No images in gallery. Upload images on the Gallery page first.</div>';
+                    }
+                } else {
+                    grid.innerHTML = '<div class="image-picker-empty" style="grid-column:1/-1;">Error loading images.</div>';
+                }
+            } catch (e) {
+                grid.innerHTML = '<div class="image-picker-empty" style="grid-column:1/-1;">Error loading images.</div>';
+            }
+        };
+
+        xhr.onerror = function () {
+            grid.innerHTML = '<div class="image-picker-empty" style="grid-column:1/-1;">Error loading images.</div>';
+        };
+
+        xhr.ontimeout = function () {
+            grid.innerHTML = '<div class="image-picker-empty" style="grid-column:1/-1;">Error loading images.</div>';
+        };
+
+        xhr.send();
+    }
+
+    function selectProfileImage(url) {
+        document.getElementById('profileImage').value = url;
+        var preview = document.getElementById('profileAvatarPreview');
+        preview.innerHTML = '<img src="' + url + '" alt="Profile" id="profileAvatarImg">';
+        document.getElementById('profileAvatarActions').style.display = '';
+        closeProfileImagePicker();
+    }
+
+    function removeProfileImage() {
+        document.getElementById('profileImage').value = '';
+        var preview = document.getElementById('profileAvatarPreview');
+        preview.innerHTML = '<svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="18" r="9" fill="white" opacity="0.9"/><path d="M6 44c0-9.94 8.06-18 18-18s18 8.06 18 18" stroke="white" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/></svg>';
+        document.getElementById('profileAvatarActions').style.display = 'none';
+    }
+
+    function closeProfileImagePicker(event) {
+        if (event && event.target !== event.currentTarget) return;
+        document.getElementById('imagePickerOverlay').classList.remove('active');
+    }
+
+    function saveProfile() {
+        var btn = document.getElementById('profileSaveBtn');
+        var name = document.getElementById('profileName').value.trim();
+        var profileImage = document.getElementById('profileImage').value.trim();
+
+        if (!name) {
+            showProfileToast('Display name is required', 'error');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/profile/update', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+
+        xhr.onload = function () {
+            btn.disabled = false;
+            btn.textContent = 'Save Changes';
+            try {
+                var data = JSON.parse(xhr.responseText);
+                if (data.success) {
+                    showProfileToast('Profile updated successfully!', 'success');
+                    var sidebarName = document.querySelector('.user-card-name');
+                    if (sidebarName) sidebarName.textContent = name;
+                    var sidebarAvatar = document.querySelector('.user-card-avatar');
+                    if (sidebarAvatar) {
+                        if (profileImage) {
+                            sidebarAvatar.innerHTML = '<img src="' + profileImage + '" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+                        } else {
+                            sidebarAvatar.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7.5" r="3.5" fill="white"/><path d="M3 18.5c0-3.87 3.13-7 7-7s7 3.13 7 7" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>';
+                        }
+                    }
+                } else {
+                    showProfileToast(data.error || 'Failed to update profile', 'error');
+                }
+            } catch (e) {
+                showProfileToast('An error occurred', 'error');
+            }
+        };
+
+        xhr.onerror = function () {
+            btn.disabled = false;
+            btn.textContent = 'Save Changes';
+            showProfileToast('Network error', 'error');
+        };
+
+        xhr.send(JSON.stringify({ name: name, profile_image: profileImage }));
+    }
+
+    function showProfileToast(message, type) {
+        var toast = document.getElementById('profileToast');
+        toast.textContent = message;
+        toast.className = 'profile-toast ' + type + ' show';
+        setTimeout(function () {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+</script>
+{% endblock %}
