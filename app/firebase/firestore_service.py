@@ -83,7 +83,7 @@ class FirestoreService:
             print(f"❌ Firestore Error creating draft: {e}")
             return None
 
-    def update_blog_content(self, blog_id, title, content, new_slug=None, seo_title=None, seo_description=None):
+    def update_blog_content(self, blog_id, title, content, new_slug=None, seo_title=None, seo_description=None, cover_image=None):
         """
         Updates the title and body content of a blog post.
         If new_slug is provided and different from current, updates slug and tracks old one.
@@ -114,6 +114,8 @@ class FirestoreService:
                 update_data['seo_title'] = seo_title
             if seo_description is not None:
                 update_data['seo_description'] = seo_description
+            if cover_image is not None:
+                update_data['cover_image'] = cover_image
 
             # Determine slug to use
             slug_to_set = new_slug
@@ -2859,3 +2861,63 @@ For questions about these Terms, contact us at {contact_email}.
         except Exception as e:
             print(f"❌ Error fetching blogs without embeddings: {e}")
             return []
+
+    # ---------------- GALLERY METHODS ----------------
+
+    def save_gallery_image(self, user_id, filename, url, size, content_type):
+        try:
+            doc_data = {
+                'user_id': user_id,
+                'filename': filename,
+                'url': url,
+                'size': size,
+                'content_type': content_type,
+                'created_at': datetime.utcnow().isoformat()
+            }
+            doc_ref = self.db.collection('gallery_images').add(doc_data)
+            return doc_ref[1].id
+        except Exception as e:
+            print(f"❌ Error saving gallery image: {e}")
+            return None
+
+    def get_gallery_images(self, user_id, page=1, per_page=20):
+        try:
+            query = self.db.collection('gallery_images').where(
+                filter=FieldFilter('user_id', '==', user_id)
+            )
+            docs = list(query.stream())
+            docs.sort(key=lambda d: d.to_dict().get('created_at', ''), reverse=True)
+
+            total = len(docs)
+            start = (page - 1) * per_page
+            end = start + per_page
+            page_docs = docs[start:end]
+
+            images = []
+            for doc in page_docs:
+                data = doc.to_dict()
+                data['id'] = doc.id
+                images.append(data)
+
+            return {
+                'images': images,
+                'total': total,
+                'page': page,
+                'total_pages': (total + per_page - 1) // per_page
+            }
+        except Exception as e:
+            print(f"❌ Error fetching gallery images: {e}")
+            return {'images': [], 'total': 0, 'page': 1, 'total_pages': 0}
+
+    def delete_gallery_image(self, image_id):
+        try:
+            doc_ref = self.db.collection('gallery_images').document(image_id)
+            doc = doc_ref.get()
+            if doc.exists:
+                data = doc.to_dict()
+                doc_ref.delete()
+                return data
+            return None
+        except Exception as e:
+            print(f"❌ Error deleting gallery image: {e}")
+            return None

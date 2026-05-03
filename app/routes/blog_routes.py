@@ -310,6 +310,7 @@ def update_blog(blog_id):
         new_slug = data.get('slug', '')
         seo_title = data.get('seo_title', '').strip()
         seo_description = data.get('seo_description', '').strip()
+        cover_image = data.get('cover_image', '').strip()
 
         # Validate and sanitize slug if provided
         if new_slug:
@@ -317,7 +318,8 @@ def update_blog(blog_id):
 
         success = db_service.update_blog_content(
             blog_id, title, content, new_slug,
-            seo_title=seo_title, seo_description=seo_description
+            seo_title=seo_title, seo_description=seo_description,
+            cover_image=cover_image
         )
 
         if success:

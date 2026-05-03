@@ -591,3 +591,184 @@
 .best-time-source-warning i {
     color: #d97706;
 }
+
+/* ==================== COVER IMAGE SECTION ==================== */
+.cover-image-section {
+    margin-bottom: 1.25rem;
+}
+
+.cover-image-preview {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+    border: 1px solid #e2e8f0;
+}
+
+.cover-image-preview img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    display: block;
+}
+
+.cover-image-remove {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: background 0.15s ease;
+}
+
+.cover-image-remove:hover {
+    background: #ef4444;
+}
+
+.cover-image-choose-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: 9px;
+    border: 1px dashed #cbd5e1;
+    background: #f8fafc;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.cover-image-choose-btn:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: rgba(67, 24, 255, 0.03);
+}
+
+/* ==================== IMAGE PICKER MODAL ==================== */
+.image-picker-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10050;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    padding: 1rem;
+}
+
+.image-picker-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.image-picker-modal {
+    background: white;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 640px;
+    max-height: 80vh;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.16);
+    transform: translateY(10px) scale(0.97);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.image-picker-overlay.active .image-picker-modal {
+    transform: translateY(0) scale(1);
+}
+
+.image-picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.image-picker-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.image-picker-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #94a3b8;
+    transition: all 0.15s ease;
+    font-size: 0.9rem;
+}
+
+.image-picker-close:hover {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.image-picker-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.image-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.75rem;
+}
+
+.image-picker-item {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.15s ease;
+}
+
+.image-picker-item:hover {
+    border-color: var(--primary-color);
+    transform: scale(1.03);
+}
+
+.image-picker-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-picker-empty {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #94a3b8;
+    font-size: 0.85rem;
+}

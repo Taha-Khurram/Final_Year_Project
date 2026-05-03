@@ -177,6 +177,10 @@ async function openEditModal(id) {
       document.getElementById('modal-seo-description').value = data.blog.seo_description || '';
       updateSeoCounters();
 
+      // Set cover image
+      const coverUrl = data.blog.cover_image || '';
+      setCoverImagePreview(coverUrl);
+
       const modalElement = document.getElementById('editModal');
       const editModal = new bootstrap.Modal(modalElement);
       editModal.show();
@@ -288,6 +292,11 @@ async function saveModalChanges() {
   const seoTitle = document.getElementById('modal-seo-title').value.trim();
   const seoDescription = document.getElementById('modal-seo-description').value.trim();
 
+  // Get cover image
+  const coverImageImg = document.getElementById('coverImageImg');
+  const coverImage = coverImageImg ? coverImageImg.src : '';
+  const coverImageValue = document.getElementById('coverImagePreview').style.display !== 'none' ? coverImage : '';
+
   const saveBtn = document.getElementById('save-changes-btn');
   const originalContent = saveBtn.innerHTML;
   saveBtn.disabled = true;
@@ -302,7 +311,8 @@ async function saveModalChanges() {
         content: updatedContent,
         slug: slug,
         seo_title: seoTitle,
-        seo_description: seoDescription
+        seo_description: seoDescription,
+        cover_image: coverImageValue
       })
     });
 
@@ -632,4 +642,82 @@ function applyBestTime(dayIndex, hour) {
   const hrs = String(target.getHours()).padStart(2, '0');
 
   document.getElementById('scheduleDateTime').value = `${year}-${month}-${day}T${hrs}:00`;
+}
+
+// ==================== COVER IMAGE PICKER ====================
+
+function setCoverImagePreview(url) {
+  const preview = document.getElementById('coverImagePreview');
+  const img = document.getElementById('coverImageImg');
+  const chooseBtn = document.getElementById('chooseCoverBtn');
+
+  if (url) {
+    img.src = url;
+    preview.style.display = 'block';
+    chooseBtn.innerHTML = '<i class="bi bi-images"></i> Change Image';
+  } else {
+    img.src = '';
+    preview.style.display = 'none';
+    chooseBtn.innerHTML = '<i class="bi bi-images"></i> Choose from Gallery';
+  }
+}
+
+function removeCoverImage() {
+  setCoverImagePreview('');
+}
+
+function openImagePicker() {
+  var overlay = document.getElementById('imagePickerOverlay');
+  var grid = document.getElementById('imagePickerGrid');
+
+  overlay.classList.add('active');
+  grid.innerHTML = '<div class="text-center py-4" style="grid-column:1/-1;"><div class="spinner-border spinner-border-sm text-primary opacity-50"></div><p class="text-secondary mt-2 mb-0" style="font-size:0.82rem;">Loading gallery...</p></div>';
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', '/api/gallery/images?per_page=50', true);
+  xhr.timeout = 10000;
+
+  xhr.onload = function () {
+    try {
+      if (xhr.status === 200) {
+        var data = JSON.parse(xhr.responseText);
+        if (data.success && data.images && data.images.length > 0) {
+          var html = '';
+          for (var i = 0; i < data.images.length; i++) {
+            var img = data.images[i];
+            html += '<div class="image-picker-item" onclick="selectCoverImage(\'' + img.url + '\')">';
+            html += '<img src="' + img.url + '" alt="' + (img.filename || '') + '" loading="lazy">';
+            html += '</div>';
+          }
+          grid.innerHTML = html;
+        } else {
+          grid.innerHTML = '<div class="image-picker-empty" style="grid-column:1/-1;"><i class="bi bi-images" style="font-size:1.5rem;display:block;margin-bottom:0.5rem;"></i>No images in gallery. Upload images on the Gallery page first.</div>';
+        }
+      } else {
+        grid.innerHTML = '<div class="image-picker-empty" style="grid-column:1/-1;">Error loading images.</div>';
+      }
+    } catch (e) {
+      grid.innerHTML = '<div class="image-picker-empty" style="grid-column:1/-1;">Error loading images.</div>';
+    }
+  };
+
+  xhr.onerror = function () {
+    grid.innerHTML = '<div class="image-picker-empty" style="grid-column:1/-1;">Error loading images.</div>';
+  };
+
+  xhr.ontimeout = function () {
+    grid.innerHTML = '<div class="image-picker-empty" style="grid-column:1/-1;">Error loading images.</div>';
+  };
+
+  xhr.send();
+}
+
+function closeImagePicker(event) {
+  if (event && event.target !== event.currentTarget) return;
+  document.getElementById('imagePickerOverlay').classList.remove('active');
+}
+
+function selectCoverImage(url) {
+  setCoverImagePreview(url);
+  closeImagePicker();
 }

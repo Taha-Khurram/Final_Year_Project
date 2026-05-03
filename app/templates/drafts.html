@@ -128,6 +128,20 @@
           <small class="slug-hint">Leave blank to auto-generate from title. Changing slug will create a 301 redirect.</small>
         </div>
 
+        <!-- Feature Image -->
+        <div class="cover-image-section">
+          <label class="slug-label">Feature Image</label>
+          <div class="cover-image-preview" id="coverImagePreview" style="display:none;">
+            <img id="coverImageImg" src="" alt="Cover">
+            <button type="button" class="cover-image-remove" onclick="removeCoverImage()">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+          <button type="button" class="cover-image-choose-btn" id="chooseCoverBtn" onclick="openImagePicker()">
+            <i class="bi bi-images"></i> Choose from Gallery
+          </button>
+        </div>
+
         <!-- SEO Settings -->
         <div class="seo-settings-section">
           <button type="button" class="seo-toggle-btn" id="seo-toggle-btn">
@@ -277,5 +291,23 @@
   </div>
 </div>
 
-<script src="{{ url_for('static', filename='js/pages/drafts.js') }}"></script>
+<!-- Image Picker Modal -->
+<div class="image-picker-overlay" id="imagePickerOverlay" onclick="closeImagePicker(event)">
+  <div class="image-picker-modal" onclick="event.stopPropagation()">
+    <div class="image-picker-header">
+      <h4 class="image-picker-title"><i class="bi bi-images"></i> Select Image</h4>
+      <button class="image-picker-close" onclick="closeImagePicker()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="image-picker-body">
+      <div class="image-picker-grid" id="imagePickerGrid">
+        <div class="text-center py-4">
+          <div class="spinner-border spinner-border-sm text-primary opacity-50"></div>
+          <p class="text-secondary mt-2 mb-0" style="font-size:0.82rem;">Loading gallery...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/pages/drafts.js') }}?v=2"></script>
 {% endblock %}

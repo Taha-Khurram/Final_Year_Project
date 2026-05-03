@@ -1,15 +1,15 @@
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, firestore, storage
 import json
 import os
 
 class FirebaseLoader:
     _instance = None
+    _bucket = None
 
     @classmethod
     def get_instance(cls, cert_path_or_json=None):
         if cls._instance is None:
-            # Try multiple sources for Firebase credentials
             firebase_creds = cert_path_or_json or os.getenv('FIREBASE_SERVICE_ACCOUNT')
 
             if not firebase_creds:
@@ -19,12 +19,10 @@ class FirebaseLoader:
 
             cred = None
 
-            # Check if it's a file path that exists
             if isinstance(firebase_creds, str) and os.path.exists(firebase_creds):
                 print(f"Loading Firebase from file: {firebase_creds}")
                 cred = credentials.Certificate(firebase_creds)
             else:
-                # Try to parse as JSON
                 try:
                     if isinstance(firebase_creds, dict):
                         cert_dict = firebase_creds
@@ -42,8 +40,18 @@ class FirebaseLoader:
                     print(f"Firebase Error: {e}")
                     raise ValueError(f"Invalid Firebase certificate: {e}")
 
-            firebase_admin.initialize_app(cred)
+            storage_bucket = os.getenv('FB_STORAGE_BUCKET')
+            firebase_admin.initialize_app(cred, {'storageBucket': storage_bucket})
             cls._instance = firestore.client()
+            if storage_bucket:
+                cls._bucket = storage.bucket()
+                print(f"--- Firebase Storage bucket: {storage_bucket} ---")
             print("--- Firebase Admin SDK Initialized Successfully ---")
 
         return cls._instance
+
+    @classmethod
+    def get_bucket(cls):
+        if cls._bucket is None:
+            cls.get_instance()
+        return cls._bucket
