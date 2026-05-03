@@ -71,9 +71,10 @@ class FirestoreService:
             try:
                 from app.services.google_sheets_service import GoogleSheetsService
                 sheets = GoogleSheetsService.get_instance()
+                sid = GoogleSheetsService.get_spreadsheet_id_for_user(user_id)
                 sheets.sync_blog(blog_id, title, blog_data['status'],
                                  category_name or '', user_id, None, blog_data['updated_at'],
-                                 blog_data.get('author', ''))
+                                 blog_data.get('author', ''), spreadsheet_id=sid)
             except Exception:
                 pass
 
@@ -632,7 +633,8 @@ class FirestoreService:
                 details = target_name or ""
                 if metadata:
                     details = str(metadata)
-                sheets.log_activity(user_name, type, action_text, blog_title, details)
+                sid = GoogleSheetsService.get_spreadsheet_id_for_user(user_id)
+                sheets.log_activity(user_name, type, action_text, blog_title, details, spreadsheet_id=sid)
             except Exception:
                 pass
 
@@ -851,8 +853,9 @@ class FirestoreService:
                 try:
                     from app.services.google_sheets_service import GoogleSheetsService
                     sheets = GoogleSheetsService.get_instance()
+                    sid = GoogleSheetsService.get_spreadsheet_id_for_user(user_id)
                     sheets.sync_user(user_id, user_data.get('name', ''), user_data.get('email', ''),
-                                     user_data['role'], user_data.get('created_by', ''))
+                                     user_data['role'], user_data.get('created_by', ''), spreadsheet_id=sid)
                 except Exception:
                     pass
 
@@ -865,9 +868,10 @@ class FirestoreService:
                     from app.services.google_sheets_service import GoogleSheetsService
                     from datetime import datetime
                     sheets = GoogleSheetsService.get_instance()
+                    sid = GoogleSheetsService.get_spreadsheet_id_for_user(user_id)
                     sheets.sync_user(user_id, existing.get('name', ''), existing.get('email', ''),
                                      existing.get('role', ''), existing.get('created_by', ''),
-                                     existing.get('created_at'), datetime.utcnow())
+                                     existing.get('created_at'), datetime.utcnow(), spreadsheet_id=sid)
                 except Exception:
                     pass
 
@@ -1071,10 +1075,11 @@ class FirestoreService:
             try:
                 from app.services.google_sheets_service import GoogleSheetsService
                 sheets = GoogleSheetsService.get_instance()
+                sid = GoogleSheetsService.get_spreadsheet_id_for_user(data.get('author_id', ''))
                 sheets.sync_blog(blog_id, data.get('title', ''), new_status,
                                  data.get('category', ''), data.get('author_id', ''),
                                  data.get('created_at'), update_data['updated_at'],
-                                 data.get('author', ''))
+                                 data.get('author', ''), spreadsheet_id=sid)
             except Exception:
                 pass
 
@@ -1806,6 +1811,7 @@ For questions about these Terms, contact us at {contact_email}.
             'custom_domain': 253,
             'contact_email': 100,
             'about_content': 5000,
+            'google_sheets_id': 100,
             'timezone': 50,
             'date_format': 20,
             'time_format': 5,

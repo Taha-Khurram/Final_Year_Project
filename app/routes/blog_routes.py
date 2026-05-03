@@ -1071,6 +1071,16 @@ def site_settings_page():
         time_format=settings.get('time_format', '12h')
     )
 
+    # Get service account email for Google Sheets sharing instructions
+    service_account_email = ''
+    try:
+        import json
+        with open('serviceAccountKey.json') as f:
+            sa_data = json.load(f)
+            service_account_email = sa_data.get('client_email', '')
+    except Exception:
+        pass
+
     return render_template(
         'site_settings.html',
         settings=settings,
@@ -1086,7 +1096,9 @@ def site_settings_page():
         locales=LOCALES,
         time_preview=time_preview,
         # Permalink structures
-        permalink_structures=PERMALINK_STRUCTURES
+        permalink_structures=PERMALINK_STRUCTURES,
+        # Google Sheets
+        service_account_email=service_account_email
     )
 
 
@@ -1171,7 +1183,10 @@ def update_site_settings():
             'rss': data.get('rss', {}),
 
             # Legal Pages Settings
-            'legal': data.get('legal', {})
+            'legal': data.get('legal', {}),
+
+            # Google Sheets
+            'google_sheets_id': data.get('google_sheets_id', '').strip()
         }
 
         # Handle boolean values that come as strings from form

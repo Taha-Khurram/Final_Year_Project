@@ -7,7 +7,6 @@ from google.oauth2.service_account import Credentials
 
 class GoogleSheetsService:
     _instance = None
-    _worksheet = None
 
     SCOPES = [
         'https://www.googleapis.com/auth/spreadsheets',
@@ -15,6 +14,8 @@ class GoogleSheetsService:
     ]
 
     HEADERS = ['Timestamp', 'User', 'Action Type', 'Action', 'Blog Title', 'Details']
+    USER_HEADERS = ['UID', 'Name', 'Email', 'Role', 'Created By', 'Created At', 'Last Login']
+    BLOG_HEADERS = ['Blog ID', 'Title', 'Author', 'Status', 'Category', 'Author ID', 'Created At', 'Updated At']
 
     @classmethod
     def get_instance(cls):
@@ -23,69 +24,117 @@ class GoogleSheetsService:
         return cls._instance
 
     def __init__(self):
-        self._spreadsheet_id = os.getenv('GOOGLE_SHEETS_SPREADSHEET_ID')
+        self._default_spreadsheet_id = os.getenv('GOOGLE_SHEETS_SPREADSHEET_ID')
         self._client = None
+        self._worksheet_cache = {}
 
-    def _get_worksheet(self):
-        if self._worksheet is not None:
-            return self._worksheet
-
-        if not self._spreadsheet_id:
-            return None
-
-        try:
+    def _get_client(self):
+        if self._client is None:
             creds = Credentials.from_service_account_file(
                 'serviceAccountKey.json', scopes=self.SCOPES
             )
             self._client = gspread.authorize(creds)
-            spreadsheet = self._client.open_by_key(self._spreadsheet_id)
+        return self._client
 
+    def _resolve_spreadsheet_id(self, spreadsheet_id=None):
+        return spreadsheet_id or self._default_spreadsheet_id
+
+    def _get_spreadsheet(self, spreadsheet_id=None):
+        sid = self._resolve_spreadsheet_id(spreadsheet_id)
+        if not sid:
+            return None
+        return self._get_client().open_by_key(sid)
+
+    def _get_activity_worksheet(self, spreadsheet_id=None):
+        sid = self._resolve_spreadsheet_id(spreadsheet_id)
+        cache_key = f"activity:{sid}"
+        if cache_key in self._worksheet_cache:
+            return self._worksheet_cache[cache_key]
+
+        try:
+            spreadsheet = self._get_spreadsheet(sid)
+            if not spreadsheet:
+                return None
             try:
-                self._worksheet = spreadsheet.worksheet('Activity Log')
+                ws = spreadsheet.worksheet('Activity Log')
             except gspread.WorksheetNotFound:
-                self._worksheet = spreadsheet.sheet1
-                self._worksheet.update_title('Activity Log')
+                ws = spreadsheet.sheet1
+                ws.update_title('Activity Log')
 
-            if self._worksheet.row_values(1) != self.HEADERS:
-                self._worksheet.update('A1:F1', [self.HEADERS])
-                self._worksheet.format('A1:F1', {'textFormat': {'bold': True}})
+            if ws.row_values(1) != self.HEADERS:
+                ws.update(range_name='A1:F1', values=[self.HEADERS])
+                ws.format('A1:F1', {'textFormat': {'bold': True}})
 
-            return self._worksheet
+            self._worksheet_cache[cache_key] = ws
+            return ws
         except Exception as e:
             print(f"Google Sheets init error: {e}")
             return None
 
-    USER_HEADERS = ['UID', 'Name', 'Email', 'Role', 'Created By', 'Created At', 'Last Login']
+    def _get_users_worksheet(self, spreadsheet_id=None):
+        sid = self._resolve_spreadsheet_id(spreadsheet_id)
+        cache_key = f"users:{sid}"
+        if cache_key in self._worksheet_cache:
+            return self._worksheet_cache[cache_key]
 
-    def _get_spreadsheet(self):
-        if self._client is None:
-            if not self._spreadsheet_id:
-                return None
-            creds = Credentials.from_service_account_file(
-                'serviceAccountKey.json', scopes=self.SCOPES
-            )
-            self._client = gspread.authorize(creds)
-        return self._client.open_by_key(self._spreadsheet_id)
-
-    def _get_users_worksheet(self):
         try:
-            spreadsheet = self._get_spreadsheet()
+            spreadsheet = self._get_spreadsheet(sid)
             if not spreadsheet:
                 return None
             try:
-                return spreadsheet.worksheet('Users')
+                ws = spreadsheet.worksheet('Users')
             except gspread.WorksheetNotFound:
                 ws = spreadsheet.add_worksheet(title='Users', rows=100, cols=10)
                 ws.update(range_name='A1:G1', values=[self.USER_HEADERS])
                 ws.format('A1:G1', {'textFormat': {'bold': True}})
-                return ws
+
+            self._worksheet_cache[cache_key] = ws
+            return ws
         except Exception as e:
             print(f"Google Sheets users worksheet error: {e}")
             return None
 
-    def sync_user(self, uid, name, email, role, created_by="", created_at=None, last_login=None):
+    def _get_blogs_worksheet(self, spreadsheet_id=None):
+        sid = self._resolve_spreadsheet_id(spreadsheet_id)
+        cache_key = f"blogs:{sid}"
+        if cache_key in self._worksheet_cache:
+            return self._worksheet_cache[cache_key]
+
         try:
-            ws = self._get_users_worksheet()
+            spreadsheet = self._get_spreadsheet(sid)
+            if not spreadsheet:
+                return None
+            try:
+                ws = spreadsheet.worksheet('Blogs')
+            except gspread.WorksheetNotFound:
+                ws = spreadsheet.add_worksheet(title='Blogs', rows=100, cols=10)
+                ws.update(range_name='A1:H1', values=[self.BLOG_HEADERS])
+                ws.format('A1:H1', {'textFormat': {'bold': True}})
+
+            self._worksheet_cache[cache_key] = ws
+            return ws
+        except Exception as e:
+            print(f"Google Sheets blogs worksheet error: {e}")
+            return None
+
+    def log_activity(self, user_name, action_type, action_text, blog_title="", details="", spreadsheet_id=None):
+        try:
+            ws = self._get_activity_worksheet(spreadsheet_id)
+            if not ws:
+                return False
+
+            timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
+            row = [timestamp, user_name, action_type, action_text, blog_title, details]
+            ws.append_row(row, value_input_option='USER_ENTERED')
+            return True
+        except Exception as e:
+            print(f"Google Sheets log error: {e}")
+            self._worksheet_cache = {}
+            return False
+
+    def sync_user(self, uid, name, email, role, created_by="", created_at=None, last_login=None, spreadsheet_id=None):
+        try:
+            ws = self._get_users_worksheet(spreadsheet_id)
             if not ws:
                 return False
 
@@ -103,27 +152,9 @@ class GoogleSheetsService:
             print(f"Google Sheets sync user error: {e}")
             return False
 
-    BLOG_HEADERS = ['Blog ID', 'Title', 'Author', 'Status', 'Category', 'Author ID', 'Created At', 'Updated At']
-
-    def _get_blogs_worksheet(self):
+    def sync_blog(self, blog_id, title, status, category="", author_id="", created_at=None, updated_at=None, author_name="", spreadsheet_id=None):
         try:
-            spreadsheet = self._get_spreadsheet()
-            if not spreadsheet:
-                return None
-            for ws in spreadsheet.worksheets():
-                if ws.id == 767306744:
-                    return ws
-            ws = spreadsheet.add_worksheet(title='Blogs', rows=100, cols=10)
-            ws.update(range_name='A1:H1', values=[self.BLOG_HEADERS])
-            ws.format('A1:H1', {'textFormat': {'bold': True}})
-            return ws
-        except Exception as e:
-            print(f"Google Sheets blogs worksheet error: {e}")
-            return None
-
-    def sync_blog(self, blog_id, title, status, category="", author_id="", created_at=None, updated_at=None, author_name=""):
-        try:
-            ws = self._get_blogs_worksheet()
+            ws = self._get_blogs_worksheet(spreadsheet_id)
             if not ws:
                 return False
 
@@ -141,17 +172,15 @@ class GoogleSheetsService:
             print(f"Google Sheets sync blog error: {e}")
             return False
 
-    def log_activity(self, user_name, action_type, action_text, blog_title="", details=""):
+    @staticmethod
+    def get_spreadsheet_id_for_user(user_id):
         try:
-            ws = self._get_worksheet()
-            if not ws:
-                return False
-
-            timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
-            row = [timestamp, user_name, action_type, action_text, blog_title, details]
-            ws.append_row(row, value_input_option='USER_ENTERED')
-            return True
-        except Exception as e:
-            print(f"Google Sheets log error: {e}")
-            self._worksheet = None
-            return False
+            from app.firebase.firestore_service import FirestoreService
+            db = FirestoreService()
+            settings = db.get_site_settings(user_id)
+            user_id_val = settings.get('google_sheets_id', '').strip()
+            if user_id_val:
+                return user_id_val
+        except Exception:
+            pass
+        return os.getenv('GOOGLE_SHEETS_SPREADSHEET_ID')
