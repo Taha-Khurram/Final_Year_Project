@@ -179,6 +179,21 @@
         overflow: hidden;
     }
 
+    .blog-card-image.has-cover {
+        background: #f1f5f9;
+    }
+
+    .blog-card-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .blog-card:hover .blog-card-image img {
+        transform: scale(1.05);
+    }
+
     .blog-card-image i {
         font-size: 2.5rem;
         color: rgba(255, 255, 255, 0.25);
@@ -648,8 +663,12 @@
         <div class="blog-grid" id="blog-grid" data-animate-stagger>
             {% for blog in blogs %}
             <article class="blog-card" data-title="{{ blog.title|lower }}" data-date="{{ blog.updated_at.timestamp() if blog.updated_at else 0 }}">
-                <div class="blog-card-image">
+                <div class="blog-card-image{% if blog.cover_image %} has-cover{% endif %}">
+                    {% if blog.cover_image %}
+                    <img src="{{ blog.cover_image }}" alt="{{ blog.title }}" loading="lazy">
+                    {% else %}
                     <i class="bi bi-journal-richtext"></i>
+                    {% endif %}
                     {% if blog.category %}
                     <span class="blog-card-category">{{ blog.category }}</span>
                     {% endif %}
