@@ -15,3 +15,5 @@ markdown
 resend
 numpy
 APScheduler
+gspread
+google-auth

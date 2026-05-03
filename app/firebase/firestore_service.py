@@ -68,6 +68,15 @@ class FirestoreService:
             if category_name:
                 self.update_category_count(category_name, 1, site_owner)
 
+            try:
+                from app.services.google_sheets_service import GoogleSheetsService
+                sheets = GoogleSheetsService.get_instance()
+                sheets.sync_blog(blog_id, title, blog_data['status'],
+                                 category_name or '', user_id, None, blog_data['updated_at'],
+                                 blog_data.get('author', ''))
+            except Exception:
+                pass
+
             return blog_id
         except Exception as e:
             print(f"❌ Firestore Error creating draft: {e}")
@@ -616,6 +625,17 @@ class FirestoreService:
                 doc_data["metadata"] = metadata
             doc_ref = self.db.collection(self.activity_collection).document()
             doc_ref.set(doc_data)
+
+            try:
+                from app.services.google_sheets_service import GoogleSheetsService
+                sheets = GoogleSheetsService.get_instance()
+                details = target_name or ""
+                if metadata:
+                    details = str(metadata)
+                sheets.log_activity(user_name, type, action_text, blog_title, details)
+            except Exception:
+                pass
+
             return True
         except Exception as e:
             print(f"❌ Error logging activity: {e}")
@@ -817,20 +837,41 @@ class FirestoreService:
         try:
             user_id = user_data.get('uid')
             if not user_id:
-                return None    
+                return None
             user_ref = self.db.collection(self.user_collection).document(user_id)
             existing_user = user_ref.get()
-            
+
             if not existing_user.exists:
                 user_data["role"] = user_data.get("role", "ADMIN")
                 user_data["created_at"] = firestore.SERVER_TIMESTAMP
                 user_data["created_by"] = user_data.get("created_by", None)
                 user_data["last_login"] = firestore.SERVER_TIMESTAMP
                 user_ref.set(user_data)
+
+                try:
+                    from app.services.google_sheets_service import GoogleSheetsService
+                    sheets = GoogleSheetsService.get_instance()
+                    sheets.sync_user(user_id, user_data.get('name', ''), user_data.get('email', ''),
+                                     user_data['role'], user_data.get('created_by', ''))
+                except Exception:
+                    pass
+
                 return user_data
             else:
                 user_ref.update({"last_login": firestore.SERVER_TIMESTAMP})
-                return existing_user.to_dict()
+                existing = existing_user.to_dict()
+
+                try:
+                    from app.services.google_sheets_service import GoogleSheetsService
+                    from datetime import datetime
+                    sheets = GoogleSheetsService.get_instance()
+                    sheets.sync_user(user_id, existing.get('name', ''), existing.get('email', ''),
+                                     existing.get('role', ''), existing.get('created_by', ''),
+                                     existing.get('created_at'), datetime.utcnow())
+                except Exception:
+                    pass
+
+                return existing
         except Exception as e:
             print(f"❌ Error saving user: {e}")
             return None
@@ -1026,6 +1067,16 @@ class FirestoreService:
             # Invalidate published blogs cache for this site owner
             if site_owner_id:
                 cache.clear_prefix(f"published_blogs:{site_owner_id}")
+
+            try:
+                from app.services.google_sheets_service import GoogleSheetsService
+                sheets = GoogleSheetsService.get_instance()
+                sheets.sync_blog(blog_id, data.get('title', ''), new_status,
+                                 data.get('category', ''), data.get('author_id', ''),
+                                 data.get('created_at'), update_data['updated_at'],
+                                 data.get('author', ''))
+            except Exception:
+                pass
 
             return True
         except Exception as e:
