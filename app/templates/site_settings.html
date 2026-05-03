@@ -260,38 +260,236 @@
         cursor: pointer;
     }
 
-    /* Image Preview */
-    .image-preview {
-        width: 60px;
-        height: 60px;
-        border-radius: 8px;
-        border: 2px solid #e2e8f0;
+    /* Cover Image Preview/Placeholder */
+    .cover-image-preview {
+        position: relative;
+        width: 100%;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 0.75rem;
+        border: 1px solid #e2e8f0;
         background: #f8fafc;
+    }
+
+    .cover-image-preview img {
+        width: 100%;
+        height: 140px;
+        object-fit: contain;
+        display: block;
+        background: #f8fafc;
+    }
+
+    .cover-image-actions {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        gap: 6px;
+    }
+
+    .cover-img-action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        background: rgba(255, 255, 255, 0.95);
+        color: #475569;
         display: flex;
         align-items: center;
         justify-content: center;
-        overflow: hidden;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.15s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     }
 
-    .image-preview img {
+    .cover-img-action-btn:hover {
+        background: white;
+        color: var(--primary-color);
+        transform: scale(1.05);
+    }
+
+    .cover-img-action-btn.danger:hover {
+        color: #ef4444;
+    }
+
+    .cover-image-placeholder {
+        width: 100%;
+        padding: 1.5rem 1rem;
+        border: 2px dashed #e2e8f0;
+        border-radius: 12px;
+        background: #fafbfc;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-bottom: 0.75rem;
+    }
+
+    .cover-image-placeholder:hover {
+        border-color: var(--primary-color);
+        background: rgba(67, 24, 255, 0.02);
+    }
+
+    .cover-placeholder-icon {
+        font-size: 1.75rem;
+        color: #94a3b8;
+        margin-bottom: 0.5rem;
+        transition: color 0.2s ease;
+    }
+
+    .cover-image-placeholder:hover .cover-placeholder-icon {
+        color: var(--primary-color);
+    }
+
+    .cover-placeholder-text {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 0.2rem;
+    }
+
+    .cover-placeholder-hint {
+        font-size: 0.75rem;
+        color: #94a3b8;
+    }
+
+    /* Image Picker Modal */
+    .image-picker-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10050;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.2s ease;
+        padding: 1rem;
+    }
+
+    .image-picker-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .image-picker-modal {
+        background: white;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 640px;
+        max-height: 80vh;
+        box-shadow: 0 24px 48px rgba(0, 0, 0, 0.16);
+        transform: translateY(10px) scale(0.97);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .image-picker-overlay.active .image-picker-modal {
+        transform: translateY(0) scale(1);
+    }
+
+    .image-picker-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .image-picker-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .image-picker-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #94a3b8;
+        transition: all 0.15s ease;
+        font-size: 0.9rem;
+    }
+
+    .image-picker-close:hover {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .image-picker-body {
+        padding: 1.5rem;
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    .image-picker-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .image-picker-item {
+        aspect-ratio: 1;
+        border-radius: 10px;
+        overflow: hidden;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.15s ease;
+    }
+
+    .image-picker-item:hover {
+        border-color: var(--primary-color);
+        transform: scale(1.03);
+    }
+
+    .image-picker-item img {
         width: 100%;
         height: 100%;
         object-fit: cover;
     }
 
-    .image-preview i {
-        font-size: 1.5rem;
-        color: #cbd5e1;
+    .image-picker-empty {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: #94a3b8;
+        font-size: 0.85rem;
     }
 
-    .image-input-wrapper {
-        display: flex;
-        gap: 1rem;
+    .image-picker-footer {
+        padding: 0.85rem 1.5rem;
+        border-top: 1px solid #f1f5f9;
+        background: #fafbfc;
+        border-radius: 0 0 16px 16px;
+        text-align: center;
+    }
+
+    .image-picker-upload-link {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        text-decoration: none;
+        display: inline-flex;
         align-items: center;
+        gap: 0.35rem;
+        transition: opacity 0.15s ease;
     }
 
-    .image-input-wrapper .form-control {
-        flex: 1;
+    .image-picker-upload-link:hover {
+        opacity: 0.8;
     }
 
     /* Character Counter */
@@ -985,36 +1183,46 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label class="form-label">Logo URL</label>
-                                <div class="image-input-wrapper">
-                                    <div class="image-preview" id="logo-preview">
-                                        {% if settings.logo_url %}
-                                        <img src="{{ settings.logo_url }}" alt="Logo">
-                                        {% else %}
-                                        <i class="bi bi-image"></i>
-                                        {% endif %}
+                                <label class="form-label">Logo</label>
+                                <input type="hidden" id="logo_url" name="logo_url" value="{{ settings.logo_url }}">
+                                <div class="cover-image-preview" id="logo-preview-container" style="{% if not settings.logo_url %}display:none{% endif %}">
+                                    <img id="logo-preview-img" src="{{ settings.logo_url }}" alt="Logo">
+                                    <div class="cover-image-actions">
+                                        <button type="button" class="cover-img-action-btn" onclick="openSettingsImagePicker('logo')" title="Change image">
+                                            <i class="bi bi-arrow-repeat"></i>
+                                        </button>
+                                        <button type="button" class="cover-img-action-btn danger" onclick="removeSettingsImage('logo')" title="Remove image">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
                                     </div>
-                                    <input type="url" class="form-control" id="logo_url" name="logo_url"
-                                           value="{{ settings.logo_url }}" placeholder="https://example.com/logo.png"
-                                           onchange="updateImagePreview('logo_url', 'logo-preview')">
+                                </div>
+                                <div class="cover-image-placeholder" id="logo-placeholder" onclick="openSettingsImagePicker('logo')" style="{% if settings.logo_url %}display:none{% endif %}">
+                                    <div class="cover-placeholder-icon"><i class="bi bi-image"></i></div>
+                                    <div class="cover-placeholder-text">Click to select a logo</div>
+                                    <div class="cover-placeholder-hint">Choose from your gallery</div>
                                 </div>
                                 <p class="form-hint">Square image recommended (e.g., 200x200px)</p>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label class="form-label">Favicon URL</label>
-                                <div class="image-input-wrapper">
-                                    <div class="image-preview" id="favicon-preview">
-                                        {% if settings.favicon_url %}
-                                        <img src="{{ settings.favicon_url }}" alt="Favicon">
-                                        {% else %}
-                                        <i class="bi bi-image"></i>
-                                        {% endif %}
+                                <label class="form-label">Favicon</label>
+                                <input type="hidden" id="favicon_url" name="favicon_url" value="{{ settings.favicon_url }}">
+                                <div class="cover-image-preview" id="favicon-preview-container" style="{% if not settings.favicon_url %}display:none{% endif %}">
+                                    <img id="favicon-preview-img" src="{{ settings.favicon_url }}" alt="Favicon">
+                                    <div class="cover-image-actions">
+                                        <button type="button" class="cover-img-action-btn" onclick="openSettingsImagePicker('favicon')" title="Change image">
+                                            <i class="bi bi-arrow-repeat"></i>
+                                        </button>
+                                        <button type="button" class="cover-img-action-btn danger" onclick="removeSettingsImage('favicon')" title="Remove image">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
                                     </div>
-                                    <input type="url" class="form-control" id="favicon_url" name="favicon_url"
-                                           value="{{ settings.favicon_url }}" placeholder="https://example.com/favicon.ico"
-                                           onchange="updateImagePreview('favicon_url', 'favicon-preview')">
+                                </div>
+                                <div class="cover-image-placeholder" id="favicon-placeholder" onclick="openSettingsImagePicker('favicon')" style="{% if settings.favicon_url %}display:none{% endif %}">
+                                    <div class="cover-placeholder-icon"><i class="bi bi-image"></i></div>
+                                    <div class="cover-placeholder-text">Click to select a favicon</div>
+                                    <div class="cover-placeholder-hint">Choose from your gallery</div>
                                 </div>
                                 <p class="form-hint">Browser tab icon (32x32px recommended)</p>
                             </div>
@@ -1022,6 +1230,29 @@
                     </div>
 
                     <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Cover Image</label>
+                                <input type="hidden" id="cover_image_url" name="cover_image_url" value="{{ settings.cover_image_url }}">
+                                <div class="cover-image-preview" id="cover-preview-container" style="{% if not settings.cover_image_url %}display:none{% endif %}">
+                                    <img id="cover-preview-img" src="{{ settings.cover_image_url }}" alt="Cover Image">
+                                    <div class="cover-image-actions">
+                                        <button type="button" class="cover-img-action-btn" onclick="openSettingsImagePicker('cover')" title="Change image">
+                                            <i class="bi bi-arrow-repeat"></i>
+                                        </button>
+                                        <button type="button" class="cover-img-action-btn danger" onclick="removeSettingsImage('cover')" title="Remove image">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="cover-image-placeholder" id="cover-placeholder" onclick="openSettingsImagePicker('cover')" style="{% if settings.cover_image_url %}display:none{% endif %}">
+                                    <div class="cover-placeholder-icon"><i class="bi bi-image"></i></div>
+                                    <div class="cover-placeholder-text">Click to select a cover image</div>
+                                    <div class="cover-placeholder-hint">Choose from your gallery</div>
+                                </div>
+                                <p class="form-hint">Hero/banner image for your homepage</p>
+                            </div>
+                        </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="form-label">Primary Color</label>
@@ -1034,14 +1265,6 @@
                                            onchange="syncColorPicker(this.value)">
                                 </div>
                                 <p class="form-hint">Accent color for buttons, links, and highlights</p>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="form-label">Cover Image URL</label>
-                                <input type="url" class="form-control" id="cover_image_url" name="cover_image_url"
-                                       value="{{ settings.cover_image_url }}" placeholder="https://example.com/cover.jpg">
-                                <p class="form-hint">Hero/banner image for your homepage</p>
                             </div>
                         </div>
                     </div>
@@ -2229,6 +2452,27 @@
     </div>
 </div>
 
+<!-- Image Picker Modal (Gallery) -->
+<div class="image-picker-overlay" id="imagePickerOverlay" onclick="closeSettingsImagePicker(event)">
+  <div class="image-picker-modal" onclick="event.stopPropagation()">
+    <div class="image-picker-header">
+      <h4 class="image-picker-title"><i class="bi bi-images"></i> Choose from Gallery</h4>
+      <button class="image-picker-close" onclick="closeSettingsImagePicker()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="image-picker-body">
+      <div class="image-picker-grid" id="imagePickerGrid">
+        <div class="text-center py-4" style="grid-column:1/-1;">
+          <div class="spinner-border spinner-border-sm text-primary opacity-50"></div>
+          <p class="text-secondary mt-2 mb-0" style="font-size:0.82rem;">Loading gallery...</p>
+        </div>
+      </div>
+    </div>
+    <div class="image-picker-footer">
+      <a href="/gallery" class="image-picker-upload-link"><i class="bi bi-cloud-arrow-up"></i> Upload new images in Gallery</a>
+    </div>
+  </div>
+</div>
+
 <script>
     // Tab Navigation
     document.querySelectorAll('.settings-tab').forEach(tab => {
@@ -2524,16 +2768,84 @@
         }
     }
 
-    // Image Preview
-    function updateImagePreview(inputId, previewId) {
-        const url = document.getElementById(inputId).value;
-        const preview = document.getElementById(previewId);
+    // ==================== IMAGE PICKER ====================
 
-        if (url) {
-            preview.innerHTML = `<img src="${url}" alt="Preview" onerror="this.parentElement.innerHTML='<i class=\\'bi bi-x-circle\\' style=\\'color:#ef4444\\'></i>'">`;
-        } else {
-            preview.innerHTML = '<i class="bi bi-image"></i>';
-        }
+    var activeImageField = null;
+
+    var fieldMap = {
+        'logo': { hidden: 'logo_url', preview: 'logo-preview-container', img: 'logo-preview-img', placeholder: 'logo-placeholder' },
+        'favicon': { hidden: 'favicon_url', preview: 'favicon-preview-container', img: 'favicon-preview-img', placeholder: 'favicon-placeholder' },
+        'cover': { hidden: 'cover_image_url', preview: 'cover-preview-container', img: 'cover-preview-img', placeholder: 'cover-placeholder' }
+    };
+
+    function openSettingsImagePicker(fieldKey) {
+        activeImageField = fieldKey;
+        var overlay = document.getElementById('imagePickerOverlay');
+        var grid = document.getElementById('imagePickerGrid');
+
+        overlay.classList.add('active');
+        grid.innerHTML = '<div class="text-center py-4" style="grid-column:1/-1;"><div class="spinner-border spinner-border-sm text-primary opacity-50"></div><p class="text-secondary mt-2 mb-0" style="font-size:0.82rem;">Loading gallery...</p></div>';
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '/api/gallery/images?per_page=50', true);
+        xhr.timeout = 10000;
+
+        xhr.onload = function () {
+            try {
+                if (xhr.status === 200) {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.success && data.images && data.images.length > 0) {
+                        var html = '';
+                        for (var i = 0; i < data.images.length; i++) {
+                            var img = data.images[i];
+                            html += '<div class="image-picker-item" onclick="selectSettingsImage(\'' + img.url + '\')">';
+                            html += '<img src="' + img.url + '" alt="' + (img.filename || '') + '" loading="lazy">';
+                            html += '</div>';
+                        }
+                        grid.innerHTML = html;
+                    } else {
+                        grid.innerHTML = '<div class="image-picker-empty" style="grid-column:1/-1;"><i class="bi bi-images" style="font-size:1.5rem;display:block;margin-bottom:0.5rem;"></i>No images in gallery. Upload images on the Gallery page first.</div>';
+                    }
+                } else {
+                    grid.innerHTML = '<div class="image-picker-empty" style="grid-column:1/-1;">Error loading images.</div>';
+                }
+            } catch (e) {
+                grid.innerHTML = '<div class="image-picker-empty" style="grid-column:1/-1;">Error loading images.</div>';
+            }
+        };
+
+        xhr.onerror = function () {
+            grid.innerHTML = '<div class="image-picker-empty" style="grid-column:1/-1;">Error loading images.</div>';
+        };
+
+        xhr.ontimeout = function () {
+            grid.innerHTML = '<div class="image-picker-empty" style="grid-column:1/-1;">Error loading images.</div>';
+        };
+
+        xhr.send();
+    }
+
+    function selectSettingsImage(url) {
+        if (!activeImageField || !fieldMap[activeImageField]) return;
+        var f = fieldMap[activeImageField];
+        document.getElementById(f.hidden).value = url;
+        document.getElementById(f.img).src = url;
+        document.getElementById(f.preview).style.display = '';
+        document.getElementById(f.placeholder).style.display = 'none';
+        closeSettingsImagePicker();
+    }
+
+    function removeSettingsImage(fieldKey) {
+        var f = fieldMap[fieldKey];
+        document.getElementById(f.hidden).value = '';
+        document.getElementById(f.img).src = '';
+        document.getElementById(f.preview).style.display = 'none';
+        document.getElementById(f.placeholder).style.display = '';
+    }
+
+    function closeSettingsImagePicker(event) {
+        if (event && event.target !== event.currentTarget) return;
+        document.getElementById('imagePickerOverlay').classList.remove('active');
     }
 
     // Character Counter
