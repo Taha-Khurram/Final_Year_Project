@@ -87,56 +87,58 @@
 </div>
 
 <!-- View Lead Modal -->
-<div class="modal fade" id="viewLeadModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content custom-modal">
-      <div class="custom-modal-header">
-        <h5 class="custom-modal-title"><i class="bi bi-envelope-paper"></i> <span id="modalLeadSubject">Message</span></h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div class="lead-modal-overlay" id="viewLeadOverlay" onclick="closeViewModal(event)">
+  <div class="lead-modal" onclick="event.stopPropagation()">
+    <div class="lead-modal-header">
+      <div class="lead-modal-icon view-icon"><i class="bi bi-envelope-paper-fill"></i></div>
+      <h4 class="lead-modal-title" id="modalLeadSubject">Message</h4>
+      <button class="lead-modal-close" onclick="closeViewModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="lead-modal-body">
+      <div class="lead-meta-grid">
+        <div class="lead-meta-item">
+          <span class="lead-meta-label"><i class="bi bi-person"></i> From</span>
+          <span class="lead-meta-value" id="modalLeadName"></span>
+        </div>
+        <div class="lead-meta-item">
+          <span class="lead-meta-label"><i class="bi bi-envelope"></i> Email</span>
+          <span class="lead-meta-value" id="modalLeadEmail"></span>
+        </div>
+        <div class="lead-meta-item">
+          <span class="lead-meta-label"><i class="bi bi-calendar3"></i> Date</span>
+          <span class="lead-meta-value" id="modalLeadDate"></span>
+        </div>
       </div>
-      <div class="custom-modal-body">
-        <div class="lead-detail-row">
-          <span class="lead-detail-label">From:</span>
-          <span id="modalLeadName" class="lead-detail-value"></span>
-        </div>
-        <div class="lead-detail-row">
-          <span class="lead-detail-label">Email:</span>
-          <span id="modalLeadEmail" class="lead-detail-value"></span>
-        </div>
-        <div class="lead-detail-row">
-          <span class="lead-detail-label">Date:</span>
-          <span id="modalLeadDate" class="lead-detail-value"></span>
-        </div>
-        <hr class="lead-detail-divider">
+      <div class="lead-message-box">
+        <span class="lead-message-label">Message</span>
         <div class="lead-message-content" id="modalLeadMessage"></div>
       </div>
-      <div class="custom-modal-footer">
-        <button class="btn-modal btn-modal-danger" id="modalDeleteBtn">
-          <i class="bi bi-trash"></i> Delete
-        </button>
-        <button class="btn-modal btn-modal-secondary" data-bs-dismiss="modal">Close</button>
-      </div>
+    </div>
+    <div class="lead-modal-footer">
+      <button class="lead-btn lead-btn-ghost" onclick="closeViewModal()">Close</button>
+      <button class="lead-btn lead-btn-danger" id="modalDeleteBtn">
+        <i class="bi bi-trash"></i> Delete
+      </button>
     </div>
   </div>
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteLeadModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-sm">
-    <div class="modal-content custom-modal">
-      <div class="custom-modal-header">
-        <h5 class="custom-modal-title"><i class="bi bi-exclamation-triangle"></i> Delete Lead</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="custom-modal-body">
-        <p class="mb-0">Are you sure you want to delete this lead? This action cannot be undone.</p>
-      </div>
-      <div class="custom-modal-footer">
-        <button class="btn-modal btn-modal-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn-modal btn-modal-danger" id="confirmDeleteBtn">
-          <i class="bi bi-trash"></i> Delete
-        </button>
-      </div>
+<div class="lead-modal-overlay" id="deleteLeadOverlay" onclick="closeDeleteModal(event)">
+  <div class="lead-modal lead-modal-sm" onclick="event.stopPropagation()">
+    <div class="lead-modal-header">
+      <div class="lead-modal-icon danger-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+      <h4 class="lead-modal-title">Delete Lead</h4>
+      <button class="lead-modal-close" onclick="closeDeleteModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="lead-modal-body">
+      <p class="delete-confirm-text">Are you sure you want to delete this lead? This action cannot be undone.</p>
+    </div>
+    <div class="lead-modal-footer">
+      <button class="lead-btn lead-btn-ghost" onclick="closeDeleteModal()">Cancel</button>
+      <button class="lead-btn lead-btn-danger" id="confirmDeleteBtn">
+        <i class="bi bi-trash"></i> Delete
+      </button>
     </div>
   </div>
 </div>

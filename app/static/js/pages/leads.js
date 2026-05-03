@@ -51,9 +51,8 @@ function setupSearch() {
 function setupModals() {
     document.getElementById('modalDeleteBtn').addEventListener('click', function () {
         if (currentLeadId) {
-            const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewLeadModal'));
-            if (viewModal) viewModal.hide();
-            showDeleteConfirm(currentLeadId);
+            closeViewModal();
+            setTimeout(() => showDeleteConfirm(currentLeadId), 200);
         }
     });
 
@@ -235,12 +234,16 @@ function viewLead(id, lead) {
     document.getElementById('modalLeadDate').textContent = formatDate(lead.created_at);
     document.getElementById('modalLeadMessage').textContent = lead.message || '';
 
-    const modal = new bootstrap.Modal(document.getElementById('viewLeadModal'));
-    modal.show();
+    document.getElementById('viewLeadOverlay').classList.add('active');
 
     if (!lead.read) {
         markAsRead(id);
     }
+}
+
+function closeViewModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('viewLeadOverlay').classList.remove('active');
 }
 
 // ==================== MARK AS READ ====================
@@ -262,24 +265,39 @@ async function markAsRead(id) {
 
 function showDeleteConfirm(id) {
     currentLeadId = id;
-    const modal = new bootstrap.Modal(document.getElementById('deleteLeadModal'));
-    modal.show();
+    const btn = document.getElementById('confirmDeleteBtn');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-trash"></i> Delete';
+    document.getElementById('deleteLeadOverlay').classList.add('active');
+}
+
+function closeDeleteModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('deleteLeadOverlay').classList.remove('active');
 }
 
 async function deleteLead(id) {
+    const btn = document.getElementById('confirmDeleteBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Deleting...';
+
     try {
         const res = await fetch(`/api/leads/${id}/delete`, { method: 'POST' });
         const data = await res.json();
 
         if (data.success) {
-            const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteLeadModal'));
-            if (deleteModal) deleteModal.hide();
+            closeDeleteModal();
             currentLeadId = null;
             loadLeads();
             refreshStats();
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-trash"></i> Delete';
         }
     } catch (err) {
         console.error('Error deleting lead:', err);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-trash"></i> Delete';
     }
 }
 
