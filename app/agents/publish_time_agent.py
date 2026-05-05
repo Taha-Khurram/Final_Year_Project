@@ -1,8 +1,3 @@
-from google.analytics.data_v1beta import BetaAnalyticsDataClient
-from google.analytics.data_v1beta.types import (
-    RunReportRequest, DateRange, Metric, Dimension
-)
-
 DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
 
@@ -28,11 +23,18 @@ class PublishTimeAgent:
                 "suggestions": suggestions,
                 "data_period": "Last 28 days"
             }
+        except ImportError as e:
+            print(f"Analytics error: {e}")
+            return {"success": False, "suggestions": [], "reason": "module_not_installed"}
         except Exception as e:
             print(f"PublishTimeAgent error: {e}")
             return {"success": False, "suggestions": [], "reason": "error"}
 
     def _fetch_hourly_traffic(self, creds, property_id):
+        from google.analytics.data_v1beta import BetaAnalyticsDataClient
+        from google.analytics.data_v1beta.types import (
+            RunReportRequest, DateRange, Metric, Dimension
+        )
         client = BetaAnalyticsDataClient(credentials=creds)
         response = client.run_report(
             RunReportRequest(

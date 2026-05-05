@@ -680,7 +680,14 @@ class SEOAgent:
                 cache.set(cache_key, result, ttl=900)  # 15 minutes
                 return result
 
-        print("ERROR: No real keyword data available.")
+        # Method 3: AI-estimated keyword data as final fallback
+        result = self._generate_ai_keyword_estimates(keywords, region)
+        if result:
+            print("Using AI-estimated keyword data (external APIs unavailable)")
+            cache.set(cache_key, result, ttl=900)
+            return result
+
+        print("ERROR: No keyword data available.")
         return []
 
     def _fetch_from_google_search_api(self, keywords: List[str], region: str) -> List[Dict]:
@@ -804,6 +811,62 @@ class SEOAgent:
             return []
         except Exception as e:
             print(f"PyTrends error: {e}")
+            return []
+
+    def _generate_ai_keyword_estimates(self, keywords: List[str], region: str) -> List[Dict]:
+        """Use Gemini to estimate keyword metrics when external APIs are unavailable"""
+        try:
+            import json
+            country = self._get_country_name(region) or region
+
+            prompt = f"""You are an SEO keyword research expert. Estimate realistic keyword metrics for the following keywords targeting {country}.
+
+KEYWORDS: {', '.join(keywords[:8])}
+
+For each keyword, provide:
+- keyword: the keyword text
+- search_volume: estimated monthly searches (realistic number)
+- difficulty_score: SEO difficulty 0-100 (lower = easier to rank)
+- competition: LOW, MEDIUM, or HIGH
+
+Also suggest 5 additional related long-tail keywords with low competition.
+
+Return ONLY valid JSON array, no explanation:
+[
+  {{"keyword": "...", "search_volume": 1000, "difficulty_score": 45, "competition": "MEDIUM"}},
+  ...
+]"""
+
+            response = self.model.generate_content(prompt)
+            text = response.text.strip()
+
+            if '```' in text:
+                json_match = re.search(r'```(?:json)?\s*\n?([\s\S]*?)\n?```', text)
+                if json_match:
+                    text = json_match.group(1).strip()
+
+            start_idx = text.find('[')
+            end_idx = text.rfind(']')
+            if start_idx != -1 and end_idx != -1:
+                text = text[start_idx:end_idx + 1]
+
+            try:
+                results = json.loads(text)
+            except json.JSONDecodeError:
+                cleaned = re.sub(r',\s*([}\]])', r'\1', text)
+                results = json.loads(cleaned)
+
+            for item in results:
+                item['source'] = 'ai_estimated'
+                if 'difficulty_score' not in item:
+                    item['difficulty_score'] = self._estimate_keyword_difficulty(item.get('keyword', ''), region)
+                if 'competition' not in item:
+                    item['competition'] = self._map_competition(item['difficulty_score'])
+
+            return results
+
+        except Exception as e:
+            print(f"AI keyword estimation error: {e}")
             return []
 
     def _estimate_keyword_difficulty(self, keyword: str, region: str) -> int:
@@ -1000,19 +1063,16 @@ class SEOAgent:
 
             # Remove markdown code blocks
             if '```' in text:
-                # Find JSON within code blocks
                 json_match = re.search(r'```(?:json)?\s*\n?([\s\S]*?)\n?```', text)
                 if json_match:
                     text = json_match.group(1).strip()
                 else:
-                    # Remove leading/trailing backticks
                     text = re.sub(r'^```json?\n?', '', text)
                     text = re.sub(r'\n?```$', '', text)
 
             # Find the JSON object - look for opening { and matching closing }
             start_idx = text.find('{')
             if start_idx != -1:
-                # Find the matching closing brace
                 brace_count = 0
                 end_idx = start_idx
                 for i, char in enumerate(text[start_idx:], start_idx):
@@ -1025,7 +1085,21 @@ class SEOAgent:
                             break
                 text = text[start_idx:end_idx]
 
-            result = json.loads(text)
+            # Try parsing as-is first
+            try:
+                result = json.loads(text)
+            except json.JSONDecodeError:
+                # Clean common issues from AI-generated JSON
+                cleaned = text
+                # Remove trailing commas before } or ]
+                cleaned = re.sub(r',\s*([}\]])', r'\1', cleaned)
+                # Replace single quotes with double quotes (but not within already double-quoted strings)
+                cleaned = re.sub(r"(?<![\"\\])'([^']*)'(?![\"\\])", r'"\1"', cleaned)
+                # Remove JavaScript-style comments
+                cleaned = re.sub(r'//[^\n]*', '', cleaned)
+                # Fix unescaped newlines inside strings
+                cleaned = re.sub(r'(?<=": ")(.*?)(?="[,}\]])', lambda m: m.group(0).replace('\n', '\\n'), cleaned)
+                result = json.loads(cleaned)
 
             # NOW analyze the actual optimized content
             optimized_content = result.get('optimized_content', content)
