@@ -15,8 +15,8 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
 
-    # RapidAPI for SEO Keyword Research (free tier: 500 req/month)
-    # Get your key at: https://rapidapi.com
+    # RapidAPI for SEO Keyword Research (seo-keyword-research.p.rapidapi.com)
+    # Get your key at: https://rapidapi.com/developer_jeeva_k/api/seo-keyword-research
     RAPIDAPI_KEY = os.getenv('RAPIDAPI_KEY')
 
     # Google OAuth for Analytics integration

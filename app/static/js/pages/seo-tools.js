@@ -338,8 +338,20 @@ function displayResults(analysis) {
     if (primary) {
         document.getElementById('primary-keyword').textContent = primary.keyword || '--';
         const diffBadge = document.getElementById('primary-difficulty');
-        diffBadge.textContent = primary.competition || 'UNKNOWN';
-        diffBadge.className = 'badge bg-' + (primary.competition === 'LOW' ? 'success' : primary.competition === 'MEDIUM' ? 'warning' : 'danger');
+        const comp = (primary.competition || 'UNKNOWN').toUpperCase();
+        diffBadge.textContent = comp;
+        diffBadge.className = 'badge bg-' + (comp === 'LOW' ? 'success' : comp === 'MEDIUM' ? 'warning' : 'danger');
+
+        // Show detailed info
+        const infoEl = document.getElementById('primary-keyword-info');
+        const volume = primary.search_volume ? primary.search_volume.toLocaleString() : 'N/A';
+        const cpc = primary.cpc ? `$${parseFloat(primary.cpc).toFixed(2)}` : 'N/A';
+        const difficulty = primary.difficulty_score || '--';
+        infoEl.innerHTML = `
+            <span class="badge bg-light text-dark me-2"><i class="bi bi-bar-chart me-1"></i>Volume: ${volume}</span>
+            <span class="badge bg-light text-dark me-2"><i class="bi bi-currency-dollar me-1"></i>CPC: ${cpc}</span>
+            <span class="badge bg-light text-dark me-2"><i class="bi bi-speedometer2 me-1"></i>Difficulty: ${difficulty}/100</span>
+        `;
     }
 
     // Keywords - use all_opportunities if available
@@ -409,13 +421,25 @@ function displayKeywordsOnly(data) {
     const related = data.related_keywords || [];
     displayKeywords([...related]);
 
-    // Primary from related
+    // Primary from related with full data
     if (related.length > 0) {
         const primary = related[0];
         document.getElementById('primary-keyword').textContent = primary.keyword;
         const diffBadge = document.getElementById('primary-difficulty');
-        diffBadge.textContent = primary.competition || 'LOW';
-        diffBadge.className = 'badge bg-' + (primary.competition === 'LOW' ? 'success' : primary.competition === 'MEDIUM' ? 'warning' : 'danger');
+        const comp = (primary.competition || 'low').toUpperCase();
+        diffBadge.textContent = comp;
+        diffBadge.className = 'badge bg-' + (comp === 'LOW' ? 'success' : comp === 'MEDIUM' ? 'warning' : 'danger');
+
+        // Show detailed info for primary keyword
+        const infoEl = document.getElementById('primary-keyword-info');
+        const volume = primary.search_volume ? primary.search_volume.toLocaleString() : 'N/A';
+        const cpc = primary.cpc ? `$${parseFloat(primary.cpc).toFixed(2)}` : 'N/A';
+        const difficulty = primary.difficulty_score || '--';
+        infoEl.innerHTML = `
+            <span class="badge bg-light text-dark me-2"><i class="bi bi-bar-chart me-1"></i>Volume: ${volume}</span>
+            <span class="badge bg-light text-dark me-2"><i class="bi bi-currency-dollar me-1"></i>CPC: ${cpc}</span>
+            <span class="badge bg-light text-dark me-2"><i class="bi bi-speedometer2 me-1"></i>Difficulty: ${difficulty}/100</span>
+        `;
     }
 
     // Scroll to results
@@ -429,21 +453,37 @@ function displayKeywords(keywords) {
     keywords.forEach(kw => {
         const difficulty = kw.difficulty_score || 50;
         const level = difficulty <= 30 ? 'easy' : difficulty <= 60 ? 'medium' : 'hard';
+        const volume = kw.search_volume ? kw.search_volume.toLocaleString() : '--';
+        const cpc = kw.cpc ? `$${parseFloat(kw.cpc).toFixed(2)}` : '--';
+        const competition = (kw.competition || 'medium').toLowerCase();
 
-        const tag = document.createElement('span');
-        tag.className = 'keyword-tag ' + level;
-        tag.innerHTML = `
-            ${kw.keyword}
-            <span class="difficulty-badge bg-${level === 'easy' ? 'success' : level === 'medium' ? 'warning' : 'danger'} text-white">
-                ${difficulty}
-            </span>
+        const card = document.createElement('div');
+        card.className = 'keyword-card mb-2 p-3 border rounded d-flex justify-content-between align-items-center';
+        card.style.cursor = 'pointer';
+        card.style.transition = 'all 0.2s ease';
+        card.innerHTML = `
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-${level === 'easy' ? 'success' : level === 'medium' ? 'warning' : 'danger'} text-white" style="min-width: 32px; text-align: center;">
+                    ${difficulty}
+                </span>
+                <strong class="keyword-text">${kw.keyword}</strong>
+            </div>
+            <div class="d-flex align-items-center gap-3 text-muted small">
+                <span title="Monthly Search Volume"><i class="bi bi-bar-chart"></i> ${volume}</span>
+                <span title="Cost Per Click"><i class="bi bi-currency-dollar"></i> ${cpc}</span>
+                <span title="Competition Level" class="badge bg-${competition === 'low' ? 'success' : competition === 'medium' ? 'warning' : 'danger'} bg-opacity-25 text-${competition === 'low' ? 'success' : competition === 'medium' ? 'warning' : 'danger'}">
+                    ${competition}
+                </span>
+            </div>
         `;
-        tag.onclick = () => {
+        card.onclick = () => {
             navigator.clipboard.writeText(kw.keyword);
-            tag.style.transform = 'scale(0.95)';
-            setTimeout(() => tag.style.transform = '', 150);
+            card.style.transform = 'scale(0.98)';
+            card.style.background = '#f0f9ff';
+            setTimeout(() => { card.style.transform = ''; card.style.background = ''; }, 200);
+            showCopyToast();
         };
-        container.appendChild(tag);
+        container.appendChild(card);
     });
 }
 
@@ -542,4 +582,140 @@ function showConfirmModal() {
         modal.addEventListener('click', handleOutsideClick);
         document.addEventListener('keydown', handleEscape);
     });
+}
+
+// =========================================
+// URL SEO ANALYSIS
+// =========================================
+async function analyzeUrlSeo() {
+    const urlInput = document.getElementById('url-input');
+    const url = urlInput.value.trim();
+
+    if (!url) {
+        alert('Please enter a URL to analyze');
+        return;
+    }
+
+    showLoading('Analyzing URL SEO... This may take 10-20 seconds.');
+
+    try {
+        const response = await fetch('/api/seo/analyze-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url })
+        });
+
+        const data = await response.json();
+        hideLoading();
+
+        if (data.success) {
+            displayUrlResults(data);
+        } else {
+            alert('Error: ' + (data.error || 'Failed to analyze URL'));
+        }
+    } catch (error) {
+        hideLoading();
+        alert('Network error. Please try again.');
+        console.error(error);
+    }
+}
+
+function displayUrlResults(data) {
+    const section = document.getElementById('url-results-section');
+    section.style.display = 'block';
+
+    // URL & Title
+    const link = document.getElementById('url-result-link');
+    link.href = data.url || '#';
+    link.textContent = data.url || '--';
+    document.getElementById('url-result-title').textContent = data.title || 'N/A';
+    document.getElementById('url-result-description').textContent = data.description || 'N/A';
+
+    // Score
+    const score = data.score || 0;
+    const scoreCircle = document.getElementById('url-score-circle');
+    scoreCircle.className = 'score-circle ' + (score >= 70 ? 'high' : score >= 40 ? 'medium' : 'low');
+    document.getElementById('url-score-value').textContent = score;
+
+    // Content Analysis
+    const content = data.content_analysis || {};
+    document.getElementById('url-word-count').textContent = content.word_count || '--';
+    document.getElementById('url-title-length').textContent = content.title_length || '--';
+    document.getElementById('url-desc-length').textContent = content.description_length || '--';
+    document.getElementById('url-load-time').textContent = data.load_time || '--';
+
+    // Technical SEO Checks
+    const technical = data.technical || {};
+    const techContainer = document.getElementById('url-technical-checks');
+    techContainer.innerHTML = '';
+    const techChecks = [
+        { key: 'ssl', label: 'SSL/HTTPS', icon: 'shield-lock' },
+        { key: 'mobile_friendly', label: 'Mobile Friendly', icon: 'phone' },
+        { key: 'robots_txt', label: 'Robots.txt', icon: 'robot' },
+        { key: 'sitemap', label: 'Sitemap', icon: 'diagram-3' },
+    ];
+    techChecks.forEach(check => {
+        const passed = technical[check.key];
+        techContainer.innerHTML += `
+            <div class="col-md-3 col-6">
+                <div class="border rounded p-2 text-center ${passed ? 'border-success' : 'border-danger'}">
+                    <i class="bi bi-${check.icon} ${passed ? 'text-success' : 'text-danger'}"></i>
+                    <div class="small fw-bold">${check.label}</div>
+                    <span class="badge bg-${passed ? 'success' : 'danger'}">${passed ? 'Pass' : 'Fail'}</span>
+                </div>
+            </div>
+        `;
+    });
+
+    if (technical.canonical) {
+        techContainer.innerHTML += `
+            <div class="col-12 mt-2">
+                <small class="text-muted"><strong>Canonical:</strong> ${technical.canonical}</small>
+            </div>
+        `;
+    }
+    if (technical.lang) {
+        techContainer.innerHTML += `
+            <div class="col-12">
+                <small class="text-muted"><strong>Language:</strong> ${technical.lang}</small>
+            </div>
+        `;
+    }
+
+    // Issues & Warnings
+    const issuesContainer = document.getElementById('url-issues-container');
+    const issues = data.issues || [];
+    const warnings = data.warnings || [];
+    const allIssues = [...issues, ...warnings];
+
+    if (allIssues.length > 0) {
+        issuesContainer.innerHTML = allIssues.map(issue => {
+            const text = typeof issue === 'string' ? issue : (issue.message || issue.description || JSON.stringify(issue));
+            const isWarning = warnings.includes(issue);
+            return `<div class="d-flex align-items-start gap-2 mb-2">
+                <i class="bi bi-${isWarning ? 'exclamation-circle text-warning' : 'x-circle text-danger'} mt-1"></i>
+                <span>${text}</span>
+            </div>`;
+        }).join('');
+    } else {
+        issuesContainer.innerHTML = '<p class="text-success mb-0"><i class="bi bi-check-circle me-2"></i>No issues found!</p>';
+    }
+
+    // Passed Checks
+    const passedContainer = document.getElementById('url-passed-container');
+    const passed = data.passed || [];
+    if (passed.length > 0) {
+        passedContainer.innerHTML = passed.map(item => {
+            const text = typeof item === 'string' ? item : (item.message || item.description || JSON.stringify(item));
+            return `<div class="d-flex align-items-start gap-2 mb-2">
+                <i class="bi bi-check-circle text-success mt-1"></i>
+                <span>${text}</span>
+            </div>`;
+        }).join('');
+    } else {
+        passedContainer.innerHTML = '<p class="text-muted mb-0">Detailed checks not available for this URL.</p>';
+    }
+
+    // Scroll to results
+    section.scrollIntoView({ behavior: 'smooth' });
 }

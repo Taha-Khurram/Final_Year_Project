@@ -859,6 +859,33 @@ def research_keywords():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@blog_bp.route('/api/seo/analyze-url', methods=['POST'])
+def analyze_url_seo():
+    """Analyze a live URL's SEO using the SEO Checker API"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+        data = request.get_json()
+        url = data.get('url', '').strip()
+
+        if not url:
+            return jsonify({"success": False, "error": "URL is required"}), 400
+
+        if not url.startswith(('http://', 'https://')):
+            url = 'https://' + url
+
+        seo_agent = SEOAgent()
+        result = seo_agent.analyze_url(url)
+
+        return jsonify(result)
+
+    except Exception as e:
+        print(f"URL SEO Analysis Error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 @blog_bp.route('/api/seo/optimize-blog/<blog_id>', methods=['POST'])
 def optimize_existing_blog(blog_id):
     """Apply SEO optimization to an existing blog"""

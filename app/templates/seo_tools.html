@@ -70,6 +70,93 @@
             </div>
         </div>
 
+        <!-- URL SEO Analysis Section (disabled - API quota limit)
+        <div class="seo-card animate-fade-up mb-4">
+            <h3><i class="bi bi-globe"></i> Analyze URL SEO</h3>
+            <p class="text-muted mb-3">Enter a live URL to analyze its SEO performance, technical health, and content quality.</p>
+
+            <div class="row g-3 align-items-end mb-3">
+                <div class="col-md-9">
+                    <label class="form-label fw-bold">Website URL</label>
+                    <input type="url" class="form-control" id="url-input" placeholder="https://example.com">
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-primary w-100" onclick="analyzeUrlSeo()">
+                        <i class="bi bi-search me-2"></i>Analyze URL
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="url-results-section" style="display: none;">
+            <div class="seo-card mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="mb-0"><i class="bi bi-globe2"></i> URL SEO Report</h3>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('url-results-section').style.display='none'">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-8">
+                        <p class="text-muted mb-1">Analyzed URL</p>
+                        <a id="url-result-link" href="#" target="_blank" class="fw-bold text-break"></a>
+                        <p class="mt-2 mb-1"><strong>Title:</strong> <span id="url-result-title">--</span></p>
+                        <p class="mb-0"><strong>Description:</strong> <span id="url-result-description" class="text-muted">--</span></p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <p class="text-muted mb-1">SEO Score</p>
+                        <div class="score-circle" id="url-score-circle">
+                            <span id="url-score-value">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="mt-4 mb-3"><i class="bi bi-file-text me-2"></i>Content Analysis</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 text-center">
+                            <div class="text-muted small">Word Count</div>
+                            <div class="fw-bold fs-5" id="url-word-count">--</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 text-center">
+                            <div class="text-muted small">Title Length</div>
+                            <div class="fw-bold fs-5" id="url-title-length">--</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 text-center">
+                            <div class="text-muted small">Description Length</div>
+                            <div class="fw-bold fs-5" id="url-desc-length">--</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 text-center">
+                            <div class="text-muted small">Load Time</div>
+                            <div class="fw-bold fs-5" id="url-load-time">--</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="mb-3"><i class="bi bi-gear me-2"></i>Technical SEO</h5>
+                <div class="row g-2 mb-4" id="url-technical-checks">
+                </div>
+
+                <h5 class="mb-3"><i class="bi bi-exclamation-triangle me-2"></i>Issues & Warnings</h5>
+                <div id="url-issues-container" class="mb-4">
+                    <p class="text-muted">No issues found.</p>
+                </div>
+
+                <h5 class="mb-3"><i class="bi bi-check-circle me-2"></i>Passed Checks</h5>
+                <div id="url-passed-container">
+                    <p class="text-muted">No data yet.</p>
+                </div>
+            </div>
+        </div>
+        END URL SEO Analysis Section -->
+
         <!-- Results Section -->
         <div id="results-section">
 
@@ -151,7 +238,7 @@
             <!-- Keywords -->
             <div class="seo-card animate-fade-up">
                 <h3><i class="bi bi-tags"></i> Recommended Keywords</h3>
-                <p class="text-muted">Click to copy. Green = Easy to rank, Yellow = Medium, Red = Competitive</p>
+                <p class="text-muted">Click to copy. Shows difficulty score, search volume, CPC, and competition level.</p>
                 <div id="keywords-container">
                     <!-- Keywords will be inserted here -->
                 </div>

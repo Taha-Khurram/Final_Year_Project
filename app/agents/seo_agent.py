@@ -30,16 +30,22 @@ class SEOAgent:
         genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
         self.model = genai.GenerativeModel('gemini-3-flash-preview')
 
-        # RapidAPI Key for Google Search API
+        # RapidAPI Key for SEO APIs
         self.rapidapi_key = os.getenv('RAPIDAPI_KEY', '')
 
-        # Google Search API on RapidAPI
-        self.google_search_api = {
-            "host": "google-search74.p.rapidapi.com",
-            "base_url": "https://google-search74.p.rapidapi.com"
+        # SEO Keyword Research API on RapidAPI
+        self.seo_api = {
+            "host": "seo-keyword-research.p.rapidapi.com",
+            "base_url": "https://seo-keyword-research.p.rapidapi.com"
         }
 
-        # Use PyTrends as primary data source (free, reliable)
+        # SEO Checker API on RapidAPI (URL analysis)
+        self.seo_checker_api = {
+            "host": "seo-checker2.p.rapidapi.com",
+            "base_url": "https://seo-checker2.p.rapidapi.com"
+        }
+
+        # Use PyTrends as backup data source
         self.use_pytrends = True
 
         # SEO Best Practices Constants
@@ -648,7 +654,10 @@ class SEOAgent:
         """
 
         response = self.model.generate_content(prompt)
-        keywords = [kw.strip() for kw in response.text.split(',')]
+        text = (response.text or "") if response else ""
+        if not text.strip():
+            return [topic.lower()] if topic else []
+        keywords = [kw.strip() for kw in text.split(',')]
         return keywords
 
     def extract_seed_keywords(self, topic: str, content: str) -> List[str]:
@@ -664,11 +673,11 @@ class SEOAgent:
             print("Using cached keyword data")
             return cached_result
 
-        # Method 1: Try Google Search API (RapidAPI)
+        # Method 1: Try SEO Keyword Research API (RapidAPI)
         if self.rapidapi_key:
-            result = self._fetch_from_google_search_api(keywords, region)
+            result = self._fetch_from_seo_api(keywords, region)
             if result:
-                print("Using Google Search API data")
+                print("Using SEO Keyword Research API data")
                 cache.set(cache_key, result, ttl=900)  # 15 minutes
                 return result
 
@@ -690,70 +699,77 @@ class SEOAgent:
         print("ERROR: No keyword data available.")
         return []
 
-    def _fetch_from_google_search_api(self, keywords: List[str], region: str) -> List[Dict]:
-        """Use Google Search API from RapidAPI"""
+    def _fetch_from_seo_api(self, keywords: List[str], region: str) -> List[Dict]:
+        """Use SEO Keyword Research API from RapidAPI"""
         try:
             import http.client
             import json
 
             all_results = []
+            country_code = self._get_country_code(region) if region else "us"
 
             for keyword in keywords[:3]:
-                conn = http.client.HTTPSConnection(self.google_search_api["host"])
+                conn = http.client.HTTPSConnection(self.seo_api["host"])
 
                 headers = {
                     'x-rapidapi-key': self.rapidapi_key,
-                    'x-rapidapi-host': self.google_search_api["host"],
+                    'x-rapidapi-host': self.seo_api["host"],
                     'Content-Type': "application/json"
                 }
 
-                query = f"{keyword} {self._get_country_name(region)}" if region else keyword
-                encoded_query = requests.utils.quote(query)
-
-                conn.request("GET", f"/?query={encoded_query}&limit=10&related_keywords=true", headers=headers)
+                encoded_keyword = requests.utils.quote(keyword)
+                conn.request("GET", f"/keynew.php?keyword={encoded_keyword}&country={country_code}", headers=headers)
                 res = conn.getresponse()
                 data = res.read()
                 conn.close()
 
                 if res.status == 200:
                     json_data = json.loads(data.decode("utf-8"))
-                    parsed = self._parse_google_search_results(json_data, keyword, region)
+                    parsed = self._parse_seo_api_results(json_data, keyword)
                     all_results.extend(parsed)
 
             return all_results
 
         except Exception as e:
-            print(f"Google Search API error: {e}")
+            print(f"SEO Keyword Research API error: {e}")
             return []
 
-    def _parse_google_search_results(self, data: Dict, seed_keyword: str, region: str) -> List[Dict]:
-        """Parse Google Search API results"""
+    def _parse_seo_api_results(self, data: list, seed_keyword: str) -> List[Dict]:
+        """Parse SEO Keyword Research API results"""
         parsed = []
-        related = data.get('related_keywords', [])
 
-        if isinstance(related, list):
-            for item in related[:10]:
-                keyword_text = item if isinstance(item, str) else item.get('query', item.get('text', ''))
-                if keyword_text:
-                    difficulty = self._estimate_keyword_difficulty(keyword_text, region)
-                    parsed.append({
-                        "keyword": keyword_text,
-                        "search_volume": self._estimate_search_volume(keyword_text),
-                        "competition": self._map_competition(difficulty),
-                        "difficulty_score": difficulty,
-                        "source": "google_related"
-                    })
+        if not isinstance(data, list):
+            return parsed
 
-        seed_difficulty = self._estimate_keyword_difficulty(seed_keyword, region)
-        parsed.insert(0, {
-            "keyword": seed_keyword,
-            "search_volume": self._estimate_search_volume(seed_keyword),
-            "competition": self._map_competition(seed_difficulty),
-            "difficulty_score": seed_difficulty,
-            "source": "seed"
-        })
+        for item in data[:15]:
+            keyword_text = item.get('text', '')
+            if not keyword_text:
+                continue
+
+            volume = item.get('vol', 0) or item.get('v', 0)
+            cpc = float(item.get('cpc', 0) or 0)
+            competition = item.get('competition', 'medium').lower()
+            score = float(item.get('score', 1.0) or 1.0)
+
+            difficulty = self._competition_to_difficulty(competition, score, volume)
+
+            parsed.append({
+                "keyword": keyword_text,
+                "search_volume": volume,
+                "cpc": cpc,
+                "competition": competition,
+                "difficulty_score": difficulty,
+                "source": "seo_api"
+            })
 
         return parsed
+
+    def _competition_to_difficulty(self, competition: str, score: float, volume: int) -> int:
+        """Convert API competition data to a 0-100 difficulty score"""
+        base = {"low": 25, "medium": 50, "high": 75}.get(competition, 50)
+        score_modifier = min(score * 10, 20)
+        volume_modifier = min(volume / 50000, 15) if volume > 10000 else 0
+        return min(int(base + score_modifier + volume_modifier), 100)
 
     def _fetch_from_pytrends(self, keywords: List[str], region: str) -> List[Dict]:
         """Use PyTrends (Google Trends)"""
@@ -838,7 +854,10 @@ Return ONLY valid JSON array, no explanation:
 ]"""
 
             response = self.model.generate_content(prompt)
-            text = response.text.strip()
+            text = (response.text or "").strip()
+
+            if not text:
+                return []
 
             if '```' in text:
                 json_match = re.search(r'```(?:json)?\s*\n?([\s\S]*?)\n?```', text)
@@ -961,6 +980,10 @@ Return ONLY valid JSON array, no explanation:
         }
         return countries.get(region, "")
 
+    def _get_country_code(self, region: str) -> str:
+        """Convert region code to lowercase country code for SEO API"""
+        return region.lower() if region else "us"
+
     def _get_google_related_keywords(self, seed: str, region: str = "PK") -> List[Dict]:
         """Get related keywords for a single seed keyword - wrapper for routes"""
         return self.get_keyword_data([seed], region)
@@ -1055,11 +1078,39 @@ Return ONLY valid JSON array, no explanation:
         Return ONLY valid JSON, no explanation.
         """
 
-        response = self.model.generate_content(prompt)
+        try:
+            response = None
+            import time as _time
+            for attempt in range(3):
+                try:
+                    response = self.model.generate_content(prompt)
+                    if response and response.text:
+                        break
+                except Exception as retry_err:
+                    print(f"Gemini attempt {attempt+1} failed: {retry_err}")
+                    if attempt < 2:
+                        _time.sleep(2)
+            if not response or not response.text:
+                raise ValueError("Gemini failed to generate content after 3 attempts")
+        except Exception as e:
+            print(f"Gemini API error in auto_implement_seo: {e}")
+            analysis = self.analyze_content(content, title, primary_keyword)
+            return {
+                "optimized_title": title,
+                "meta_description": content[:150],
+                "optimized_content": content,
+                "seo_analysis": analysis,
+                "seo_score": analysis['seo_score']['total'],
+                "seo_grade": analysis['seo_score']['grade'],
+                "error": str(e)
+            }
 
         try:
             import json
-            text = response.text.strip()
+            text = (response.text or "").strip()
+
+            if not text:
+                raise ValueError("Gemini returned an empty response")
 
             # Remove markdown code blocks
             if '```' in text:
@@ -1084,6 +1135,8 @@ Return ONLY valid JSON array, no explanation:
                             end_idx = i + 1
                             break
                 text = text[start_idx:end_idx]
+            else:
+                raise ValueError(f"No JSON object found in Gemini response: {text[:200]}")
 
             # Try parsing as-is first
             try:
@@ -1224,6 +1277,98 @@ Return ONLY valid JSON array, no explanation:
                 recommendations.append(f"🔴 {issue['message']}")
 
         return recommendations
+
+    # =========================================
+    # URL-BASED SEO ANALYSIS (RapidAPI SEO Checker)
+    # =========================================
+    def analyze_url(self, url: str) -> Dict:
+        """
+        Analyze a live URL's SEO using the SEO Checker API.
+        This is an async API - first call triggers processing, subsequent calls return results.
+        """
+        import http.client
+        import json
+        import time
+
+        if not self.rapidapi_key:
+            return {"success": False, "error": "RapidAPI key not configured"}
+
+        cache_key = f"seo_url:{url}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
+
+        encoded_url = requests.utils.quote(url, safe='')
+        headers = {
+            'x-rapidapi-key': self.rapidapi_key,
+            'x-rapidapi-host': self.seo_checker_api["host"],
+            'Content-Type': "application/json"
+        }
+
+        try:
+            # Poll the API (async endpoint: first call triggers, subsequent returns data)
+            for attempt in range(5):
+                conn = http.client.HTTPSConnection(self.seo_checker_api["host"])
+                conn.request("GET", f"/analyze?url={encoded_url}", headers=headers)
+                res = conn.getresponse()
+                data = res.read()
+                conn.close()
+
+                if res.status != 200:
+                    error_msg = json.loads(data.decode("utf-8")).get("message", "API error")
+                    return {"success": False, "error": error_msg}
+
+                result = json.loads(data.decode("utf-8"))
+
+                if not result.get("processing"):
+                    parsed = self._parse_seo_checker_results(result)
+                    cache.set(cache_key, parsed, ttl=1800)  # 30 min cache
+                    return parsed
+
+                if attempt < 4:
+                    time.sleep(4)
+
+            return {"success": False, "error": "Analysis timed out. Try again in a few seconds."}
+
+        except Exception as e:
+            print(f"SEO Checker API error: {e}")
+            return {"success": False, "error": str(e)}
+
+    def _parse_seo_checker_results(self, data: Dict) -> Dict:
+        """Parse the SEO Checker API response into a structured format"""
+        return {
+            "success": True,
+            "url": data.get("url", ""),
+            "title": data.get("title", ""),
+            "description": data.get("description", ""),
+            "score": data.get("score", 0),
+            "load_time": data.get("loadTime") or data.get("load_time", "N/A"),
+            "content_analysis": {
+                "word_count": data.get("wordCount") or data.get("word_count", 0),
+                "title_length": data.get("titleLength") or data.get("title_length", 0),
+                "description_length": data.get("descriptionLength") or data.get("description_length", 0),
+                "headings": data.get("headings", {}),
+                "images": data.get("images", {}),
+                "links": data.get("links", {}),
+            },
+            "technical": {
+                "ssl": data.get("ssl", False),
+                "mobile_friendly": data.get("mobileFriendly") or data.get("mobile_friendly", False),
+                "robots_txt": data.get("robotsTxt") or data.get("robots_txt", False),
+                "sitemap": data.get("sitemap", False),
+                "canonical": data.get("canonical", ""),
+                "lang": data.get("lang", ""),
+            },
+            "social": {
+                "og_tags": data.get("ogTags") or data.get("og_tags", {}),
+                "twitter_tags": data.get("twitterTags") or data.get("twitter_tags", {}),
+            },
+            "issues": data.get("issues", []),
+            "warnings": data.get("warnings", []),
+            "passed": data.get("passed", []),
+            "raw": data
+        }
+
 
     def optimize_blog(self, title: str, content: str, region: str = "PK") -> Dict:
         """Complete SEO optimization pipeline"""
