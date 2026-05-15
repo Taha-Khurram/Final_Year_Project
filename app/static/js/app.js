@@ -688,11 +688,6 @@ const Pjax = (() => {
         }
 
         try {
-            // Immediately show skeleton for the target page
-            mainContent.innerHTML = getSkeletonForUrl(url);
-            mainContent.scrollTop = 0;
-            window.scrollTo(0, 0);
-
             // Update active sidebar link immediately for responsiveness
             updateActiveLink(url);
 
@@ -727,8 +722,10 @@ const Pjax = (() => {
             // Load new styles BEFORE swapping content (prevents flash of unstyled content)
             await loadStyles(assets.styles, assets.inlineStyles);
 
-            // Swap skeleton with real content
+            // Swap content with real page
             mainContent.innerHTML = newMain.innerHTML;
+            mainContent.scrollTop = 0;
+            window.scrollTo(0, 0);
             mainContent.classList.add('pjax-entering');
 
             // Update URL and history
