@@ -1261,11 +1261,23 @@ def newsletter_page():
     """Newsletter Management Dashboard"""
     user_id = session.get('user_id')
 
-    published_count = db_service.get_published_count(user_id)
+    from app.utils.parallel import run_parallel_simple
+
+    results = run_parallel_simple([
+        (db_service.get_published_count, (user_id,)),
+        (db_service.get_subscriber_count, (user_id,)),
+        (db_service.get_newsletter_history, (user_id,)),
+    ], max_workers=3)
+
+    published_count = results[0] or 0
+    subscriber_count = results[1] or 0
+    sent_count = len(results[2]) if results[2] else 0
 
     return render_template(
         'newsletter.html',
         published_count=published_count,
+        subscriber_count=subscriber_count,
+        sent_count=sent_count,
         username=session.get('user_name', 'User')
     )
 
