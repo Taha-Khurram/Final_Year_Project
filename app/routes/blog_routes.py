@@ -1062,15 +1062,19 @@ def site_settings_page():
     """Site Settings Dashboard"""
     user_id = session.get('user_id')
 
-    # Get current settings
-    settings = db_service.get_site_settings(user_id)
+    from app.utils.parallel import run_parallel_simple
 
-    # Get published blogs for management (includes team members' blogs)
-    published_blogs = db_service.get_published_blogs(user_id, limit=100)
+    results = run_parallel_simple([
+        (db_service.get_site_settings, (user_id,)),
+        (lambda: db_service.get_published_blogs(user_id, limit=100), ()),
+        (lambda: db_service.get_all_categories(user_id=user_id), ()),
+        (db_service.get_blogs_by_status, ("UNDER_REVIEW", user_id)),
+    ], max_workers=4)
 
-    # Get stats for the settings page
-    categories = db_service.get_all_categories(user_id=user_id)
-    pending = db_service.get_blogs_by_status("UNDER_REVIEW", user_id=user_id)
+    settings = results[0] or {}
+    published_blogs = results[1] or []
+    categories = results[2] or []
+    pending = results[3] or []
 
     # Get time preview based on current settings
     time_preview = get_current_time_preview(
@@ -1257,12 +1261,11 @@ def newsletter_page():
     """Newsletter Management Dashboard"""
     user_id = session.get('user_id')
 
-    # Get published blogs count for stats
-    published_blogs = db_service.get_blogs_by_status("PUBLISHED", user_id=user_id)
+    published_count = db_service.get_published_count(user_id)
 
     return render_template(
         'newsletter.html',
-        published_count=len(published_blogs),
+        published_count=published_count,
         username=session.get('user_name', 'User')
     )
 

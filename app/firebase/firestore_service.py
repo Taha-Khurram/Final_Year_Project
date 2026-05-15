@@ -1016,6 +1016,7 @@ class FirestoreService:
             print(f"❌ Error fetching invitations: {e}")
             return []
 
+    @retry_on_unavailable
     def get_published_count(self, user_id):
         """Get count of published blogs for a site owner (includes team members' blogs)."""
         try:

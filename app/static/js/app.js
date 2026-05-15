@@ -537,6 +537,7 @@ const Pjax = (() => {
 
     function extractPageAssets(doc) {
         const styles = [];
+        const inlineStyles = [];
         const scripts = [];
 
         // Base assets that should NOT be reloaded on navigation
@@ -548,6 +549,14 @@ const Pjax = (() => {
             const href = link.getAttribute('href');
             if (href && !baseStyles.some(b => href.includes(b))) {
                 styles.push(href);
+            }
+        });
+
+        // Get page-specific inline <style> blocks
+        doc.querySelectorAll('style').forEach(style => {
+            const text = style.textContent.trim();
+            if (text) {
+                inlineStyles.push(text);
             }
         });
 
@@ -569,17 +578,30 @@ const Pjax = (() => {
             }
         });
 
-        return { styles, scripts, bodyScripts };
+        return { styles, inlineStyles, scripts, bodyScripts };
     }
 
-    function loadStyles(newStyles) {
-        // Remove old page-specific styles
+    function loadStyles(newStyles, newInlineStyles) {
+        // Remove old page-specific external styles
         currentPageStyles.forEach(href => {
             const existing = document.querySelector(`link[href="${href}"]`);
             if (existing && !newStyles.includes(href)) {
                 existing.remove();
             }
         });
+
+        // Remove old pjax-injected inline styles
+        document.querySelectorAll('style[data-pjax-inline]').forEach(el => el.remove());
+
+        // Inject new inline styles immediately
+        if (newInlineStyles && newInlineStyles.length > 0) {
+            newInlineStyles.forEach(css => {
+                const style = document.createElement('style');
+                style.setAttribute('data-pjax-inline', 'true');
+                style.textContent = css;
+                document.head.appendChild(style);
+            });
+        }
 
         // Add new page-specific styles and wait for them to load
         const loadPromises = [];
@@ -703,7 +725,7 @@ const Pjax = (() => {
             cleanupOldScripts();
 
             // Load new styles BEFORE swapping content (prevents flash of unstyled content)
-            await loadStyles(assets.styles);
+            await loadStyles(assets.styles, assets.inlineStyles);
 
             // Swap skeleton with real content
             mainContent.innerHTML = newMain.innerHTML;
