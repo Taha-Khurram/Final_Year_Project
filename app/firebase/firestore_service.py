@@ -1258,6 +1258,11 @@ class FirestoreService:
         """
         Fetch dashboard data for a regular user (their own blogs only).
         """
+        cache_key = f"dashboard:{user_id}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
+
         from app.utils.parallel import run_parallel_simple
 
         try:
@@ -1273,7 +1278,7 @@ class FirestoreService:
 
             results = run_parallel_simple(queries, max_workers=7)
 
-            return {
+            data = {
                 "published_count": results[0] or 0,
                 "drafts": results[1] or [],
                 "pending": results[2] or [],
@@ -1282,6 +1287,8 @@ class FirestoreService:
                 "categories": results[5] or [],
                 "recent_activity": results[6] or [],
             }
+            cache.set(cache_key, data, ttl=60)
+            return data
         except Exception as e:
             print(f"Error fetching dashboard data: {e}")
             return {
@@ -1298,6 +1305,10 @@ class FirestoreService:
         """
         Fetch dashboard data for admin including all team members' blogs.
         """
+        cache_key = f"admin_dashboard:{admin_id}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
         from app.utils.parallel import run_parallel_simple
 
         try:
@@ -1368,7 +1379,7 @@ class FirestoreService:
 
             results = run_parallel_simple(queries, max_workers=7)
 
-            return {
+            data = {
                 "published_count": results[0] or 0,
                 "drafts": results[1] or [],
                 "pending": results[2] or [],
@@ -1377,6 +1388,8 @@ class FirestoreService:
                 "categories": results[5] or [],
                 "recent_activity": results[6] or [],
             }
+            cache.set(cache_key, data, ttl=60)
+            return data
         except Exception as e:
             print(f"Error fetching admin dashboard data: {e}")
             return {
