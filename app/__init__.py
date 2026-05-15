@@ -160,4 +160,14 @@ def create_app(config_class=Config):
     from app.scheduler import init_scheduler
     init_scheduler(app)
 
+    # Pre-warm Firebase token verification key cache (avoids cold-start latency on first login)
+    import threading
+    def _warm_firebase_keys():
+        try:
+            from firebase_admin import auth
+            auth.verify_id_token("dummy", check_revoked=False)
+        except Exception:
+            pass
+    threading.Thread(target=_warm_firebase_keys, daemon=True).start()
+
     return app
