@@ -30,9 +30,24 @@ def all_blogs_page():
 
     if user_role == 'ADMIN':
         categories = db_service.get_all_categories(user_id=user_id)
+        sub_users = db_service.get_my_sub_users(user_id)
+        user_ids = [user_id] + [u.get('uid') for u in sub_users if u.get('uid')]
     else:
         categories = db_service.get_user_blog_categories(user_id)
-    return render_template('all_blogs.html', categories=categories)
+        user_ids = [user_id]
+
+    initial_blogs = db_service.get_all_blogs_filtered(
+        user_ids=user_ids,
+        status_filter='all',
+        category_filter='all',
+        search='',
+        date_from='',
+        date_to='',
+        page=1,
+        per_page=10
+    )
+
+    return render_template('all_blogs.html', categories=categories, initial_data=initial_blogs)
 
 
 @blogs_bp.route('/api/all-blogs', methods=['GET'])
