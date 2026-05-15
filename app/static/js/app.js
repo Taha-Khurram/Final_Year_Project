@@ -102,6 +102,127 @@ const Pjax = (() => {
     let isNavigating = false;
     let currentPageStyles = [];
 
+    // Skeleton templates for different page types
+    const skeletons = {
+        dashboard: `
+            <header class="dashboard-header skeleton-header">
+                <div><div class="skeleton skeleton-text md" style="height:16px;margin-bottom:8px;"></div><div class="skeleton skeleton-title"></div></div>
+            </header>
+            <div class="skeleton-stat-grid">
+                <div class="skeleton-stat"><div class="skeleton skeleton-circle" style="width:48px;height:48px;"></div><div style="flex:1"><div class="skeleton skeleton-text sm"></div><div class="skeleton skeleton-text" style="height:28px;width:60px;"></div></div></div>
+                <div class="skeleton-stat"><div class="skeleton skeleton-circle" style="width:48px;height:48px;"></div><div style="flex:1"><div class="skeleton skeleton-text sm"></div><div class="skeleton skeleton-text" style="height:28px;width:60px;"></div></div></div>
+                <div class="skeleton-stat"><div class="skeleton skeleton-circle" style="width:48px;height:48px;"></div><div style="flex:1"><div class="skeleton skeleton-text sm"></div><div class="skeleton skeleton-text" style="height:28px;width:60px;"></div></div></div>
+            </div>
+            <div class="skeleton-grid">
+                <div class="skeleton-card"><div class="skeleton skeleton-text md" style="height:18px;margin-bottom:1.25rem;"></div><div class="skeleton skeleton-text xl"></div><div class="skeleton skeleton-text lg"></div><div class="skeleton skeleton-text md"></div><div class="skeleton skeleton-text lg"></div></div>
+                <div class="skeleton-card"><div class="skeleton skeleton-text md" style="height:18px;margin-bottom:1.25rem;"></div><div class="skeleton skeleton-text xl"></div><div class="skeleton skeleton-text lg"></div><div class="skeleton skeleton-text md"></div><div class="skeleton skeleton-text lg"></div></div>
+                <div class="skeleton-card"><div class="skeleton skeleton-text md" style="height:18px;margin-bottom:1.25rem;"></div><div class="skeleton skeleton-text xl"></div><div class="skeleton skeleton-text lg"></div><div class="skeleton skeleton-text md"></div><div class="skeleton skeleton-text lg"></div></div>
+            </div>`,
+        table: `
+            <header class="dashboard-header skeleton-header">
+                <div><div class="skeleton skeleton-text md" style="height:16px;margin-bottom:8px;"></div><div class="skeleton skeleton-title"></div></div>
+                <div class="skeleton" style="width:120px;height:38px;border-radius:8px;"></div>
+            </header>
+            <div class="skeleton-filter-bar">
+                <div class="skeleton" style="width:80px;height:34px;border-radius:20px;"></div>
+                <div class="skeleton" style="width:80px;height:34px;border-radius:20px;"></div>
+                <div class="skeleton" style="width:80px;height:34px;border-radius:20px;"></div>
+                <div style="flex:1"></div>
+                <div class="skeleton" style="width:200px;height:38px;border-radius:8px;"></div>
+            </div>
+            <div class="skeleton-table">
+                <div class="skeleton-table-row"><div class="skeleton skeleton-text" style="width:35%;"></div><div class="skeleton skeleton-text" style="width:15%;"></div><div class="skeleton skeleton-text" style="width:12%;"></div><div class="skeleton skeleton-text" style="width:10%;"></div><div class="skeleton skeleton-text" style="width:15%;"></div></div>
+                <div class="skeleton-table-row"><div class="skeleton skeleton-text" style="width:40%;"></div><div class="skeleton skeleton-text" style="width:12%;"></div><div class="skeleton skeleton-text" style="width:14%;"></div><div class="skeleton skeleton-text" style="width:10%;"></div><div class="skeleton skeleton-text" style="width:13%;"></div></div>
+                <div class="skeleton-table-row"><div class="skeleton skeleton-text" style="width:30%;"></div><div class="skeleton skeleton-text" style="width:18%;"></div><div class="skeleton skeleton-text" style="width:10%;"></div><div class="skeleton skeleton-text" style="width:10%;"></div><div class="skeleton skeleton-text" style="width:16%;"></div></div>
+                <div class="skeleton-table-row"><div class="skeleton skeleton-text" style="width:38%;"></div><div class="skeleton skeleton-text" style="width:14%;"></div><div class="skeleton skeleton-text" style="width:12%;"></div><div class="skeleton skeleton-text" style="width:10%;"></div><div class="skeleton skeleton-text" style="width:14%;"></div></div>
+                <div class="skeleton-table-row"><div class="skeleton skeleton-text" style="width:32%;"></div><div class="skeleton skeleton-text" style="width:16%;"></div><div class="skeleton skeleton-text" style="width:11%;"></div><div class="skeleton skeleton-text" style="width:10%;"></div><div class="skeleton skeleton-text" style="width:15%;"></div></div>
+                <div class="skeleton-table-row"><div class="skeleton skeleton-text" style="width:36%;"></div><div class="skeleton skeleton-text" style="width:13%;"></div><div class="skeleton skeleton-text" style="width:13%;"></div><div class="skeleton skeleton-text" style="width:10%;"></div><div class="skeleton skeleton-text" style="width:12%;"></div></div>
+            </div>`,
+        statsTable: `
+            <header class="dashboard-header skeleton-header">
+                <div><div class="skeleton skeleton-text md" style="height:16px;margin-bottom:8px;"></div><div class="skeleton skeleton-title"></div></div>
+            </header>
+            <div class="skeleton-stat-grid">
+                <div class="skeleton-stat"><div class="skeleton skeleton-circle" style="width:48px;height:48px;"></div><div style="flex:1"><div class="skeleton skeleton-text sm"></div><div class="skeleton skeleton-text" style="height:28px;width:60px;"></div></div></div>
+                <div class="skeleton-stat"><div class="skeleton skeleton-circle" style="width:48px;height:48px;"></div><div style="flex:1"><div class="skeleton skeleton-text sm"></div><div class="skeleton skeleton-text" style="height:28px;width:60px;"></div></div></div>
+                <div class="skeleton-stat"><div class="skeleton skeleton-circle" style="width:48px;height:48px;"></div><div style="flex:1"><div class="skeleton skeleton-text sm"></div><div class="skeleton skeleton-text" style="height:28px;width:60px;"></div></div></div>
+            </div>
+            <div class="skeleton-filter-bar">
+                <div class="skeleton" style="width:80px;height:34px;border-radius:20px;"></div>
+                <div class="skeleton" style="width:80px;height:34px;border-radius:20px;"></div>
+                <div style="flex:1"></div>
+                <div class="skeleton" style="width:200px;height:38px;border-radius:8px;"></div>
+            </div>
+            <div class="skeleton-table">
+                <div class="skeleton-table-row"><div class="skeleton skeleton-text" style="width:30%;"></div><div class="skeleton skeleton-text" style="width:18%;"></div><div class="skeleton skeleton-text" style="width:12%;"></div><div class="skeleton skeleton-text" style="width:10%;"></div><div class="skeleton skeleton-text" style="width:15%;"></div></div>
+                <div class="skeleton-table-row"><div class="skeleton skeleton-text" style="width:35%;"></div><div class="skeleton skeleton-text" style="width:14%;"></div><div class="skeleton skeleton-text" style="width:14%;"></div><div class="skeleton skeleton-text" style="width:10%;"></div><div class="skeleton skeleton-text" style="width:13%;"></div></div>
+                <div class="skeleton-table-row"><div class="skeleton skeleton-text" style="width:28%;"></div><div class="skeleton skeleton-text" style="width:16%;"></div><div class="skeleton skeleton-text" style="width:10%;"></div><div class="skeleton skeleton-text" style="width:10%;"></div><div class="skeleton skeleton-text" style="width:16%;"></div></div>
+                <div class="skeleton-table-row"><div class="skeleton skeleton-text" style="width:33%;"></div><div class="skeleton skeleton-text" style="width:15%;"></div><div class="skeleton skeleton-text" style="width:12%;"></div><div class="skeleton skeleton-text" style="width:10%;"></div><div class="skeleton skeleton-text" style="width:14%;"></div></div>
+                <div class="skeleton-table-row"><div class="skeleton skeleton-text" style="width:30%;"></div><div class="skeleton skeleton-text" style="width:12%;"></div><div class="skeleton skeleton-text" style="width:11%;"></div><div class="skeleton skeleton-text" style="width:10%;"></div><div class="skeleton skeleton-text" style="width:15%;"></div></div>
+            </div>`,
+        gallery: `
+            <header class="dashboard-header skeleton-header">
+                <div><div class="skeleton skeleton-text md" style="height:16px;margin-bottom:8px;"></div><div class="skeleton skeleton-title"></div></div>
+                <div class="skeleton" style="width:140px;height:38px;border-radius:8px;"></div>
+            </header>
+            <div class="skeleton" style="width:100%;height:120px;border-radius:12px;margin-bottom:1.5rem;"></div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;">
+                <div class="skeleton" style="width:100%;height:160px;border-radius:12px;"></div>
+                <div class="skeleton" style="width:100%;height:160px;border-radius:12px;"></div>
+                <div class="skeleton" style="width:100%;height:160px;border-radius:12px;"></div>
+                <div class="skeleton" style="width:100%;height:160px;border-radius:12px;"></div>
+                <div class="skeleton" style="width:100%;height:160px;border-radius:12px;"></div>
+                <div class="skeleton" style="width:100%;height:160px;border-radius:12px;"></div>
+                <div class="skeleton" style="width:100%;height:160px;border-radius:12px;"></div>
+                <div class="skeleton" style="width:100%;height:160px;border-radius:12px;"></div>
+            </div>`,
+        form: `
+            <header class="dashboard-header skeleton-header">
+                <div><div class="skeleton skeleton-text md" style="height:16px;margin-bottom:8px;"></div><div class="skeleton skeleton-title"></div></div>
+            </header>
+            <div class="skeleton-card" style="max-width:900px;">
+                <div class="skeleton skeleton-text sm" style="margin-bottom:0.5rem;"></div>
+                <div class="skeleton" style="width:100%;height:42px;border-radius:8px;margin-bottom:1.5rem;"></div>
+                <div class="skeleton skeleton-text sm" style="margin-bottom:0.5rem;"></div>
+                <div class="skeleton" style="width:100%;height:42px;border-radius:8px;margin-bottom:1.5rem;"></div>
+                <div class="skeleton skeleton-text sm" style="margin-bottom:0.5rem;"></div>
+                <div class="skeleton" style="width:100%;height:200px;border-radius:8px;margin-bottom:1.5rem;"></div>
+                <div style="display:flex;gap:1rem;"><div class="skeleton" style="width:120px;height:42px;border-radius:8px;"></div><div class="skeleton" style="width:100px;height:42px;border-radius:8px;"></div></div>
+            </div>`
+    };
+
+    // Map routes to skeleton types
+    const routeSkeletonMap = {
+        '/dashboard': 'dashboard',
+        '/drafts': 'table',
+        '/all-blogs': 'table',
+        '/categories': 'table',
+        '/gallery': 'gallery',
+        '/seo-tools': 'form',
+        '/newsletter': 'statsTable',
+        '/formatting-tools': 'form',
+        '/site-settings': 'form',
+        '/approval': 'table',
+        '/comments': 'table',
+        '/schedule': 'table',
+        '/leads': 'statsTable',
+        '/activity': 'statsTable',
+        '/analytics': 'statsTable',
+        '/create': 'form',
+        '/app-settings': 'form',
+        '/users/manage-users': 'table'
+    };
+
+    function getSkeletonForUrl(url) {
+        const pathname = new URL(url).pathname;
+        for (const [route, type] of Object.entries(routeSkeletonMap)) {
+            if (pathname === route || pathname.startsWith(route)) {
+                return skeletons[type] || skeletons.table;
+            }
+        }
+        return skeletons.table;
+    }
+
     function isDashboardLink(link) {
         if (!link || !link.href) return false;
         if (link.target === '_blank') return false;
@@ -272,14 +393,18 @@ const Pjax = (() => {
 
         const mainContent = document.querySelector('.dashboard-main');
         if (!mainContent) {
-            // Not on a dashboard page, do full navigation
             window.location.href = url;
             return;
         }
 
         try {
-            // Fade out current content
-            mainContent.classList.add('pjax-leaving');
+            // Immediately show skeleton for the target page
+            mainContent.innerHTML = getSkeletonForUrl(url);
+            mainContent.scrollTop = 0;
+            window.scrollTo(0, 0);
+
+            // Update active sidebar link immediately for responsiveness
+            updateActiveLink(url);
 
             const response = await fetch(url, {
                 signal: currentAbortController.signal,
@@ -294,30 +419,23 @@ const Pjax = (() => {
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
 
-            // Extract new main content
             const newMain = doc.querySelector('.dashboard-main');
             if (!newMain) {
                 throw new Error('No .dashboard-main found in response');
             }
 
-            // Extract page title
             const newTitle = doc.querySelector('title');
             if (newTitle) {
                 document.title = newTitle.textContent;
             }
 
-            // Extract and manage assets
             const assets = extractPageAssets(doc);
-
-            // Wait for fade out to complete
-            await new Promise(resolve => setTimeout(resolve, 150));
 
             // Cleanup old scripts
             cleanupOldScripts();
 
-            // Swap content
+            // Swap skeleton with real content
             mainContent.innerHTML = newMain.innerHTML;
-            mainContent.classList.remove('pjax-leaving');
             mainContent.classList.add('pjax-entering');
 
             // Load new styles
@@ -328,30 +446,20 @@ const Pjax = (() => {
                 history.pushState({ pjax: true, url: url }, '', url);
             }
 
-            // Update active sidebar link
-            updateActiveLink(url);
-
-            // Hide progress
             hideProgress();
 
             // Execute new page scripts
             executeScripts(assets.scripts, assets.bodyScripts);
 
-            // Remove entering class after animation
             setTimeout(() => {
                 mainContent.classList.remove('pjax-entering');
             }, 250);
 
-            // Scroll to top of content
-            mainContent.scrollTop = 0;
-            window.scrollTo(0, 0);
-
         } catch (error) {
             if (error.name === 'AbortError') {
-                return; // Cancelled by newer navigation
+                return;
             }
             console.warn('Pjax navigation failed, falling back:', error.message);
-            // Fallback to full page navigation
             window.location.href = url;
         } finally {
             isNavigating = false;
@@ -394,8 +502,85 @@ const Pjax = (() => {
         history.replaceState({ pjax: true, url: window.location.href }, '');
     }
 
-    return { init, navigate };
+    return { init, navigate, getSkeletonForUrl, skeletons };
 })();
+
+// --------------------------------------------------------------------------
+// Global Skeleton Utility (for page scripts to use during AJAX loading)
+// --------------------------------------------------------------------------
+
+window.Skeleton = {
+    // Show skeleton inside a container while data is loading
+    show(container, type = 'table') {
+        if (typeof container === 'string') {
+            container = document.querySelector(container);
+        }
+        if (!container) return;
+        container.setAttribute('data-skeleton-original', container.innerHTML);
+        const templates = {
+            table: `
+                <div class="skeleton-table">
+                    <div class="skeleton-table-row"><div class="skeleton skeleton-text" style="width:35%;"></div><div class="skeleton skeleton-text" style="width:15%;"></div><div class="skeleton skeleton-text" style="width:12%;"></div><div class="skeleton skeleton-text" style="width:15%;"></div></div>
+                    <div class="skeleton-table-row"><div class="skeleton skeleton-text" style="width:40%;"></div><div class="skeleton skeleton-text" style="width:12%;"></div><div class="skeleton skeleton-text" style="width:14%;"></div><div class="skeleton skeleton-text" style="width:13%;"></div></div>
+                    <div class="skeleton-table-row"><div class="skeleton skeleton-text" style="width:30%;"></div><div class="skeleton skeleton-text" style="width:18%;"></div><div class="skeleton skeleton-text" style="width:10%;"></div><div class="skeleton skeleton-text" style="width:16%;"></div></div>
+                    <div class="skeleton-table-row"><div class="skeleton skeleton-text" style="width:38%;"></div><div class="skeleton skeleton-text" style="width:14%;"></div><div class="skeleton skeleton-text" style="width:12%;"></div><div class="skeleton skeleton-text" style="width:14%;"></div></div>
+                    <div class="skeleton-table-row"><div class="skeleton skeleton-text" style="width:32%;"></div><div class="skeleton skeleton-text" style="width:16%;"></div><div class="skeleton skeleton-text" style="width:11%;"></div><div class="skeleton skeleton-text" style="width:15%;"></div></div>
+                </div>`,
+            list: `
+                <div class="skeleton-list-item"><div class="skeleton skeleton-circle" style="width:40px;height:40px;"></div><div style="flex:1"><div class="skeleton skeleton-text lg"></div><div class="skeleton skeleton-text sm"></div></div></div>
+                <div class="skeleton-list-item"><div class="skeleton skeleton-circle" style="width:40px;height:40px;"></div><div style="flex:1"><div class="skeleton skeleton-text md"></div><div class="skeleton skeleton-text sm"></div></div></div>
+                <div class="skeleton-list-item"><div class="skeleton skeleton-circle" style="width:40px;height:40px;"></div><div style="flex:1"><div class="skeleton skeleton-text lg"></div><div class="skeleton skeleton-text sm"></div></div></div>
+                <div class="skeleton-list-item"><div class="skeleton skeleton-circle" style="width:40px;height:40px;"></div><div style="flex:1"><div class="skeleton skeleton-text md"></div><div class="skeleton skeleton-text sm"></div></div></div>`,
+            cards: `
+                <div class="skeleton-grid">
+                    <div class="skeleton-card"><div class="skeleton skeleton-text md" style="height:18px;margin-bottom:1rem;"></div><div class="skeleton skeleton-text xl"></div><div class="skeleton skeleton-text lg"></div><div class="skeleton skeleton-text md"></div></div>
+                    <div class="skeleton-card"><div class="skeleton skeleton-text md" style="height:18px;margin-bottom:1rem;"></div><div class="skeleton skeleton-text xl"></div><div class="skeleton skeleton-text lg"></div><div class="skeleton skeleton-text md"></div></div>
+                    <div class="skeleton-card"><div class="skeleton skeleton-text md" style="height:18px;margin-bottom:1rem;"></div><div class="skeleton skeleton-text xl"></div><div class="skeleton skeleton-text lg"></div><div class="skeleton skeleton-text md"></div></div>
+                </div>`,
+            stats: `
+                <div class="skeleton-stat-grid">
+                    <div class="skeleton-stat"><div class="skeleton skeleton-circle" style="width:48px;height:48px;"></div><div style="flex:1"><div class="skeleton skeleton-text sm"></div><div class="skeleton skeleton-text" style="height:28px;width:60px;"></div></div></div>
+                    <div class="skeleton-stat"><div class="skeleton skeleton-circle" style="width:48px;height:48px;"></div><div style="flex:1"><div class="skeleton skeleton-text sm"></div><div class="skeleton skeleton-text" style="height:28px;width:60px;"></div></div></div>
+                    <div class="skeleton-stat"><div class="skeleton skeleton-circle" style="width:48px;height:48px;"></div><div style="flex:1"><div class="skeleton skeleton-text sm"></div><div class="skeleton skeleton-text" style="height:28px;width:60px;"></div></div></div>
+                </div>`,
+            gallery: `
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;">
+                    <div class="skeleton" style="width:100%;height:160px;border-radius:12px;"></div>
+                    <div class="skeleton" style="width:100%;height:160px;border-radius:12px;"></div>
+                    <div class="skeleton" style="width:100%;height:160px;border-radius:12px;"></div>
+                    <div class="skeleton" style="width:100%;height:160px;border-radius:12px;"></div>
+                    <div class="skeleton" style="width:100%;height:160px;border-radius:12px;"></div>
+                    <div class="skeleton" style="width:100%;height:160px;border-radius:12px;"></div>
+                </div>`,
+            rows: (count = 5) => {
+                let html = '';
+                for (let i = 0; i < count; i++) {
+                    const w = 25 + Math.random() * 30;
+                    html += `<div class="skeleton-table-row"><div class="skeleton skeleton-text" style="width:${w}%;"></div><div class="skeleton skeleton-text" style="width:${w * 0.4}%;"></div><div class="skeleton skeleton-text" style="width:${w * 0.3}%;"></div></div>`;
+                }
+                return `<div class="skeleton-table">${html}</div>`;
+            }
+        };
+
+        const html = typeof templates[type] === 'function' ? templates[type]() : templates[type];
+        if (html) container.innerHTML = html;
+    },
+
+    // Hide skeleton and restore original content (or replace with new content)
+    hide(container, newContent) {
+        if (typeof container === 'string') {
+            container = document.querySelector(container);
+        }
+        if (!container) return;
+        if (newContent !== undefined) {
+            container.innerHTML = newContent;
+        } else {
+            const original = container.getAttribute('data-skeleton-original');
+            if (original) container.innerHTML = original;
+        }
+        container.removeAttribute('data-skeleton-original');
+    }
+};
 
 // --------------------------------------------------------------------------
 // Page Load & Non-Dashboard Navigation Handling
