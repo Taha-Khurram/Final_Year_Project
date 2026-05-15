@@ -12,10 +12,10 @@ if __name__ == "__main__":
     debug = os.environ.get('FLASK_DEBUG', '0') == '1'
 
     if debug:
-        print("🔧 ScriptlyAI running in DEBUG mode at http://localhost:5000")
+        print("[DEBUG] ScriptlyAI running at http://localhost:5000")
         app.run(host='0.0.0.0', port=5000, debug=True)
     else:
-        print("🚀 ScriptlyAI is running at http://localhost:5000")
+        print("[INFO] ScriptlyAI is running at http://localhost:5000")
         serve(
             app,
             host='0.0.0.0',

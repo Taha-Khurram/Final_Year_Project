@@ -111,7 +111,7 @@ def check_email():
 def profile_page():
     if not session.get('logged_in'):
         return redirect(url_for('auth_bp.login'))
-    user = db_service.get_user_by_id(session['user_id'])
+    user = db_service.get_user_by_id(session['user_id']) or {}
     return render_template('profile.html', user=user)
 
 @auth_bp.route('/api/profile/update', methods=['POST'])
