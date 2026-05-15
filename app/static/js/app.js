@@ -691,6 +691,11 @@ const Pjax = (() => {
             // Update active sidebar link immediately for responsiveness
             updateActiveLink(url);
 
+            // Dim current content to signal loading
+            mainContent.style.opacity = '0.5';
+            mainContent.style.pointerEvents = 'none';
+            mainContent.style.transition = 'opacity 0.15s ease';
+
             const response = await fetch(url, {
                 signal: currentAbortController.signal,
                 headers: { 'X-Pjax': 'true' }
@@ -726,6 +731,8 @@ const Pjax = (() => {
             mainContent.innerHTML = newMain.innerHTML;
             mainContent.scrollTop = 0;
             window.scrollTo(0, 0);
+            mainContent.style.opacity = '1';
+            mainContent.style.pointerEvents = '';
             mainContent.classList.add('pjax-entering');
 
             // Update URL and history
@@ -744,6 +751,8 @@ const Pjax = (() => {
 
         } catch (error) {
             if (error.name === 'AbortError') {
+                mainContent.style.opacity = '1';
+                mainContent.style.pointerEvents = '';
                 return;
             }
             console.warn('Pjax navigation failed, falling back:', error.message);
