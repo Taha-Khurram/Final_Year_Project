@@ -1981,7 +1981,7 @@ For questions about these Terms, contact us at {contact_email}.
         Filters by site_owner_id to include blogs from all team members.
         Falls back to author_id for backwards compatibility with older blogs.
         Uses in-memory cache with 2-minute TTL to reduce Firestore queries.
-        Auto-generates slugs for existing blogs that don't have them.
+        Runs both queries in parallel for faster response times.
         """
         cache_key = f"published_blogs:{user_id}:{limit}"
         cached = cache.get(cache_key)
@@ -1989,35 +1989,14 @@ For questions about these Terms, contact us at {contact_email}.
             return cached
 
         try:
-            blogs = []
-            blog_ids = set()
+            from app.utils.parallel import run_parallel_simple
 
-            # Fetch by site_owner_id (no order_by to avoid composite index)
-            site_owner_query = self.db.collection(self.collection_name)\
-                .where(filter=FieldFilter('site_owner_id', '==', user_id))\
-                .where(filter=FieldFilter('status', '==', 'PUBLISHED'))
-
-            for doc in site_owner_query.stream():
-                data = doc.to_dict()
-                data['id'] = doc.id
-                blog_ids.add(doc.id)
-                # Process content for display
-                raw_content = data.get('content', '')
-                if isinstance(raw_content, dict):
-                    data['content'] = raw_content
-                else:
-                    data['content'] = {'body': str(raw_content) if raw_content else ''}
-                # Ensure slug exists (auto-migrate if needed)
-                data = self._ensure_blog_slug(data, doc.id)
-                blogs.append(data)
-
-            # Fallback: also fetch by author_id for older blogs without site_owner_id
-            fallback_query = self.db.collection(self.collection_name)\
-                .where(filter=FieldFilter('author_id', '==', user_id))\
-                .where(filter=FieldFilter('status', '==', 'PUBLISHED'))
-
-            for doc in fallback_query.stream():
-                if doc.id not in blog_ids:  # Avoid duplicates
+            def _fetch_by_site_owner():
+                results = []
+                query = self.db.collection(self.collection_name)\
+                    .where(filter=FieldFilter('site_owner_id', '==', user_id))\
+                    .where(filter=FieldFilter('status', '==', 'PUBLISHED'))
+                for doc in query.stream():
                     data = doc.to_dict()
                     data['id'] = doc.id
                     raw_content = data.get('content', '')
@@ -2025,13 +2004,39 @@ For questions about these Terms, contact us at {contact_email}.
                         data['content'] = raw_content
                     else:
                         data['content'] = {'body': str(raw_content) if raw_content else ''}
-                    # Ensure slug exists (auto-migrate if needed)
                     data = self._ensure_blog_slug(data, doc.id)
-                    blogs.append(data)
+                    results.append(data)
+                return results
 
-            # Sort combined results by updated_at in Python (newest first)
-            # Use float timestamp to avoid TypeError when mixing
-            # timezone-aware (Firestore) and naive (datetime.utcnow()) datetimes
+            def _fetch_by_author():
+                results = []
+                query = self.db.collection(self.collection_name)\
+                    .where(filter=FieldFilter('author_id', '==', user_id))\
+                    .where(filter=FieldFilter('status', '==', 'PUBLISHED'))
+                for doc in query.stream():
+                    data = doc.to_dict()
+                    data['id'] = doc.id
+                    raw_content = data.get('content', '')
+                    if isinstance(raw_content, dict):
+                        data['content'] = raw_content
+                    else:
+                        data['content'] = {'body': str(raw_content) if raw_content else ''}
+                    data = self._ensure_blog_slug(data, doc.id)
+                    results.append(data)
+                return results
+
+            parallel_results = run_parallel_simple([
+                (_fetch_by_site_owner, ()),
+                (_fetch_by_author, ()),
+            ], max_workers=2)
+
+            site_owner_blogs = parallel_results[0] or []
+            author_blogs = parallel_results[1] or []
+
+            # Merge and deduplicate
+            blog_ids = {b['id'] for b in site_owner_blogs}
+            blogs = site_owner_blogs + [b for b in author_blogs if b['id'] not in blog_ids]
+
             def _sort_key(blog):
                 val = blog.get('updated_at')
                 if val is None:
@@ -2049,7 +2054,6 @@ For questions about these Terms, contact us at {contact_email}.
             print(f"❌ Error fetching published blogs: {e}")
             import traceback
             traceback.print_exc()
-            # Do NOT cache error results — return empty but let next request retry
             return []
 
     def get_published_blog_by_id(self, blog_id):
