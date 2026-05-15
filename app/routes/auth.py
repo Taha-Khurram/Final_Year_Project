@@ -23,33 +23,50 @@ def verify_token():
     data = request.json
     id_token = data.get('idToken')
     try:
-        decoded_token = admin_auth.verify_id_token(id_token)
+        from concurrent.futures import ThreadPoolExecutor
+
+        decoded_token = admin_auth.verify_id_token(id_token, check_revoked=False)
         uid = decoded_token['uid']
+        email = decoded_token.get('email')
 
         user_info = {
             "uid": uid,
-            "name": decoded_token.get('name') or decoded_token.get('email').split('@')[0],
-            "email": decoded_token.get('email')
+            "name": decoded_token.get('name') or email.split('@')[0],
+            "email": email
         }
 
-        # Check for pending invitation before saving user
-        invitation = db_service.get_pending_invitation_by_email(user_info['email'])
-        if invitation:
-            user_info['role'] = invitation['role']
-            user_info['created_by'] = invitation['invited_by']
+        # Run invitation check and user fetch in parallel
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            invitation_future = executor.submit(db_service.get_pending_invitation_by_email, email)
+            user_future = executor.submit(db_service.get_user_by_id, uid)
 
-        # Save/Retrieve user and their ROLE
-        user_record = db_service.save_user(user_info)
+            invitation = invitation_future.result()
+            existing_user = user_future.result()
 
-        # Mark invitation as accepted
+        if existing_user:
+            # Existing user — update last_login in background, return immediately
+            user_record = existing_user
+            executor = ThreadPoolExecutor(max_workers=1)
+            executor.submit(db_service.update_last_login, uid)
+            executor.shutdown(wait=False)
+        else:
+            # New user — apply invitation role and save
+            if invitation:
+                user_info['role'] = invitation['role']
+                user_info['created_by'] = invitation['invited_by']
+            user_record = db_service.save_user(user_info)
+
+        # Accept invitation in background (non-blocking)
         if invitation:
-            db_service.accept_invitation(invitation['id'])
+            executor = ThreadPoolExecutor(max_workers=1)
+            executor.submit(db_service.accept_invitation, invitation['id'])
+            executor.shutdown(wait=False)
 
         session.permanent = True
         session.update({
             'user_id': uid,
-            'user_name': user_record['name'],
-            'user_role': user_record.get('role', 'ADMIN'), # CRITICAL for routing
+            'user_name': user_record.get('name', user_info['name']),
+            'user_role': user_record.get('role', 'ADMIN'),
             'profile_image': user_record.get('profile_image', ''),
             'logged_in': True,
             'last_activity': datetime.now(timezone.utc).isoformat()

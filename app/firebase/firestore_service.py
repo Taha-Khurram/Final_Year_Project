@@ -852,36 +852,22 @@ class FirestoreService:
                 user_data["created_by"] = user_data.get("created_by", None)
                 user_data["last_login"] = firestore.SERVER_TIMESTAMP
                 user_ref.set(user_data)
-
-                try:
-                    from app.services.google_sheets_service import GoogleSheetsService
-                    sheets = GoogleSheetsService.get_instance()
-                    sid = GoogleSheetsService.get_spreadsheet_id_for_user(user_id)
-                    sheets.sync_user(user_id, user_data.get('name', ''), user_data.get('email', ''),
-                                     user_data['role'], user_data.get('created_by', ''), spreadsheet_id=sid)
-                except Exception:
-                    pass
-
                 return user_data
             else:
                 user_ref.update({"last_login": firestore.SERVER_TIMESTAMP})
-                existing = existing_user.to_dict()
-
-                try:
-                    from app.services.google_sheets_service import GoogleSheetsService
-                    from datetime import datetime
-                    sheets = GoogleSheetsService.get_instance()
-                    sid = GoogleSheetsService.get_spreadsheet_id_for_user(user_id)
-                    sheets.sync_user(user_id, existing.get('name', ''), existing.get('email', ''),
-                                     existing.get('role', ''), existing.get('created_by', ''),
-                                     existing.get('created_at'), datetime.utcnow(), spreadsheet_id=sid)
-                except Exception:
-                    pass
-
-                return existing
+                return existing_user.to_dict()
         except Exception as e:
             print(f"❌ Error saving user: {e}")
             return None
+
+    def update_last_login(self, user_id):
+        """Update last_login timestamp (fire-and-forget)."""
+        try:
+            self.db.collection(self.user_collection).document(user_id).update({
+                "last_login": firestore.SERVER_TIMESTAMP
+            })
+        except Exception:
+            pass
 
     def get_user_by_id(self, user_id):
         """Gets a user document by their ID."""
