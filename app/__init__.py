@@ -74,13 +74,13 @@ def create_app(config_class=Config):
         )
 
     # Context processor to inject app settings into all templates
+    _ctx_db_service = FirestoreService()
+
     @app.context_processor
     def inject_app_settings():
-        """Make app settings available to all templates."""
-        from app.firebase.firestore_service import FirestoreService
+        """Make app settings available to all templates (cached in FirestoreService)."""
         try:
-            db_service = FirestoreService()
-            app_settings = db_service.get_app_settings()
+            app_settings = _ctx_db_service.get_app_settings()
             return {'app_config': app_settings}
         except Exception:
             return {'app_config': {'app_name': 'Scriptly', 'tagline': ''}}

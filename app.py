@@ -22,5 +22,5 @@ if __name__ == "__main__":
             port=5000,
             threads=12,
             connection_limit=100,
-            channel_timeout=10
+            channel_timeout=120
         )
