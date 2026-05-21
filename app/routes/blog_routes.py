@@ -213,7 +213,34 @@ def comments_page():
     """Comment Moderation Dashboard"""
     user_id = session.get('user_id')
     stats = db_service.get_comment_stats(user_id)
-    return render_template('comments.html', comment_stats=stats)
+
+    result = db_service.get_comments_for_dashboard(
+        site_owner_id=user_id,
+        status_filter='all',
+        page=1,
+        per_page=10
+    )
+
+    comments = result.get('comments', [])
+    for comment in comments:
+        for field in ['created_at', 'updated_at', 'ai_moderated_at', 'removed_at']:
+            val = comment.get(field)
+            if val and hasattr(val, 'isoformat'):
+                comment[field] = val.isoformat()
+            elif val and hasattr(val, 'timestamp'):
+                comment[field] = str(val)
+        for edit in comment.get('admin_edits', []):
+            if edit.get('edited_at') and hasattr(edit['edited_at'], 'isoformat'):
+                edit['edited_at'] = edit['edited_at'].isoformat()
+
+    return render_template(
+        'comments.html',
+        comment_stats=stats,
+        initial_comments=comments,
+        initial_total=result.get('total', 0),
+        initial_page=result.get('page', 1),
+        initial_per_page=result.get('per_page', 15)
+    )
 
 
 # ---------------------------------------------------

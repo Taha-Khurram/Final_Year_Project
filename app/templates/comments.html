@@ -63,14 +63,83 @@
           <div class="col-actions"></div>
         </div>
         <div id="comments-table-body">
-          <div class="text-center py-4 text-secondary" id="comments-loading">
-            <div class="spinner-border spinner-border-sm"></div> Loading comments...
-          </div>
+          {% if initial_comments %}
+            {% for comment in initial_comments %}
+            <div class="draft-row" id="comment-row-{{ comment.id }}">
+              <div class="col-commenter">
+                <div class="commenter-info">
+                  <div class="commenter-avatar">{{ (comment.commenter_name or 'A')[0]|upper }}</div>
+                  <div>
+                    <div class="commenter-name">{{ comment.commenter_name or 'Anonymous' }}</div>
+                    <div class="commenter-date">{{ comment.created_at[:10] if comment.created_at else '' }}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-comment" title="{{ comment.display_text or '' }}">{{ (comment.display_text or comment.original_text or '')[:25] }}{{ '...' if (comment.display_text or comment.original_text or '')|length > 25 else '' }}</div>
+              <div class="col-post">{{ (comment.blog_title or 'Unknown Post')[:25] }}{{ '...' if (comment.blog_title or 'Unknown Post')|length > 25 else '' }}</div>
+              <div class="col-status">
+                {% if comment.status == 'published' %}
+                <span class="status-badge status-published"><i class="bi bi-circle-fill"></i> Published</span>
+                {% elif comment.status == 'removed' %}
+                <span class="status-badge status-removed"><i class="bi bi-circle-fill"></i> Removed</span>
+                {% else %}
+                <span class="status-badge status-published"><i class="bi bi-circle-fill"></i> {{ comment.status or 'Unknown' }}</span>
+                {% endif %}
+              </div>
+              <div class="col-actions">
+                <div class="dropdown">
+                  <button class="btn-dropdown-trigger" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#" onclick="openCommentModal('{{ comment.id }}'); return false;">
+                      <i class="bi bi-eye"></i> View Details
+                    </a></li>
+                    {% if comment.status == 'published' %}
+                    <li><a class="dropdown-item" href="#" onclick="removeComment('{{ comment.id }}'); return false;">
+                      <i class="bi bi-eye-slash"></i> Remove from Site
+                    </a></li>
+                    {% endif %}
+                    {% if comment.status == 'removed' %}
+                    <li><a class="dropdown-item" href="#" onclick="restoreComment('{{ comment.id }}'); return false;">
+                      <i class="bi bi-arrow-counterclockwise"></i> Restore
+                    </a></li>
+                    {% endif %}
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="#" onclick="deleteComment('{{ comment.id }}'); return false;">
+                      <i class="bi bi-trash"></i> Delete Permanently
+                    </a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-center py-5">
+              <div class="mb-3 text-muted opacity-50"><i class="bi bi-chat-text fs-1"></i></div>
+              <p class="text-secondary fw-bold mb-0">No comments found.</p>
+            </div>
+          {% endif %}
         </div>
       </div>
 
       <!-- Pagination -->
-      <div class="comment-pagination" id="comment-pagination"></div>
+      <div class="comment-pagination" id="comment-pagination">
+        {% if initial_total > initial_per_page %}
+        {% set total_pages = (initial_total / initial_per_page)|round(0, 'ceil')|int %}
+        <button class="page-btn disabled" disabled><i class="bi bi-chevron-left"></i></button>
+        {% for i in range(1, total_pages + 1) %}
+          {% if i <= 5 %}
+          <button class="page-btn {{ 'active' if i == 1 else '' }}" onclick="goToPage({{ i }})">{{ i }}</button>
+          {% endif %}
+        {% endfor %}
+        {% if total_pages > 5 %}
+        <span class="page-dots">...</span>
+        <button class="page-btn" onclick="goToPage({{ total_pages }})">{{ total_pages }}</button>
+        {% endif %}
+        <button class="page-btn {{ 'disabled' if total_pages <= 1 else '' }}" onclick="goToPage(2)" {{ 'disabled' if total_pages <= 1 else '' }}><i class="bi bi-chevron-right"></i></button>
+        {% endif %}
+      </div>
 
     </div>
   </main>
@@ -188,5 +257,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/pages/comments.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pages/comments.js') }}?v=2"></script>
 {% endblock %}

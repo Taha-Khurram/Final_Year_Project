@@ -7,12 +7,21 @@ let currentFilter = 'all';
 let currentPage = 1;
 let currentCommentId = null;
 const perPage = 15;
+let initialLoadDone = false;
 
-document.addEventListener('DOMContentLoaded', function () {
+function initComments() {
     setupFilterTabs();
     setupModalTabs();
-    loadComments();
-});
+    const tbody = document.getElementById('comments-table-body');
+    if (tbody && tbody.querySelector('.draft-row')) {
+        initialLoadDone = true;
+    } else {
+        loadComments();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', initComments);
+document.addEventListener('pjax:complete', initComments);
 
 // ==================== FILTER TABS ====================
 
