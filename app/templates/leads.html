@@ -72,15 +72,65 @@
           <div class="col-lead-actions">Actions</div>
         </div>
         <div id="leadsList">
-          <div class="text-center py-5">
-            <div class="spinner-border spinner-border-sm text-primary opacity-50"></div>
-            <p class="text-secondary fw-medium mt-2 mb-0">Loading leads...</p>
-          </div>
+          {% if initial_leads %}
+            {% for lead in initial_leads %}
+            <div class="lead-row {{ 'unread' if not lead.read else '' }}" data-id="{{ lead.id }}" onclick="viewLeadById('{{ lead.id }}')">
+              <div class="col-lead-status">
+                <div class="lead-status-dot"></div>
+              </div>
+              <div class="col-lead-name">
+                <span class="lead-name">{{ lead.name or 'Unknown' }}</span>
+              </div>
+              <div class="col-lead-email">
+                <span class="lead-email">{{ lead.email or '' }}</span>
+              </div>
+              <div class="col-lead-subject">
+                <span class="lead-subject">{{ lead.subject or 'No subject' }}</span>
+              </div>
+              <div class="col-lead-date">
+                <span class="lead-date">{{ lead.created_at[:10] if lead.created_at else '' }}</span>
+              </div>
+              <div class="col-lead-actions" onclick="event.stopPropagation()">
+                <div class="lead-dropdown">
+                  <button class="lead-dots-btn" onclick="toggleDropdown(event, '{{ lead.id }}')">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <div class="lead-dropdown-menu" id="dropdown-{{ lead.id }}">
+                    <button class="dropdown-item" onclick="viewLeadById('{{ lead.id }}')">
+                      <i class="bi bi-eye"></i> View
+                    </button>
+                    <button class="dropdown-item dropdown-item-danger" onclick="showDeleteConfirm('{{ lead.id }}')">
+                      <i class="bi bi-trash"></i> Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="leads-empty">
+              <div class="leads-empty-icon"><i class="bi bi-person-lines-fill"></i></div>
+              <div class="leads-empty-title">No leads yet</div>
+              <div class="leads-empty-text">Contact form submissions will appear here.</div>
+            </div>
+          {% endif %}
         </div>
       </div>
 
       <!-- Pagination -->
-      <div class="leads-pagination" id="leadsPagination"></div>
+      <div class="leads-pagination" id="leadsPagination">
+        {% if initial_total_pages > 1 %}
+        <button class="page-btn" disabled><i class="bi bi-chevron-left"></i></button>
+        {% for i in range(1, [initial_total_pages + 1, 6]|min) %}
+        <button class="page-btn {{ 'active' if i == 1 else '' }}" onclick="goToPage({{ i }})">{{ i }}</button>
+        {% endfor %}
+        {% if initial_total_pages > 5 %}
+        <span style="color:#94a3b8;padding:0 0.3rem;">...</span>
+        <button class="page-btn" onclick="goToPage({{ initial_total_pages }})">{{ initial_total_pages }}</button>
+        {% endif %}
+        <button class="page-btn {{ 'disabled' if initial_total_pages <= 1 else '' }}" onclick="goToPage(2)" {{ 'disabled' if initial_total_pages <= 1 else '' }}><i class="bi bi-chevron-right"></i></button>
+        {% endif %}
+      </div>
 
     </div>
   </main>
@@ -146,5 +196,8 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/pages/leads.js') }}"></script>
+<script>
+  window.__initialLeads = {{ initial_leads | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/pages/leads.js') }}?v=2"></script>
 {% endblock %}

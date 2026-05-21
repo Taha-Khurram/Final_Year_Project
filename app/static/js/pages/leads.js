@@ -11,12 +11,21 @@ let searchTimeout = null;
 let currentLeadId = null;
 let leadsCache = {};
 
-document.addEventListener('DOMContentLoaded', function () {
+function initLeads() {
     setupFilterTabs();
     setupSearch();
     setupModals();
-    loadLeads();
-});
+    const listEl = document.getElementById('leadsList');
+    if (listEl && listEl.querySelector('.lead-row') && window.__initialLeads) {
+        leadsCache = {};
+        window.__initialLeads.forEach(lead => { leadsCache[lead.id] = lead; });
+    } else {
+        loadLeads();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', initLeads);
+document.addEventListener('pjax:complete', initLeads);
 
 // ==================== FILTER TABS ====================
 

@@ -22,7 +22,30 @@ def admin_required(f):
 def leads_page():
     admin_id = session.get('user_id')
     stats = db_service.get_contact_stats(admin_id)
-    return render_template('leads.html', stats=stats)
+
+    result = db_service.get_contact_submissions(
+        user_id=admin_id,
+        page=1,
+        per_page=10,
+        status_filter='all',
+        search=''
+    )
+
+    submissions = result.get('submissions', [])
+    for sub in submissions:
+        for field in ['created_at', 'updated_at']:
+            val = sub.get(field)
+            if val and hasattr(val, 'isoformat'):
+                sub[field] = val.isoformat()
+
+    return render_template(
+        'leads.html',
+        stats=stats,
+        initial_leads=submissions,
+        initial_total=result.get('total', 0),
+        initial_page=result.get('page', 1),
+        initial_total_pages=result.get('total_pages', 1)
+    )
 
 
 @leads_bp.route('/api/leads', methods=['GET'])
