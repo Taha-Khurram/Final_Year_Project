@@ -12,7 +12,6 @@ whitenoise
 flask-compress
 pytrends
 markdown
-mailtrap
 numpy
 APScheduler
 gspread

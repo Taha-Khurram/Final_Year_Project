@@ -1,52 +1,61 @@
 import os
-import mailtrap as mt
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 
 class EmailService:
     """
-    Email service using Mailtrap API.
-    Sign up at https://mailtrap.io
+    Email service using Gmail SMTP.
+    No domain verification needed — sends to any email address.
+    Requires a Gmail App Password (not your regular password).
+
+    Setup:
+    1. Enable 2-Step Verification on your Google Account
+    2. Go to https://myaccount.google.com/apppasswords
+    3. Generate an App Password for "Mail"
+    4. Set GMAIL_APP_PASSWORD in .env
     """
 
     def __init__(self):
-        self.api_token = os.getenv("MAILTRAP_API_TOKEN")
-        self.from_email = os.getenv("FROM_EMAIL", "noreply@scriptly.app")
+        self.smtp_host = "smtp.gmail.com"
+        self.smtp_port = 587
+        self.from_email = os.getenv("GMAIL_USER")
         self.from_name = os.getenv("FROM_NAME", "Scriptly")
-        self.inbox_id = int(os.getenv("MAILTRAP_INBOX_ID", "4651152"))
+        self.app_password = os.getenv("GMAIL_APP_PASSWORD")
 
-    def _get_client(self):
-        """Get Mailtrap API client in sandbox mode."""
-        if not self.api_token:
-            return None
-        return mt.MailtrapClient(token=self.api_token, sandbox=True, inbox_id=self.inbox_id)
+    def _get_from_address(self):
+        return f"{self.from_name} <{self.from_email}>"
+
+    def _send_email(self, to_email: str, subject: str, html_content: str):
+        """Send a single email via Gmail SMTP."""
+        msg = MIMEMultipart("alternative")
+        msg["From"] = self._get_from_address()
+        msg["To"] = to_email
+        msg["Subject"] = subject
+        msg.attach(MIMEText(html_content, "html"))
+
+        with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
+            server.starttls()
+            server.login(self.from_email, self.app_password)
+            server.sendmail(self.from_email, to_email, msg.as_string())
 
     def send_single(self, to_email: str, subject: str, html_content: str):
         """Send email to a single recipient."""
-        client = self._get_client()
-        if not client:
-            return {"success": False, "error": "MAILTRAP_API_TOKEN not configured"}
+        if not self.from_email or not self.app_password:
+            return {"success": False, "error": "Gmail credentials not configured (GMAIL_USER / GMAIL_APP_PASSWORD)"}
 
         try:
-            mail = mt.Mail(
-                sender=mt.Address(email=self.from_email, name=self.from_name),
-                to=[mt.Address(email=to_email)],
-                subject=subject,
-                html=html_content,
-            )
-            response = client.send(mail)
-            return {"success": True, "id": getattr(response, 'message_ids', [None])[0] if hasattr(response, 'message_ids') else str(response)}
+            self._send_email(to_email, subject, html_content)
+            return {"success": True, "id": f"sent-to-{to_email}"}
         except Exception as e:
             print(f"Email send error: {e}")
             return {"success": False, "error": str(e)}
 
     def send_newsletter(self, to_emails: list, subject: str, html_content: str):
-        """
-        Send newsletter to multiple recipients.
-        Uses individual sends for better deliverability and tracking.
-        """
-        client = self._get_client()
-        if not client:
-            return {"success": False, "error": "MAILTRAP_API_TOKEN not configured"}
+        """Send newsletter to multiple recipients individually."""
+        if not self.from_email or not self.app_password:
+            return {"success": False, "error": "Gmail credentials not configured (GMAIL_USER / GMAIL_APP_PASSWORD)"}
 
         if not to_emails:
             return {"success": False, "error": "No recipients provided"}
@@ -60,13 +69,7 @@ class EmailService:
 
         for email in to_emails:
             try:
-                mail = mt.Mail(
-                    sender=mt.Address(email=self.from_email, name=self.from_name),
-                    to=[mt.Address(email=email)],
-                    subject=subject,
-                    html=html_content,
-                )
-                client.send(mail)
+                self._send_email(email, subject, html_content)
                 results["sent"] += 1
             except Exception as e:
                 results["failed"] += 1
@@ -79,20 +82,9 @@ class EmailService:
 
     def send_batch(self, subscribers: list, subject: str, html_content: str,
                    base_url: str = "", site_name: str = "Newsletter"):
-        """
-        Send newsletter to all subscribers in batches.
-        Personalizes unsubscribe link for each subscriber.
-
-        Args:
-            subscribers: List of subscriber dicts with 'email' key
-            subject: Email subject line
-            html_content: HTML content (can include {{ email }} for personalization)
-            base_url: Base URL for unsubscribe links
-            site_name: Name to show in footer
-        """
-        client = self._get_client()
-        if not client:
-            return {"success": False, "error": "MAILTRAP_API_TOKEN not configured"}
+        """Send newsletter to all subscribers with personalized unsubscribe links."""
+        if not self.from_email or not self.app_password:
+            return {"success": False, "error": "Gmail credentials not configured (GMAIL_USER / GMAIL_APP_PASSWORD)"}
 
         if not subscribers:
             return {"success": False, "error": "No subscribers"}
@@ -117,14 +109,7 @@ class EmailService:
                     "{{ unsubscribe_url }}",
                     f"{base_url}/unsubscribe?email={email}"
                 )
-
-                mail = mt.Mail(
-                    sender=mt.Address(email=self.from_email, name=self.from_name),
-                    to=[mt.Address(email=email)],
-                    subject=subject,
-                    html=personalized_html,
-                )
-                client.send(mail)
+                self._send_email(email, subject, personalized_html)
                 results["sent"] += 1
 
             except Exception as e:
@@ -137,19 +122,14 @@ class EmailService:
         return results
 
     def test_connection(self):
-        """Test if API token is valid."""
-        if not self.api_token:
-            return {"valid": False, "error": "MAILTRAP_API_TOKEN not set"}
+        """Test if Gmail SMTP credentials are valid."""
+        if not self.from_email or not self.app_password:
+            return {"valid": False, "error": "GMAIL_USER or GMAIL_APP_PASSWORD not set"}
 
         try:
-            client = self._get_client()
-            mail = mt.Mail(
-                sender=mt.Address(email=self.from_email, name=self.from_name),
-                to=[mt.Address(email=self.from_email)],
-                subject="Connection Test",
-                text="Test",
-            )
-            client.send(mail)
+            with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
+                server.starttls()
+                server.login(self.from_email, self.app_password)
             return {"valid": True}
         except Exception as e:
             return {"valid": False, "error": str(e)}
