@@ -101,6 +101,60 @@ const Pjax = (() => {
     let currentAbortController = null;
     let isNavigating = false;
     let currentPageStyles = [];
+    const USERS_CACHE_TTL_MS = 2 * 60 * 1000;
+
+    function getUsersCache(maxAgeMs = USERS_CACHE_TTL_MS) {
+        const cache = window.__usersListPrefetchCache;
+        if (!cache || !cache.data || !cache.fetchedAt) return null;
+        if ((Date.now() - cache.fetchedAt) > maxAgeMs) return null;
+        return cache.data;
+    }
+
+    function setUsersCache(data) {
+        if (!data) return;
+        window.__usersListPrefetchCache = {
+            data,
+            fetchedAt: Date.now()
+        };
+    }
+
+    function isUsersRoute(url) {
+        const pathname = new URL(url, window.location.origin).pathname;
+        return pathname === '/users/manage-users' || pathname.startsWith('/users/manage-users');
+    }
+
+    function prefetchUsersList() {
+        const cachedData = getUsersCache();
+        if (cachedData) return Promise.resolve(cachedData);
+        if (window.__usersListPrefetchPromise) return window.__usersListPrefetchPromise;
+
+        window.__usersListPrefetchPromise = fetch('/users/list', {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' },
+            credentials: 'same-origin'
+        }).then(async (response) => {
+            const contentType = response.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+                throw new Error('Session expired or server error. Please refresh the page.');
+            }
+            if (!response.ok) {
+                throw new Error(`Server returned ${response.status}`);
+            }
+            return response.json();
+        }).then((data) => {
+            if (!data || !data.success) {
+                throw new Error((data && data.error) || 'Failed to fetch users.');
+            }
+            setUsersCache(data);
+            window.__usersListPrefetchPromise = null;
+            return data;
+        }).catch((error) => {
+            window.__usersListPrefetchPromise = null;
+            throw error;
+        });
+
+        return window.__usersListPrefetchPromise;
+    }
 
     // Page-specific skeleton templates matching actual page structures
     const skeletons = {
@@ -691,6 +745,11 @@ const Pjax = (() => {
             // Update active sidebar link immediately for responsiveness
             updateActiveLink(url);
 
+            // Prefetch users data while the users page HTML is loading.
+            if (isUsersRoute(url)) {
+                prefetchUsersList().catch(() => {});
+            }
+
             // Dim current content to signal loading
             mainContent.style.opacity = '0.5';
             mainContent.style.pointerEvents = 'none';
@@ -774,6 +833,9 @@ const Pjax = (() => {
             }
         });
 
+        // Start prefetching users list immediately on page load
+        prefetchUsersList().catch(() => {});
+
         // Intercept sidebar link clicks
         document.addEventListener('click', (e) => {
             const link = e.target.closest('a');
@@ -785,6 +847,37 @@ const Pjax = (() => {
                 navigate(link.href);
             }
         });
+
+        // Start prefetch as intent signals that users page may be opened soon.
+        const warmUsersPrefetch = (link) => {
+            if (!link || !isUsersRoute(link.href)) return;
+            prefetchUsersList().catch(() => {});
+        };
+
+        document.addEventListener('mouseover', (e) => {
+            warmUsersPrefetch(e.target.closest('a'));
+        });
+
+        document.addEventListener('focusin', (e) => {
+            warmUsersPrefetch(e.target.closest('a'));
+        });
+
+        document.addEventListener('touchstart', (e) => {
+            warmUsersPrefetch(e.target.closest('a'));
+        }, { passive: true });
+
+        // Low-priority warmup in case users go straight to the Users tab.
+        const scheduleIdleWarmup = () => {
+            const usersLink = document.querySelector('a[href*="/users/manage-users"]');
+            if (!usersLink) return;
+            warmUsersPrefetch(usersLink);
+        };
+
+        if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(scheduleIdleWarmup, { timeout: 2000 });
+        } else {
+            setTimeout(scheduleIdleWarmup, 1200);
+        }
 
         // Handle browser back/forward
         window.addEventListener('popstate', (e) => {

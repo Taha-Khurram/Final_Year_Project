@@ -187,97 +187,143 @@
         return div.innerHTML;
     }
 
+    function getUsersPrefetchCache(maxAgeMs) {
+      var ttl = typeof maxAgeMs === 'number' ? maxAgeMs : (2 * 60 * 1000);
+      var cache = window.__usersListPrefetchCache;
+      if (!cache || !cache.data || !cache.fetchedAt) return null;
+      if ((Date.now() - cache.fetchedAt) > ttl) return null;
+      return cache.data;
+    }
+
+    function setUsersPrefetchCache(data) {
+      if (!data) return;
+      window.__usersListPrefetchCache = {
+        data: data,
+        fetchedAt: Date.now()
+      };
+    }
+
+    function clearUsersPrefetchCache() {
+      window.__usersListPrefetchCache = null;
+      window.__usersListPrefetchPromise = null;
+    }
+
+    function renderUsersData(data, usersList, noUsers) {
+      var users = data.users || [];
+      var invitations = data.invitations || [];
+
+      if (users.length === 0 && invitations.length === 0) {
+        usersList.innerHTML = '';
+        if (noUsers) noUsers.classList.remove('d-none');
+        return;
+      }
+
+      if (noUsers) noUsers.classList.add('d-none');
+
+      var html = '';
+
+      users.forEach(function(user) {
+        var uid = user.uid || 'unknown';
+        var name = (user.name || user.username || 'User').trim();
+        var email = (user.email || '').trim();
+        var role = (user.role || 'editor').toLowerCase().trim();
+        var initials = (name === 'User' ? (email[0] || '?') : name.substring(0, 2)).toUpperCase();
+        var roleClass = role === 'admin' ? 'badge-admin' : 'badge-editor';
+
+        html += '<div class="user-row animate-fade-up">' +
+          '<div class="col-username d-flex align-items-center gap-3">' +
+            '<div class="footer-avatar shadow-sm" style="width:36px;height:36px;font-size:0.8rem;border-radius:10px;">' + initials + '</div>' +
+            '<span class="fw-bold">' + escapeHtml(name) + '</span>' +
+          '</div>' +
+          '<div class="col-email text-secondary">' + escapeHtml(email) + '</div>' +
+          '<div class="col-role"><span class="badge-role ' + roleClass + '">' + role.toUpperCase() + '</span></div>' +
+          '<div class="col-status"><span class="badge-status badge-active"><i class="bi bi-check-circle-fill"></i> Active</span></div>' +
+          '<div class="col-actions">' +
+            '<div class="action-dropdown">' +
+              '<button class="action-dots-btn" onclick="toggleActionMenu(this)">' +
+                '<i class="bi bi-three-dots-vertical"></i>' +
+              '</button>' +
+              '<div class="action-menu">' +
+                '<button class="action-menu-item" onclick="openEditRole(\'' + uid + '\', \'' + escapeHtml(name).replace(/'/g, "\\'") + '\', \'' + role + '\')">' +
+                  '<i class="bi bi-pencil-square"></i> Edit Role' +
+                '</button>' +
+                '<button class="action-menu-item action-menu-item-danger" onclick="confirmDeleteUser(\'' + uid + '\', \'' + escapeHtml(name).replace(/'/g, "\\'") + '\')">' +
+                  '<i class="bi bi-trash"></i> Delete' +
+                '</button>' +
+              '</div>' +
+            '</div>' +
+          '</div></div>';
+      });
+
+      var pendingInvitations = (invitations || []).filter(function(inv) { return inv.status === 'pending'; });
+      pendingInvitations.forEach(function(inv) {
+        var email = inv.email || '';
+        var role = (inv.role || 'editor').toLowerCase().trim();
+        var roleClass = role === 'admin' ? 'badge-admin' : 'badge-editor';
+        var initial = email.charAt(0).toUpperCase();
+
+        html += '<div class="user-row animate-fade-up">' +
+          '<div class="col-username d-flex align-items-center gap-3">' +
+            '<div class="footer-avatar shadow-sm" style="width:36px;height:36px;font-size:0.8rem;border-radius:10px;opacity:0.6;">' + initial + '</div>' +
+            '<span class="fw-bold text-muted">' + escapeHtml(email.split('@')[0]) + '</span>' +
+          '</div>' +
+          '<div class="col-email text-secondary">' + escapeHtml(email) + '</div>' +
+          '<div class="col-role"><span class="badge-role ' + roleClass + '">' + role.toUpperCase() + '</span></div>' +
+          '<div class="col-status"><span class="badge-status badge-pending"><i class="bi bi-clock-fill"></i> Pending</span></div>' +
+          '<div class="col-actions">' +
+            '<button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="resendInvitation(\'' + escapeHtml(email) + '\')" title="Resend"><i class="bi bi-arrow-clockwise"></i> Resend</button>' +
+          '</div></div>';
+      });
+
+      usersList.innerHTML = html;
+    }
+
+  async function fetchUsersListFromServer() {
+    var response = await fetch('/users/list', {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+      credentials: 'same-origin'
+    });
+
+    var contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      throw new Error('Session expired or server error. Please refresh the page.');
+    }
+
+    if (!response.ok) throw new Error('Server returned ' + response.status);
+
+    var data = await response.json();
+    if (!data.success) throw new Error(data.error || 'Failed to fetch users.');
+    setUsersPrefetchCache(data);
+    return data;
+  }
+
     async function loadUsers() {
         var usersList = document.getElementById('usersList');
         var noUsers = document.getElementById('noUsers');
         if (!usersList) return;
 
+      var cachedData = getUsersPrefetchCache();
+      if (!cachedData) {
         usersList.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary opacity-50 mb-3" role="status"></div><p class="text-secondary fw-medium">Loading users...</p></div>';
+      }
 
         try {
-            var response = await fetch('/users/list', {
-                method: 'GET',
-                headers: { 'Accept': 'application/json' },
-                credentials: 'same-origin'
-            });
-
-            var contentType = response.headers.get('content-type') || '';
-            if (!contentType.includes('application/json')) {
-                throw new Error('Session expired or server error. Please refresh the page.');
+          var data;
+        if (cachedData) {
+          data = cachedData;
+        } else if (window.__usersListPrefetchPromise) {
+            try {
+              data = await window.__usersListPrefetchPromise;
+            } catch (prefetchError) {
+              data = await fetchUsersListFromServer();
+            } finally {
+              window.__usersListPrefetchPromise = null;
             }
-
-            if (!response.ok) throw new Error('Server returned ' + response.status);
-
-            var data = await response.json();
-            if (!data.success) throw new Error(data.error || 'Failed to fetch users.');
-
-            var users = data.users || [];
-            var invitations = data.invitations || [];
-
-            if (users.length === 0 && invitations.length === 0) {
-                usersList.innerHTML = '';
-                if (noUsers) noUsers.classList.remove('d-none');
-                return;
-            }
-
-            if (noUsers) noUsers.classList.add('d-none');
-
-            var html = '';
-
-            users.forEach(function(user) {
-                var uid = user.uid || 'unknown';
-                var name = (user.name || user.username || 'User').trim();
-                var email = (user.email || '').trim();
-                var role = (user.role || 'editor').toLowerCase().trim();
-                var initials = (name === 'User' ? (email[0] || '?') : name.substring(0, 2)).toUpperCase();
-                var roleClass = role === 'admin' ? 'badge-admin' : 'badge-editor';
-
-                html += '<div class="user-row animate-fade-up">' +
-                    '<div class="col-username d-flex align-items-center gap-3">' +
-                        '<div class="footer-avatar shadow-sm" style="width:36px;height:36px;font-size:0.8rem;border-radius:10px;">' + initials + '</div>' +
-                        '<span class="fw-bold">' + escapeHtml(name) + '</span>' +
-                    '</div>' +
-                    '<div class="col-email text-secondary">' + escapeHtml(email) + '</div>' +
-                    '<div class="col-role"><span class="badge-role ' + roleClass + '">' + role.toUpperCase() + '</span></div>' +
-                    '<div class="col-status"><span class="badge-status badge-active"><i class="bi bi-check-circle-fill"></i> Active</span></div>' +
-                    '<div class="col-actions">' +
-                        '<div class="action-dropdown">' +
-                            '<button class="action-dots-btn" onclick="toggleActionMenu(this)">' +
-                                '<i class="bi bi-three-dots-vertical"></i>' +
-                            '</button>' +
-                            '<div class="action-menu">' +
-                                '<button class="action-menu-item" onclick="openEditRole(\'' + uid + '\', \'' + escapeHtml(name).replace(/'/g, "\\'") + '\', \'' + role + '\')">' +
-                                    '<i class="bi bi-pencil-square"></i> Edit Role' +
-                                '</button>' +
-                                '<button class="action-menu-item action-menu-item-danger" onclick="confirmDeleteUser(\'' + uid + '\', \'' + escapeHtml(name).replace(/'/g, "\\'") + '\')">' +
-                                    '<i class="bi bi-trash"></i> Delete' +
-                                '</button>' +
-                            '</div>' +
-                        '</div>' +
-                    '</div></div>';
-            });
-
-            var pendingInvitations = (invitations || []).filter(function(inv) { return inv.status === 'pending'; });
-            pendingInvitations.forEach(function(inv) {
-                var email = inv.email || '';
-                var role = (inv.role || 'editor').toLowerCase().trim();
-                var roleClass = role === 'admin' ? 'badge-admin' : 'badge-editor';
-                var initial = email.charAt(0).toUpperCase();
-
-                html += '<div class="user-row animate-fade-up">' +
-                    '<div class="col-username d-flex align-items-center gap-3">' +
-                        '<div class="footer-avatar shadow-sm" style="width:36px;height:36px;font-size:0.8rem;border-radius:10px;opacity:0.6;">' + initial + '</div>' +
-                        '<span class="fw-bold text-muted">' + escapeHtml(email.split('@')[0]) + '</span>' +
-                    '</div>' +
-                    '<div class="col-email text-secondary">' + escapeHtml(email) + '</div>' +
-                    '<div class="col-role"><span class="badge-role ' + roleClass + '">' + role.toUpperCase() + '</span></div>' +
-                    '<div class="col-status"><span class="badge-status badge-pending"><i class="bi bi-clock-fill"></i> Pending</span></div>' +
-                    '<div class="col-actions">' +
-                        '<button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="resendInvitation(\'' + escapeHtml(email) + '\')" title="Resend"><i class="bi bi-arrow-clockwise"></i> Resend</button>' +
-                    '</div></div>';
-            });
-
-            usersList.innerHTML = html;
+          } else {
+            data = await fetchUsersListFromServer();
+          }
+        renderUsersData(data, usersList, noUsers);
 
         } catch (error) {
             usersList.innerHTML = '<div class="p-5 text-center bg-white rounded border"><div class="text-danger mb-2"><i class="bi bi-exclamation-triangle-fill fs-2"></i></div><p class="text-secondary fw-bold">Failed to load users</p><p class="small text-muted mb-3">' + escapeHtml(error.message) + '</p><button class="btn btn-sm btn-primary rounded-pill px-4" onclick="loadUsers()">Retry</button></div>';
@@ -341,6 +387,7 @@
                 var modalEl = document.getElementById('deleteUserModal');
                 var modal = bootstrap.Modal.getInstance(modalEl);
                 if (modal) modal.hide();
+              clearUsersPrefetchCache();
                 loadUsers();
                 showToast({ type: 'success', title: 'Deleted', message: data.message || 'User deleted' });
             } else {
@@ -401,6 +448,7 @@
                         var modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
                         modal.hide();
                         inviteForm.reset();
+                      clearUsersPrefetchCache();
                         loadUsers();
 
                         if (data.signup_url) {
@@ -437,6 +485,7 @@
                         var modalEl = document.getElementById('editRoleModal');
                         var modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
                         modal.hide();
+                      clearUsersPrefetchCache();
                         loadUsers();
                         showToast({ type: 'success', title: 'Updated', message: 'Role updated' });
                     } else {
