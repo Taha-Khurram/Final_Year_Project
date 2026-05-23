@@ -1,4 +1,6 @@
 import os
+import threading
+import queue
 from datetime import datetime
 
 import gspread
@@ -13,9 +15,10 @@ class GoogleSheetsService:
         'https://www.googleapis.com/auth/drive'
     ]
 
-    HEADERS = ['Timestamp', 'User', 'Action Type', 'Action', 'Blog Title', 'Details']
-    USER_HEADERS = ['UID', 'Name', 'Email', 'Role', 'Created By', 'Created At', 'Last Login']
-    BLOG_HEADERS = ['Blog ID', 'Title', 'Author', 'Status', 'Category', 'Author ID', 'Created At', 'Updated At']
+    HEADERS = [
+        'Timestamp', 'User', 'User ID', 'Action Type', 'Action',
+        'Page', 'Element', 'Details', 'IP Address', 'Session ID'
+    ]
 
     @classmethod
     def get_instance(cls):
@@ -27,6 +30,44 @@ class GoogleSheetsService:
         self._default_spreadsheet_id = os.getenv('GOOGLE_SHEETS_SPREADSHEET_ID')
         self._client = None
         self._worksheet_cache = {}
+        self._write_queue = queue.Queue()
+        self._start_flush_worker()
+
+    def _start_flush_worker(self):
+        threading.Thread(target=self._flush_worker, daemon=True).start()
+
+    def _flush_worker(self):
+        while True:
+            batch = []
+            try:
+                item = self._write_queue.get(timeout=5)
+                batch.append(item)
+                while not self._write_queue.empty() and len(batch) < 20:
+                    try:
+                        batch.append(self._write_queue.get_nowait())
+                    except queue.Empty:
+                        break
+            except queue.Empty:
+                continue
+
+            if batch:
+                self._flush_batch(batch)
+
+    def _flush_batch(self, batch):
+        grouped = {}
+        for row_data, spreadsheet_id in batch:
+            if spreadsheet_id not in grouped:
+                grouped[spreadsheet_id] = []
+            grouped[spreadsheet_id].append(row_data)
+
+        for spreadsheet_id, rows in grouped.items():
+            try:
+                ws = self._get_worksheet(spreadsheet_id)
+                if ws and rows:
+                    ws.append_rows(rows, value_input_option='USER_ENTERED')
+            except Exception as e:
+                print(f"Google Sheets write error: {e}")
+                self._worksheet_cache = {}
 
     def _get_client(self):
         if self._client is None:
@@ -36,141 +77,97 @@ class GoogleSheetsService:
             self._client = gspread.authorize(creds)
         return self._client
 
-    def _resolve_spreadsheet_id(self, spreadsheet_id=None):
-        return spreadsheet_id or self._default_spreadsheet_id
-
-    def _get_spreadsheet(self, spreadsheet_id=None):
-        sid = self._resolve_spreadsheet_id(spreadsheet_id)
+    def _get_worksheet(self, spreadsheet_id=None):
+        sid = spreadsheet_id or self._default_spreadsheet_id
         if not sid:
             return None
-        return self._get_client().open_by_key(sid)
 
-    def _get_activity_worksheet(self, spreadsheet_id=None):
-        sid = self._resolve_spreadsheet_id(spreadsheet_id)
-        cache_key = f"activity:{sid}"
-        if cache_key in self._worksheet_cache:
-            return self._worksheet_cache[cache_key]
-
-        try:
-            spreadsheet = self._get_spreadsheet(sid)
-            if not spreadsheet:
-                return None
-            try:
-                ws = spreadsheet.worksheet('Activity Log')
-            except gspread.WorksheetNotFound:
-                ws = spreadsheet.sheet1
-                ws.update_title('Activity Log')
-
-            if ws.row_values(1) != self.HEADERS:
-                ws.update(range_name='A1:F1', values=[self.HEADERS])
-                ws.format('A1:F1', {'textFormat': {'bold': True}})
-
-            self._worksheet_cache[cache_key] = ws
-            return ws
-        except Exception as e:
-            print(f"Google Sheets init error: {e}")
-            return None
-
-    def _get_users_worksheet(self, spreadsheet_id=None):
-        sid = self._resolve_spreadsheet_id(spreadsheet_id)
-        cache_key = f"users:{sid}"
-        if cache_key in self._worksheet_cache:
-            return self._worksheet_cache[cache_key]
-
-        try:
-            spreadsheet = self._get_spreadsheet(sid)
-            if not spreadsheet:
-                return None
-            try:
-                ws = spreadsheet.worksheet('Users')
-            except gspread.WorksheetNotFound:
-                ws = spreadsheet.add_worksheet(title='Users', rows=100, cols=10)
-                ws.update(range_name='A1:G1', values=[self.USER_HEADERS])
-                ws.format('A1:G1', {'textFormat': {'bold': True}})
-
-            self._worksheet_cache[cache_key] = ws
-            return ws
-        except Exception as e:
-            print(f"Google Sheets users worksheet error: {e}")
-            return None
-
-    def _get_blogs_worksheet(self, spreadsheet_id=None):
-        sid = self._resolve_spreadsheet_id(spreadsheet_id)
         cache_key = f"blogs:{sid}"
         if cache_key in self._worksheet_cache:
             return self._worksheet_cache[cache_key]
 
         try:
-            spreadsheet = self._get_spreadsheet(sid)
-            if not spreadsheet:
-                return None
+            spreadsheet = self._get_client().open_by_key(sid)
             try:
                 ws = spreadsheet.worksheet('Blogs')
             except gspread.WorksheetNotFound:
-                ws = spreadsheet.add_worksheet(title='Blogs', rows=100, cols=10)
-                ws.update(range_name='A1:H1', values=[self.BLOG_HEADERS])
-                ws.format('A1:H1', {'textFormat': {'bold': True}})
+                ws = spreadsheet.add_worksheet(title='Blogs', rows=1000, cols=10)
+
+            if ws.row_values(1) != self.HEADERS:
+                ws.update(range_name='A1:J1', values=[self.HEADERS])
+                ws.format('A1:J1', {'textFormat': {'bold': True}})
 
             self._worksheet_cache[cache_key] = ws
             return ws
         except Exception as e:
-            print(f"Google Sheets blogs worksheet error: {e}")
+            print(f"Google Sheets worksheet error: {e}")
             return None
 
-    def log_activity(self, user_name, action_type, action_text, blog_title="", details="", spreadsheet_id=None):
-        try:
-            ws = self._get_activity_worksheet(spreadsheet_id)
-            if not ws:
-                return False
+    def _append(self, row, spreadsheet_id=None):
+        self._write_queue.put((row, spreadsheet_id))
 
-            timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
-            row = [timestamp, user_name, action_type, action_text, blog_title, details]
-            ws.append_row(row, value_input_option='USER_ENTERED')
-            return True
+    def log_bulk_activities(self, events, spreadsheet_id=None):
+        for event in events:
+            row = [
+                event.get('timestamp', datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')),
+                event.get('user_name', ''),
+                event.get('user_id', ''),
+                event.get('action_type', 'click'),
+                event.get('action', ''),
+                event.get('page', ''),
+                event.get('element', ''),
+                event.get('details', ''),
+                event.get('ip_address', ''),
+                event.get('session_id', '')
+            ]
+            self._append(row, spreadsheet_id)
+        return True
+
+    def get_recent_activities(self, spreadsheet_id=None, limit=10):
+        try:
+            ws = self._get_worksheet(spreadsheet_id)
+            if not ws:
+                return []
+            all_values = ws.get_all_values()
+            if len(all_values) <= 1:
+                return []
+            rows = all_values[1:]
+            recent = rows[-limit:] if len(rows) >= limit else rows
+            recent.reverse()
+            return [
+                {
+                    'timestamp': r[0] if len(r) > 0 else '',
+                    'user': r[1] if len(r) > 1 else '',
+                    'user_id': r[2] if len(r) > 2 else '',
+                    'action_type': r[3] if len(r) > 3 else '',
+                    'action': r[4] if len(r) > 4 else '',
+                    'page': r[5] if len(r) > 5 else '',
+                    'element': r[6] if len(r) > 6 else '',
+                    'details': r[7] if len(r) > 7 else '',
+                }
+                for r in recent
+            ]
         except Exception as e:
-            print(f"Google Sheets log error: {e}")
-            self._worksheet_cache = {}
-            return False
+            print(f"Google Sheets read error: {e}")
+            return []
+
+    def log_activity(self, user_name, action_type, action_text, blog_title="", details="", spreadsheet_id=None):
+        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
+        row = [timestamp, user_name, '', action_type, action_text, '', '', blog_title or details, '', '']
+        self._append(row, spreadsheet_id)
+        return True
 
     def sync_user(self, uid, name, email, role, created_by="", created_at=None, last_login=None, spreadsheet_id=None):
-        try:
-            ws = self._get_users_worksheet(spreadsheet_id)
-            if not ws:
-                return False
-
-            created_str = created_at.strftime('%Y-%m-%d %H:%M:%S UTC') if created_at else ''
-            login_str = last_login.strftime('%Y-%m-%d %H:%M:%S UTC') if last_login else ''
-            row_data = [uid, name, email, role, created_by, created_str, login_str]
-
-            cell = ws.find(uid, in_column=1)
-            if cell:
-                ws.update(range_name=f'A{cell.row}:G{cell.row}', values=[row_data])
-            else:
-                ws.append_row(row_data, value_input_option='USER_ENTERED')
-            return True
-        except Exception as e:
-            print(f"Google Sheets sync user error: {e}")
-            return False
+        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
+        row = [timestamp, name, uid, 'user_sync', f"{name} ({email}) - {role}", '', '', f"Created by: {created_by}", '', '']
+        self._append(row, spreadsheet_id)
+        return True
 
     def sync_blog(self, blog_id, title, status, category="", author_id="", created_at=None, updated_at=None, author_name="", spreadsheet_id=None):
-        try:
-            ws = self._get_blogs_worksheet(spreadsheet_id)
-            if not ws:
-                return False
-
-            created_str = created_at.strftime('%Y-%m-%d %H:%M:%S UTC') if created_at else ''
-            updated_str = updated_at.strftime('%Y-%m-%d %H:%M:%S UTC') if updated_at else ''
-            row_data = [blog_id, title, author_name, status, category, author_id, created_str, updated_str]
-
-            cell = ws.find(blog_id, in_column=1)
-            if cell:
-                ws.update(range_name=f'A{cell.row}:H{cell.row}', values=[row_data])
-            else:
-                ws.append_row(row_data, value_input_option='USER_ENTERED')
-            return True
-        except Exception as e:
-            print(f"Google Sheets sync blog error: {e}")
-            return False
+        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
+        row = [timestamp, author_name, author_id, 'blog_sync', f"{title} [{status}]", '', '', f"Category: {category}, ID: {blog_id}", '', '']
+        self._append(row, spreadsheet_id)
+        return True
 
     @staticmethod
     def get_spreadsheet_id_for_user(user_id):
@@ -178,9 +175,9 @@ class GoogleSheetsService:
             from app.firebase.firestore_service import FirestoreService
             db = FirestoreService()
             settings = db.get_site_settings(user_id)
-            user_id_val = settings.get('google_sheets_id', '').strip()
-            if user_id_val:
-                return user_id_val
+            val = settings.get('google_sheets_id', '').strip()
+            if val:
+                return val
         except Exception:
             pass
         return os.getenv('GOOGLE_SHEETS_SPREADSHEET_ID')

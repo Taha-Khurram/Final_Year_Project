@@ -1112,9 +1112,9 @@
                 <button class="settings-tab" data-tab="legal">
                     <i class="bi bi-shield-check"></i> Legal
                 </button>
-                <!-- <button class="settings-tab" data-tab="google-sheets">
+                <button class="settings-tab" data-tab="google-sheets">
                     <i class="bi bi-table"></i> Google Sheets
-                </button> -->
+                </button>
             </div>
 
             <form id="settings-form" class="ajax-form">
@@ -2397,49 +2397,89 @@
                     </div>
                 </div>
 
-                <!-- Google Sheets Tab
+                <!-- Google Sheets Activity Tracker Tab -->
                 <div class="tab-content" id="tab-google-sheets">
-                    <p class="text-muted mb-4">Connect a Google Spreadsheet to automatically log all dashboard activities, users, and blogs.</p>
+                    <div class="settings-card">
+                        <h3><i class="bi bi-table"></i> Google Sheets Activity Agent</h3>
+                        <p class="text-muted">Automatically record every click and action on your dashboard to a Google Sheet in real-time.</p>
 
-                    <div class="form-group mb-4">
-                        <label class="form-label">Spreadsheet ID or URL</label>
-                        <input type="text" class="form-control" id="google_sheets_id" name="google_sheets_id"
-                               value="{{ settings.google_sheets_id or '' }}"
-                               placeholder="Paste your Google Sheet URL or spreadsheet ID">
-                        <p class="form-hint">You can paste the full URL (e.g., https://docs.google.com/spreadsheets/d/ABC123/edit) or just the ID.</p>
-                    </div>
+                        <div class="form-group mb-4">
+                            <label class="form-label">Spreadsheet ID or URL</label>
+                            <input type="text" class="form-control" id="google_sheets_id" name="google_sheets_id"
+                                   value="{{ settings.google_sheets_id or '' }}"
+                                   placeholder="Paste your Google Sheet URL or spreadsheet ID">
+                            <p class="form-hint">Paste the full URL (e.g., https://docs.google.com/spreadsheets/d/ABC123/edit) or just the ID.</p>
+                        </div>
 
-                    {% if settings.google_sheets_id %}
-                    <div class="d-flex align-items-center gap-3 mb-4">
-                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> Connected</span>
-                        <a href="https://docs.google.com/spreadsheets/d/{{ settings.google_sheets_id }}/edit" target="_blank" class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-box-arrow-up-right me-1"></i> Open Sheet
-                        </a>
-                    </div>
-                    {% else %}
-                    <div class="mb-4">
-                        <span class="badge bg-secondary"><i class="bi bi-x-circle me-1"></i> Not configured</span>
-                    </div>
-                    {% endif %}
+                        <div class="form-group mb-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="activity_tracking_enabled"
+                                       {% if settings.activity_tracking_enabled %}checked{% endif %}>
+                                <label class="form-check-label fw-bold" for="activity_tracking_enabled">
+                                    Enable Activity Tracking
+                                </label>
+                            </div>
+                            <p class="form-hint mt-1">When enabled, every click, navigation, and action on the admin dashboard will be recorded to Google Sheets.</p>
+                        </div>
 
-                    <div class="alert alert-light mb-4" style="border: 1px dashed rgba(0,0,0,0.1);">
-                        <i class="bi bi-info-circle me-2 text-primary"></i>
-                        <strong>What gets logged:</strong>
-                        <ul class="mb-0 mt-2">
-                            <li><strong>Activity Log</strong> — All dashboard actions (blog created, published, user login, etc.)</li>
-                            <li><strong>Users</strong> — User accounts with roles and permissions</li>
-                            <li><strong>Blogs</strong> — All blog posts with status, author, and timestamps</li>
-                        </ul>
-                    </div>
+                        {% if settings.google_sheets_id %}
+                        <div class="d-flex align-items-center gap-3 mb-4">
+                            <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> Connected</span>
+                            {% if settings.activity_tracking_enabled %}
+                            <span class="badge bg-primary"><i class="bi bi-record-circle me-1"></i> Tracking Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary"><i class="bi bi-pause-circle me-1"></i> Tracking Paused</span>
+                            {% endif %}
+                            <a href="https://docs.google.com/spreadsheets/d/{{ settings.google_sheets_id }}/edit" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-box-arrow-up-right me-1"></i> Open Sheet
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="mb-4">
+                            <span class="badge bg-secondary"><i class="bi bi-x-circle me-1"></i> Not configured</span>
+                        </div>
+                        {% endif %}
 
-                    <div class="alert alert-warning" style="background: rgba(255, 193, 7, 0.08); border: 1px solid rgba(255, 193, 7, 0.2);">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
-                        <strong>Important:</strong> Share your spreadsheet with the service account email below (give <strong>Editor</strong> access):
-                        <div class="mt-2 p-2 bg-white rounded border" style="font-family: monospace; font-size: 0.85rem; word-break: break-all;">
-                            {{ service_account_email or 'Service account not configured' }}
+                        <div class="alert alert-light mb-4" style="border: 1px dashed rgba(0,0,0,0.1); border-radius: 12px;">
+                            <i class="bi bi-info-circle me-2 text-primary"></i>
+                            <strong>What gets tracked:</strong>
+                            <ul class="mb-0 mt-2" style="font-size: 0.9rem;">
+                                <li><strong>Page Visits</strong> — Every page visited on the dashboard</li>
+                                <li><strong>Button Clicks</strong> — Every button, link, and navigation click</li>
+                                <li><strong>Form Submissions</strong> — All forms submitted (settings, blog create, etc.)</li>
+                                <li><strong>Tab Switches</strong> — When users switch between tabs</li>
+                                <li><strong>Modal Interactions</strong> — Opening and using modals</li>
+                                <li><strong>Backend Actions</strong> — Blog publish, delete, user management, etc.</li>
+                            </ul>
+                        </div>
+
+                        <div class="alert alert-warning mb-4" style="background: rgba(255, 193, 7, 0.08); border: 1px solid rgba(255, 193, 7, 0.2); border-radius: 12px;">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Important:</strong> Share your spreadsheet with the service account email below (give <strong>Editor</strong> access):
+                            <div class="mt-2 p-2 bg-white rounded border" style="font-family: monospace; font-size: 0.85rem; word-break: break-all;">
+                                {{ service_account_email or 'Service account not configured' }}
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity Preview -->
+                        <div class="mt-4">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h5 class="mb-0" style="font-size: 1rem; font-weight: 700;">
+                                    <i class="bi bi-clock-history me-2 text-primary"></i>Recent Activity
+                                </h5>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="loadRecentSheetActivity()">
+                                    <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+                                </button>
+                            </div>
+                            <div id="sheets-recent-activity" class="border rounded" style="max-height: 300px; overflow-y: auto;">
+                                <div class="text-center py-4 text-muted">
+                                    <i class="bi bi-table" style="font-size: 1.5rem;"></i>
+                                    <p class="mb-0 mt-2" style="font-size: 0.85rem;">Click "Refresh" to load recent activity from your sheet</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div> -->
+                </div>
 
                 <!-- Submit Button (visible on all tabs) -->
                 <div class="d-flex gap-3 mt-4 pt-3 border-top">
@@ -2706,7 +2746,8 @@
                     const val = _v('google_sheets_id').trim();
                     const match = val.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
                     return match ? match[1] : val;
-                })()
+                })(),
+                activity_tracking_enabled: _c('activity_tracking_enabled')
             };
 
             const response = await fetch('/api/site-settings', {
@@ -2987,6 +3028,72 @@
                 message: 'Failed to unpublish blog.',
                 duration: 5000
             });
+        }
+    }
+
+    // Google Sheets Recent Activity Loader
+    async function loadRecentSheetActivity() {
+        const container = document.getElementById('sheets-recent-activity');
+        if (!container) return;
+
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border spinner-border-sm text-primary"></div>
+                <p class="mb-0 mt-2 text-muted" style="font-size: 0.85rem;">Loading recent activity...</p>
+            </div>`;
+
+        try {
+            const res = await fetch('/api/sheets-recent-activity');
+            const data = await res.json();
+
+            if (!data.success || !data.activities || data.activities.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-inbox" style="font-size: 1.5rem;"></i>
+                        <p class="mb-0 mt-2" style="font-size: 0.85rem;">No activity recorded yet. Start using the dashboard to see entries here.</p>
+                    </div>`;
+                return;
+            }
+
+            let html = `<table class="table table-sm table-hover mb-0" style="font-size: 0.82rem;">
+                <thead style="position: sticky; top: 0; background: #f8f9fa;">
+                    <tr>
+                        <th style="padding: 0.5rem 0.75rem;">Time</th>
+                        <th style="padding: 0.5rem 0.75rem;">User</th>
+                        <th style="padding: 0.5rem 0.75rem;">Type</th>
+                        <th style="padding: 0.5rem 0.75rem;">Action</th>
+                        <th style="padding: 0.5rem 0.75rem;">Page</th>
+                    </tr>
+                </thead><tbody>`;
+
+            data.activities.forEach(function(a) {
+                const typeBadge = {
+                    'page_visit': 'bg-info',
+                    'button_click': 'bg-primary',
+                    'navigation': 'bg-success',
+                    'form_submit': 'bg-warning',
+                    'tab_switch': 'bg-secondary',
+                    'click': 'bg-dark',
+                    'modal_interaction': 'bg-purple'
+                }[a.action_type] || 'bg-secondary';
+
+                html += `<tr>
+                    <td style="padding: 0.4rem 0.75rem; white-space: nowrap;">${a.timestamp ? a.timestamp.split(' ')[1] || a.timestamp.substring(11, 19) : ''}</td>
+                    <td style="padding: 0.4rem 0.75rem;">${a.user || ''}</td>
+                    <td style="padding: 0.4rem 0.75rem;"><span class="badge ${typeBadge}" style="font-size: 0.7rem;">${a.action_type || ''}</span></td>
+                    <td style="padding: 0.4rem 0.75rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${a.action || ''}</td>
+                    <td style="padding: 0.4rem 0.75rem; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${a.page || ''}</td>
+                </tr>`;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        } catch (err) {
+            container.innerHTML = `
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-exclamation-triangle" style="font-size: 1.5rem;"></i>
+                    <p class="mb-0 mt-2" style="font-size: 0.85rem;">Could not load activity. Make sure your spreadsheet is configured and shared.</p>
+                </div>`;
         }
     }
 </script>

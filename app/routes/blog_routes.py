@@ -1352,7 +1352,8 @@ def update_site_settings():
             'legal': data.get('legal', {}),
 
             # Google Sheets
-            'google_sheets_id': data.get('google_sheets_id', '').strip()
+            'google_sheets_id': data.get('google_sheets_id', '').strip(),
+            'activity_tracking_enabled': bool(data.get('activity_tracking_enabled', False))
         }
 
         # Handle boolean values that come as strings from form
@@ -1381,6 +1382,83 @@ def update_site_settings():
     except Exception as e:
         print(f"Site Settings Error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
+
+
+@blog_bp.route('/api/track-activity', methods=['POST'])
+def track_activity():
+    """Receive batched user activity events from the frontend tracker and log to Google Sheets"""
+    try:
+        user_id = session.get('user_id', '')
+        user_name = session.get('user_name', 'Unknown')
+
+        settings = db_service.get_site_settings(user_id)
+        if not settings.get('activity_tracking_enabled', False):
+            return jsonify({"success": True, "tracked": 0})
+
+        data = request.get_json(silent=True)
+        if not data:
+            raw = request.get_data(as_text=True)
+            if raw:
+                import json
+                data = json.loads(raw)
+
+        if not data or 'events' not in data:
+            return jsonify({"success": False, "error": "No events provided"}), 400
+
+        events = data['events']
+        if not events:
+            return jsonify({"success": True, "tracked": 0})
+
+        ip_address = request.headers.get('X-Forwarded-For', request.remote_addr or '')
+        session_id = session.get('_id', '')[:8] if session.get('_id') else ''
+
+        from app.services.google_sheets_service import GoogleSheetsService
+        sheets = GoogleSheetsService.get_instance()
+        spreadsheet_id = GoogleSheetsService.get_spreadsheet_id_for_user(user_id)
+
+        enriched_events = []
+        for event in events[:50]:
+            enriched_events.append({
+                'timestamp': event.get('timestamp', ''),
+                'user_name': user_name,
+                'user_id': user_id,
+                'action_type': event.get('action_type', 'click'),
+                'action': event.get('action', ''),
+                'page': event.get('page', ''),
+                'element': event.get('element', ''),
+                'details': event.get('details', ''),
+                'ip_address': ip_address,
+                'session_id': session_id
+            })
+
+        import threading
+        threading.Thread(
+            target=sheets.log_bulk_activities,
+            args=(enriched_events,),
+            kwargs={'spreadsheet_id': spreadsheet_id},
+            daemon=True
+        ).start()
+
+        return jsonify({"success": True, "tracked": len(enriched_events)})
+
+    except Exception as e:
+        print(f"Track activity error: {e}")
+        return jsonify({"success": True, "tracked": 0})
+
+
+@blog_bp.route('/api/sheets-recent-activity', methods=['GET'])
+@admin_required
+def get_sheets_recent_activity():
+    """Get recent activity from Google Sheets for the site settings preview"""
+    try:
+        user_id = session.get('user_id', '')
+        from app.services.google_sheets_service import GoogleSheetsService
+        sheets = GoogleSheetsService.get_instance()
+        spreadsheet_id = GoogleSheetsService.get_spreadsheet_id_for_user(user_id)
+        recent = sheets.get_recent_activities(spreadsheet_id=spreadsheet_id, limit=10)
+        return jsonify({"success": True, "activities": recent})
+    except Exception as e:
+        return jsonify({"success": True, "activities": []})
 
 
 @blog_bp.route('/api/time-preview', methods=['POST'])
