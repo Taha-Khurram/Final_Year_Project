@@ -121,33 +121,6 @@
       </div>
     </div>
 
-    <!-- Invite Link Modal -->
-    <div id="inviteLinkModal" class="modal fade" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content shadow-card">
-          <div class="modal-header border-bottom p-4">
-            <h5 class="modal-title fw-bold text-dark"><i class="bi bi-link-45deg"></i> Invitation Link</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body p-4">
-            <p class="text-secondary mb-3" id="inviteLinkMessage">Share this link with the invited user:</p>
-            <div class="input-group">
-              <input type="text" id="inviteLinkInput" class="form-control bg-light border-0 rounded-start-pill px-3" readonly>
-              <button class="btn btn-primary rounded-end-pill px-4" onclick="copyInviteLink()" id="copyLinkBtn">
-                <i class="bi bi-clipboard"></i> Copy
-              </button>
-            </div>
-            <p class="text-muted small mt-3 mb-0">
-              <i class="bi bi-info-circle"></i> The user will use this link to create their account with the assigned role.
-            </p>
-          </div>
-          <div class="modal-footer border-top p-3 bg-light">
-            <button type="button" class="btn btn-light text-secondary fw-bold" data-bs-dismiss="modal">Close</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Delete User Confirmation Modal -->
     <div id="deleteUserModal" class="modal fade" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
@@ -402,31 +375,6 @@
         }
     };
 
-    function showInviteLink(url, emailSent) {
-        var msg = emailSent
-            ? 'Email sent! You can also share this link directly:'
-            : 'Share this signup link with the invited user:';
-        document.getElementById('inviteLinkMessage').textContent = msg;
-        document.getElementById('inviteLinkInput').value = url;
-        document.getElementById('copyLinkBtn').innerHTML = '<i class="bi bi-clipboard"></i> Copy';
-        var modalEl = document.getElementById('inviteLinkModal');
-        var modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-        modal.show();
-    }
-
-    window.copyInviteLink = function() {
-        var input = document.getElementById('inviteLinkInput');
-        navigator.clipboard.writeText(input.value).then(function() {
-            var btn = document.getElementById('copyLinkBtn');
-            btn.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
-            btn.classList.replace('btn-primary', 'btn-success');
-            setTimeout(function() {
-                btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy';
-                btn.classList.replace('btn-success', 'btn-primary');
-            }, 2000);
-        });
-    };
-
     function initForms() {
         var inviteForm = document.getElementById('inviteUserForm');
         if (inviteForm) {
@@ -452,11 +400,7 @@
                       clearUsersPrefetchCache();
                         loadUsers();
 
-                        if (data.signup_url) {
-                            showInviteLink(data.signup_url, data.email_sent);
-                        } else {
-                            showToast({ type: 'success', title: 'Sent', message: data.message || 'Invitation created!' });
-                        }
+                        showToast({ type: 'success', title: 'Invitation Sent', message: data.message || 'User has been invited successfully!' });
                     } else {
                         showToast({ type: 'error', title: 'Error', message: data.error || 'Failed to send invitation' });
                     }
