@@ -23,7 +23,7 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 - **Google Analytics Integration** - Real-time analytics dashboard with configurable date periods
 - **Activity Log** - Full audit trail of all admin actions (paginated)
 - **Category Management** - Organize content with categories and filtering
-- **Google Sheets Sync** - Export blog and user data to Google Sheets
+- **Google Sheets Activity Agent** - Real-time tracking of every click, navigation, and action on the admin dashboard to a single Google Sheets "Blogs" tab with batched writes
 
 ### Security & Authentication
 - **Firebase Authentication** - Email/Password, Google OAuth, Password Reset
@@ -45,7 +45,7 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 | Email | Resend API |
 | Analytics | Google Analytics Data API |
 | SEO | RapidAPI Google Search |
-| Sheets | Google Sheets API (gspread) |
+| Sheets | Google Sheets API (gspread) - Activity Tracking Agent |
 | Deployment | Gunicorn, Docker, Railway, Nixpacks |
 | Static Files | WhiteNoise, Flask-Compress (gzip) |
 | Scheduling | APScheduler (background jobs) |
@@ -174,6 +174,21 @@ Single Gemini API call per comment:
 - **Auto-remove** spam, toxic, or irrelevant comments (user never sees rejection)
 - **Fail-open design** - If AI fails, comment is approved as-is
 
+### Google Sheets Activity Agent
+
+Real-time user activity tracking to Google Sheets:
+
+```
+User Action → Frontend Tracker (batched) → /api/track-activity → Queue → Flush Worker → Google Sheets "Blogs" Tab
+```
+
+- **Event Delegation** - Single `document` listener captures every click, navigation, and form submission
+- **Batched Writes** - Events queued client-side, flushed every 5 seconds or on page unload via `sendBeacon`
+- **Background Queue** - Server-side write queue with flush worker (batches up to 20 rows per write)
+- **Single Tab** - All activity data goes to one "Blogs" worksheet (timestamps, user, action type, page, element, details)
+- **Toggle Control** - Enable/disable tracking from Site Settings > Google Sheets tab
+- **Recent Activity Preview** - View last 10 tracked actions directly in site settings
+
 ---
 
 ## Public Blog Site
@@ -221,7 +236,7 @@ Each user gets a public blog at `/site/<site_slug>` with:
 | **Schedule** | Blog scheduling with AI-recommended times |
 | **Categories** | Manage content categories |
 | **Activity Log** | Full audit trail of all actions |
-| **Site Settings** | Configure public site appearance and SEO |
+| **Site Settings** | Configure public site appearance, SEO, and Google Sheets activity tracking |
 | **App Settings** | Application-wide configuration |
 
 ---
@@ -260,9 +275,9 @@ FYP-main/
 │   │   ├── activity_routes.py     # Activity log
 │   │   └── schedule_routes.py     # Blog scheduling
 │   ├── services/               # External service integrations
-│   │   ├── email_service.py       # Resend API
+│   │   ├── email_service.py       # Gmail SMTP
 │   │   ├── embedding_service.py   # Gemini embeddings
-│   │   └── google_sheets_service.py # Google Sheets sync
+│   │   └── google_sheets_service.py # Google Sheets Activity Agent
 │   ├── static/                 # Frontend assets
 │   │   ├── css/                   # 26 stylesheets
 │   │   ├── js/                    # 26 scripts
