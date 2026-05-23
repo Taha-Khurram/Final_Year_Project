@@ -1168,7 +1168,7 @@ class FirestoreService:
             blogs_ref = self.db.collection("blogs")
             results = []
 
-            # Get all user IDs under this admin (same pattern as available_blogs)
+            # Get all user IDs under this admin
             user_ids = [site_owner_id]
             try:
                 user_docs = self.db.collection("users").where("created_by", "==", site_owner_id).stream()
@@ -1177,35 +1177,30 @@ class FirestoreService:
             except Exception:
                 pass
 
-            # Fetch currently scheduled blogs
+            print(f"[Calendar] Querying for user_ids: {user_ids}")
+
+            # Query by author_id only (avoids composite index requirement), filter status in Python
             batch_size = 10
             for i in range(0, len(user_ids), batch_size):
                 batch_ids = user_ids[i:i + batch_size]
-                scheduled_docs = (
+                docs = (
                     blogs_ref
                     .where(filter=FieldFilter("author_id", "in", batch_ids))
-                    .where(filter=FieldFilter("status", "==", "SCHEDULED"))
                     .stream()
                 )
-                for doc in scheduled_docs:
+                for doc in docs:
                     data = doc.to_dict()
-                    data["id"] = doc.id
-                    results.append(data)
+                    status = data.get("status")
+                    scheduled_at = data.get("scheduled_at")
 
-            # Fetch published blogs that were previously scheduled (have scheduled_at)
-            for i in range(0, len(user_ids), batch_size):
-                batch_ids = user_ids[i:i + batch_size]
-                published_docs = (
-                    blogs_ref
-                    .where(filter=FieldFilter("author_id", "in", batch_ids))
-                    .where(filter=FieldFilter("status", "==", "PUBLISHED"))
-                    .stream()
-                )
-                for doc in published_docs:
-                    data = doc.to_dict()
-                    if data.get("scheduled_at"):
+                    if status == "SCHEDULED" and scheduled_at:
                         data["id"] = doc.id
                         results.append(data)
+                    elif status == "PUBLISHED" and scheduled_at:
+                        data["id"] = doc.id
+                        results.append(data)
+
+            print(f"[Calendar] Found {len(results)} blogs (scheduled + published with scheduled_at)")
 
             def sort_key(x):
                 dt = x.get("scheduled_at")
@@ -1219,7 +1214,62 @@ class FirestoreService:
             return results
         except Exception as e:
             print(f"Error fetching calendar blogs: {e}")
+            import traceback
+            traceback.print_exc()
             return []
+
+    # ==================== SCHEDULE ENTRIES ====================
+
+    def save_schedule_entry(self, blog_id, title, scheduled_at, author_id, site_owner_id):
+        """Save a schedule entry so it persists on the calendar even after publishing."""
+        try:
+            doc_ref = self.db.collection("schedule_entries").document(blog_id)
+            doc_ref.set({
+                "blog_id": blog_id,
+                "title": title,
+                "scheduled_at": scheduled_at,
+                "author_id": author_id,
+                "site_owner_id": site_owner_id,
+                "status": "SCHEDULED",
+                "created_at": datetime.utcnow()
+            })
+            return True
+        except Exception as e:
+            print(f"Error saving schedule entry: {e}")
+            return False
+
+    def update_schedule_entry_status(self, blog_id, new_status):
+        """Update the status of a schedule entry (PUBLISHED or CANCELLED)."""
+        try:
+            doc_ref = self.db.collection("schedule_entries").document(blog_id)
+            doc_ref.update({"status": new_status, "updated_at": datetime.utcnow()})
+            return True
+        except Exception as e:
+            print(f"Error updating schedule entry: {e}")
+            return False
+
+    def delete_schedule_entry(self, blog_id):
+        """Delete a schedule entry (when schedule is cancelled)."""
+        try:
+            self.db.collection("schedule_entries").document(blog_id).delete()
+            return True
+        except Exception as e:
+            print(f"Error deleting schedule entry: {e}")
+            return False
+
+    def get_schedule_entries_for_calendar(self, site_owner_id):
+        """Get all schedule entries for the calendar page."""
+        try:
+            entries_ref = self.db.collection("schedule_entries")
+            docs = entries_ref.where(filter=FieldFilter("site_owner_id", "==", site_owner_id)).stream()
+            results = []
+            for doc in docs:
+                data = doc.to_dict()
+                data["id"] = data.get("blog_id", doc.id)
+                results.append(data)
+            return results
+        except Exception as e:
+            print(f"Error fetching schedule entries: {e}")
             return []
         
 # Categories functions

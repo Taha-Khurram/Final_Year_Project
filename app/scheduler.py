@@ -25,6 +25,8 @@ def publish_due_blogs():
                 success = db.update_blog_status(blog_id, "PUBLISHED")
 
                 if success:
+                    db.update_schedule_entry_status(blog_id, "PUBLISHED")
+
                     site_owner_id = blog.get('site_owner_id') or blog.get('author_id')
                     if site_owner_id:
                         cache.clear_prefix(f"published_blogs:{site_owner_id}")

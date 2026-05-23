@@ -31,14 +31,13 @@ def schedule_list():
     try:
         site_owner_id = db_service.get_site_owner_for_user(user_id)
         print(f"[Schedule List] user_id={user_id}, site_owner_id={site_owner_id}")
-        blogs = db_service.get_all_scheduled_for_calendar(site_owner_id)
-        print(f"[Schedule List] Found {len(blogs)} blogs from Firestore")
+        entries = db_service.get_schedule_entries_for_calendar(site_owner_id)
+        print(f"[Schedule List] Found {len(entries)} entries from schedule_entries collection")
 
         result = []
-        for blog in blogs:
-            scheduled_at = blog.get('scheduled_at')
+        for entry in entries:
+            scheduled_at = entry.get('scheduled_at')
             if not scheduled_at:
-                print(f"[Schedule List] Skipping blog {blog.get('id')} - no scheduled_at")
                 continue
 
             if hasattr(scheduled_at, 'isoformat'):
@@ -47,15 +46,15 @@ def schedule_list():
                 display_date = str(scheduled_at)
 
             result.append({
-                "id": blog.get("id"),
-                "title": (blog.get("title") or "Untitled").replace("**", ""),
-                "category": blog.get("category", "General"),
-                "author": blog.get("author", "Unknown"),
-                "status": blog.get("status"),
+                "id": entry.get("id") or entry.get("blog_id"),
+                "title": (entry.get("title") or "Untitled").replace("**", ""),
+                "category": entry.get("category", "General"),
+                "author": entry.get("author", "Unknown"),
+                "status": entry.get("status"),
                 "scheduled_at": display_date
             })
 
-        print(f"[Schedule List] Returning {len(result)} blogs")
+        print(f"[Schedule List] Returning {len(result)} entries")
         return jsonify({"success": True, "blogs": result})
     except Exception as e:
         print(f"❌ Schedule list error: {e}")
@@ -253,6 +252,15 @@ def schedule_blog(blog_id):
         success = db_service.update_blog_status(blog_id, "SCHEDULED", scheduled_at=scheduled_at, scheduled_by=user_id)
 
         if success:
+            site_owner_id = db_service.get_site_owner_for_user(user_id) or user_id
+            db_service.save_schedule_entry(
+                blog_id=blog_id,
+                title=blog_data.get('title', 'Untitled'),
+                scheduled_at=scheduled_at,
+                author_id=blog_data.get('author_id', user_id),
+                site_owner_id=site_owner_id
+            )
+
             db_service.log_activity(
                 user_id=user_id,
                 user_name=user_name,
@@ -319,6 +327,9 @@ def reschedule_blog(blog_id):
     success = db_service.update_blog_status(blog_id, "SCHEDULED", scheduled_at=scheduled_at, scheduled_by=user_id)
 
     if success:
+        doc_ref = db_service.db.collection("schedule_entries").document(blog_id)
+        doc_ref.update({"scheduled_at": scheduled_at, "status": "SCHEDULED", "updated_at": datetime.utcnow()})
+
         db_service.log_activity(
             user_id=user_id,
             user_name=session.get('user_name', 'User'),
@@ -351,6 +362,8 @@ def cancel_schedule(blog_id):
     success = db_service.update_blog_status(blog_id, "DRAFT")
 
     if success:
+        db_service.delete_schedule_entry(blog_id)
+
         db_service.log_activity(
             user_id=user_id,
             user_name=session.get('user_name', 'User'),
@@ -383,6 +396,8 @@ def publish_now(blog_id):
     success = db_service.update_blog_status(blog_id, "PUBLISHED")
 
     if success:
+        db_service.update_schedule_entry_status(blog_id, "PUBLISHED")
+
         from app.utils.cache import cache
         site_owner_id = blog_data.get('site_owner_id') or blog_data.get('author_id') or user_id
         cache.clear_prefix(f"published_blogs:{site_owner_id}")
