@@ -981,7 +981,7 @@ def optimize_existing_blog(blog_id):
             return jsonify({"success": False, "error": "Unauthorized"}), 401
 
         data = request.get_json()
-        region = data.get('region', 'PK')
+        region = data.get('region', 'US')
 
         # Get the blog
         blog_data = db_service.get_blog_by_id(blog_id)
@@ -1030,7 +1030,8 @@ def optimize_existing_blog(blog_id):
                 "comparison": result.get('comparison', {}),
                 "changes_made": result.get('changes_made', []),
                 "original_score": result.get('original_analysis', {}).get('seo_score', {}).get('total', 0),
-                "score_improvement": result.get('score_improvement', 0)
+                "score_improvement": result.get('score_improvement', 0),
+                "recommendations": result.get('recommendations', [])
             })
 
         return jsonify({

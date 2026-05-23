@@ -4,7 +4,7 @@ Analyzes content, finds low-competition keywords, and auto-optimizes blogs
 with real content analysis and scoring.
 
 Features:
-- Real keyword data from Google Trends (PyTrends)
+- Real keyword data from Ahrefs Keyword Research API
 - Actual content analysis (not AI self-reporting)
 - Readability scoring (Flesch-Kincaid)
 - Keyword density analysis
@@ -30,23 +30,9 @@ class SEOAgent:
         genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
         self.model = genai.GenerativeModel('gemini-3-flash-preview')
 
-        # RapidAPI Key for SEO APIs
-        self.rapidapi_key = os.getenv('RAPIDAPI_KEY', '')
-
-        # SEO Keyword Research API on RapidAPI
-        self.seo_api = {
-            "host": "seo-keyword-research.p.rapidapi.com",
-            "base_url": "https://seo-keyword-research.p.rapidapi.com"
-        }
-
-        # SEO Checker API on RapidAPI (URL analysis)
-        self.seo_checker_api = {
-            "host": "seo-checker2.p.rapidapi.com",
-            "base_url": "https://seo-checker2.p.rapidapi.com"
-        }
-
-        # Use PyTrends as backup data source
-        self.use_pytrends = True
+        # Ahrefs Keyword Research API on RapidAPI
+        self.ahrefs_key = os.getenv('AHREFS_RAPIDAPI_KEY', '')
+        self.ahrefs_keyword_host = "ahrefs-keyword-research.p.rapidapi.com"
 
         # SEO Best Practices Constants
         self.IDEAL_TITLE_LENGTH = (50, 60)
@@ -664,291 +650,69 @@ class SEOAgent:
         """Public wrapper for seed keyword extraction"""
         return self._extract_seed_keywords(topic, content)
 
-    def get_keyword_data(self, keywords: List[str], region: str = "PK") -> List[Dict]:
-        """Fetch keyword metrics using real data sources with caching"""
-        # Try cache first (15-minute TTL)
+    def get_keyword_data(self, keywords: List[str], region: str = "US") -> List[Dict]:
+        """Fetch keyword metrics from Ahrefs Keyword Research API"""
         cache_key = f"keywords:{region}:{':'.join(sorted(keywords[:5]))}"
         cached_result = cache.get(cache_key)
         if cached_result is not None:
             print("Using cached keyword data")
             return cached_result
 
-        # Method 1: Try SEO Keyword Research API (RapidAPI)
-        if self.rapidapi_key:
-            result = self._fetch_from_seo_api(keywords, region)
-            if result:
-                print("Using SEO Keyword Research API data")
-                cache.set(cache_key, result, ttl=900)  # 15 minutes
-                return result
+        if not self.ahrefs_key:
+            print("ERROR: AHREFS_RAPIDAPI_KEY not configured")
+            return []
 
-        # Method 2: Try PyTrends as backup
-        if self.use_pytrends:
-            result = self._fetch_from_pytrends(keywords, region)
-            if result:
-                print("Using PyTrends (Google Trends) data")
-                cache.set(cache_key, result, ttl=900)  # 15 minutes
-                return result
+        country = region.lower() if region else "us"
+        results = []
 
-        # Method 3: AI-estimated keyword data as final fallback
-        result = self._generate_ai_keyword_estimates(keywords, region)
-        if result:
-            print("Using AI-estimated keyword data (external APIs unavailable)")
-            cache.set(cache_key, result, ttl=900)
-            return result
+        for kw in keywords[:8]:
+            data = self._fetch_ahrefs_keyword(kw, country)
+            if data:
+                results.append(data)
 
-        print("ERROR: No keyword data available.")
-        return []
+        if results:
+            print(f"Using Ahrefs keyword data ({len(results)} keywords)")
+            cache.set(cache_key, results, ttl=900)
 
-    def _fetch_from_seo_api(self, keywords: List[str], region: str) -> List[Dict]:
-        """Use SEO Keyword Research API from RapidAPI"""
+        return results
+
+    def _fetch_ahrefs_keyword(self, keyword: str, country: str) -> Optional[Dict]:
+        """Fetch metrics for a single keyword from Ahrefs API"""
         try:
-            import http.client
-            import json
+            resp = requests.get(
+                f"https://{self.ahrefs_keyword_host}/keyword-metrics",
+                params={"keyword": keyword, "country": country},
+                headers={
+                    "x-rapidapi-key": self.ahrefs_key,
+                    "x-rapidapi-host": self.ahrefs_keyword_host
+                },
+                timeout=30
+            )
+            if resp.status_code == 200:
+                raw = resp.json()
+                data = raw.get("data", raw) if raw.get("success") else raw
 
-            all_results = []
-            country_code = self._get_country_code(region) if region else "us"
+                volume = data.get("volume", data.get("search_volume", 0)) or 0
+                difficulty = data.get("difficulty", data.get("keyword_difficulty", 50)) or 50
+                cpc = data.get("cpc", 0) or 0
 
-            for keyword in keywords[:3]:
-                conn = http.client.HTTPSConnection(self.seo_api["host"])
-
-                headers = {
-                    'x-rapidapi-key': self.rapidapi_key,
-                    'x-rapidapi-host': self.seo_api["host"],
-                    'Content-Type': "application/json"
+                return {
+                    "keyword": data.get("keyword", keyword),
+                    "search_volume": int(volume),
+                    "difficulty_score": int(difficulty),
+                    "cpc": float(cpc),
+                    "competition": self._map_competition(difficulty),
+                    "clicks": data.get("clicks", 0) or 0,
+                    "traffic_potential": data.get("trafficPotential", data.get("traffic_potential", 0)) or 0,
+                    "source": "ahrefs"
                 }
-
-                encoded_keyword = requests.utils.quote(keyword)
-                conn.request("GET", f"/keynew.php?keyword={encoded_keyword}&country={country_code}", headers=headers)
-                res = conn.getresponse()
-                data = res.read()
-                conn.close()
-
-                if res.status == 200:
-                    json_data = json.loads(data.decode("utf-8"))
-                    parsed = self._parse_seo_api_results(json_data, keyword)
-                    all_results.extend(parsed)
-
-            return all_results
-
+            elif resp.status_code == 429:
+                print(f"Ahrefs rate limited for keyword: {keyword}")
+            else:
+                print(f"Ahrefs API returned {resp.status_code} for: {keyword}")
         except Exception as e:
-            print(f"SEO Keyword Research API error: {e}")
-            return []
-
-    def _parse_seo_api_results(self, data: list, seed_keyword: str) -> List[Dict]:
-        """Parse SEO Keyword Research API results"""
-        parsed = []
-
-        if not isinstance(data, list):
-            return parsed
-
-        for item in data[:15]:
-            keyword_text = item.get('text', '')
-            if not keyword_text:
-                continue
-
-            volume = item.get('vol', 0) or item.get('v', 0)
-            cpc = float(item.get('cpc', 0) or 0)
-            competition = item.get('competition', 'medium').lower()
-            score = float(item.get('score', 1.0) or 1.0)
-
-            difficulty = self._competition_to_difficulty(competition, score, volume)
-
-            parsed.append({
-                "keyword": keyword_text,
-                "search_volume": volume,
-                "cpc": cpc,
-                "competition": competition,
-                "difficulty_score": difficulty,
-                "source": "seo_api"
-            })
-
-        return parsed
-
-    def _competition_to_difficulty(self, competition: str, score: float, volume: int) -> int:
-        """Convert API competition data to a 0-100 difficulty score"""
-        base = {"low": 25, "medium": 50, "high": 75}.get(competition, 50)
-        score_modifier = min(score * 10, 20)
-        volume_modifier = min(volume / 50000, 15) if volume > 10000 else 0
-        return min(int(base + score_modifier + volume_modifier), 100)
-
-    def _fetch_from_pytrends(self, keywords: List[str], region: str) -> List[Dict]:
-        """Use PyTrends (Google Trends)"""
-        try:
-            from pytrends.request import TrendReq
-
-            pytrends = TrendReq(hl='en-US', tz=300)
-            geo = self._get_pytrends_geo(region)
-            results = []
-
-            for i in range(0, len(keywords), 5):
-                batch = keywords[i:i+5]
-
-                try:
-                    pytrends.build_payload(batch, geo=geo, timeframe='today 12-m')
-                    interest_df = pytrends.interest_over_time()
-                    related = pytrends.related_queries()
-
-                    for kw in batch:
-                        avg_interest = 0
-                        if not interest_df.empty and kw in interest_df.columns:
-                            avg_interest = int(interest_df[kw].mean())
-
-                        difficulty = self._estimate_difficulty_from_trends(avg_interest, kw)
-
-                        results.append({
-                            "keyword": kw,
-                            "search_volume": avg_interest * 100,
-                            "competition": self._map_competition(difficulty),
-                            "difficulty_score": difficulty,
-                            "trend_interest": avg_interest,
-                            "source": "google_trends"
-                        })
-
-                        if kw in related and related[kw]['rising'] is not None:
-                            rising = related[kw]['rising']
-                            for _, row in rising.head(3).iterrows():
-                                results.append({
-                                    "keyword": row['query'],
-                                    "search_volume": 500,
-                                    "competition": "LOW",
-                                    "difficulty_score": 30,
-                                    "is_rising": True,
-                                    "source": "google_trends_rising"
-                                })
-
-                except Exception as e:
-                    print(f"PyTrends batch error: {e}")
-                    continue
-
-            return results
-
-        except ImportError:
-            print("PyTrends not installed. Run: pip install pytrends")
-            return []
-        except Exception as e:
-            print(f"PyTrends error: {e}")
-            return []
-
-    def _generate_ai_keyword_estimates(self, keywords: List[str], region: str) -> List[Dict]:
-        """Use Gemini to estimate keyword metrics when external APIs are unavailable"""
-        try:
-            import json
-            country = self._get_country_name(region) or region
-
-            prompt = f"""You are an SEO keyword research expert. Estimate realistic keyword metrics for the following keywords targeting {country}.
-
-KEYWORDS: {', '.join(keywords[:8])}
-
-For each keyword, provide:
-- keyword: the keyword text
-- search_volume: estimated monthly searches (realistic number)
-- difficulty_score: SEO difficulty 0-100 (lower = easier to rank)
-- competition: LOW, MEDIUM, or HIGH
-
-Also suggest 5 additional related long-tail keywords with low competition.
-
-Return ONLY valid JSON array, no explanation:
-[
-  {{"keyword": "...", "search_volume": 1000, "difficulty_score": 45, "competition": "MEDIUM"}},
-  ...
-]"""
-
-            response = self.model.generate_content(prompt)
-            text = (response.text or "").strip()
-
-            if not text:
-                return []
-
-            if '```' in text:
-                json_match = re.search(r'```(?:json)?\s*\n?([\s\S]*?)\n?```', text)
-                if json_match:
-                    text = json_match.group(1).strip()
-
-            start_idx = text.find('[')
-            end_idx = text.rfind(']')
-            if start_idx != -1 and end_idx != -1:
-                text = text[start_idx:end_idx + 1]
-
-            try:
-                results = json.loads(text)
-            except json.JSONDecodeError:
-                cleaned = re.sub(r',\s*([}\]])', r'\1', text)
-                results = json.loads(cleaned)
-
-            for item in results:
-                item['source'] = 'ai_estimated'
-                if 'difficulty_score' not in item:
-                    item['difficulty_score'] = self._estimate_keyword_difficulty(item.get('keyword', ''), region)
-                if 'competition' not in item:
-                    item['competition'] = self._map_competition(item['difficulty_score'])
-
-            return results
-
-        except Exception as e:
-            print(f"AI keyword estimation error: {e}")
-            return []
-
-    def _estimate_keyword_difficulty(self, keyword: str, region: str) -> int:
-        """Estimate SEO difficulty based on keyword characteristics"""
-        base_difficulty = 50
-        words = keyword.lower().split()
-        word_count = len(words)
-
-        if word_count >= 5:
-            base_difficulty -= 30
-        elif word_count >= 4:
-            base_difficulty -= 25
-        elif word_count >= 3:
-            base_difficulty -= 15
-        elif word_count == 1:
-            base_difficulty += 25
-
-        location_terms = ['pakistan', 'lahore', 'karachi', 'islamabad', 'india', 'uk', 'usa']
-        if any(loc in keyword.lower() for loc in location_terms):
-            base_difficulty -= 20
-
-        question_words = ['how', 'what', 'why', 'when', 'where', 'which', 'who']
-        if any(q in words for q in question_words):
-            base_difficulty -= 10
-
-        if any(year in keyword for year in ['2024', '2025', '2026']):
-            base_difficulty -= 5
-
-        hard_terms = ['best', 'top', 'review', 'vs', 'versus']
-        if any(term in words for term in hard_terms):
-            base_difficulty += 10
-
-        return max(5, min(95, base_difficulty))
-
-    def _estimate_search_volume(self, keyword: str) -> int:
-        """Estimate relative search volume"""
-        word_count = len(keyword.split())
-        if word_count >= 5:
-            return 100
-        elif word_count >= 4:
-            return 300
-        elif word_count >= 3:
-            return 800
-        elif word_count == 2:
-            return 2000
-        else:
-            return 5000
-
-    def _estimate_difficulty_from_trends(self, interest: int, keyword: str) -> int:
-        """Estimate SEO difficulty from Google Trends interest score"""
-        base_difficulty = interest
-        word_count = len(keyword.split())
-
-        if word_count >= 4:
-            base_difficulty = max(10, base_difficulty - 25)
-        elif word_count >= 3:
-            base_difficulty = max(15, base_difficulty - 15)
-
-        location_terms = ['pakistan', 'lahore', 'karachi', 'islamabad', 'pk']
-        if any(loc in keyword.lower() for loc in location_terms):
-            base_difficulty = max(10, base_difficulty - 20)
-
-        return min(100, max(0, base_difficulty))
+            print(f"Ahrefs keyword fetch error for '{keyword}': {e}")
+        return None
 
     def _map_competition(self, value) -> str:
         """Map numeric competition to LOW/MEDIUM/HIGH"""
@@ -963,35 +727,14 @@ Return ONLY valid JSON array, no explanation:
         else:
             return "HIGH"
 
-    def _get_pytrends_geo(self, region: str) -> str:
-        """Convert region code to PyTrends geo code"""
-        geo_codes = {
-            "PK": "PK", "US": "US", "GB": "GB", "IN": "IN",
-            "AE": "AE", "SA": "SA", "CA": "CA", "AU": "AU",
-        }
-        return geo_codes.get(region, "")
-
-    def _get_country_name(self, region: str) -> str:
-        """Convert region code to country name"""
-        countries = {
-            "PK": "pakistan", "US": "united states", "GB": "united kingdom",
-            "IN": "india", "AE": "uae", "SA": "saudi arabia",
-            "CA": "canada", "AU": "australia",
-        }
-        return countries.get(region, "")
-
     def _get_country_code(self, region: str) -> str:
-        """Convert region code to lowercase country code for SEO API"""
+        """Convert region code to lowercase country code for Ahrefs API"""
         return region.lower() if region else "us"
-
-    def _get_google_related_keywords(self, seed: str, region: str = "PK") -> List[Dict]:
-        """Get related keywords for a single seed keyword - wrapper for routes"""
-        return self.get_keyword_data([seed], region)
 
     # =========================================
     # KEYWORD RESEARCH PIPELINE
     # =========================================
-    def find_low_competition_keywords(self, topic: str, content: str, region: str = "PK",
+    def find_low_competition_keywords(self, topic: str, content: str, region: str = "US",
                                       max_difficulty: int = 40, min_volume: int = 100) -> Dict:
         """Find low-competition keywords"""
         seed_keywords = self.extract_seed_keywords(topic, content)
@@ -1015,6 +758,13 @@ Return ONLY valid JSON array, no explanation:
             if kw['difficulty_score'] <= max_difficulty
             and kw['search_volume'] >= min_volume
         ]
+
+        if not low_competition:
+            low_competition = sorted(
+                all_keywords,
+                key=lambda x: x['search_volume'] / (x['difficulty_score'] + 1),
+                reverse=True
+            )
 
         low_competition.sort(
             key=lambda x: x['search_volume'] / (x['difficulty_score'] + 1),
@@ -1044,39 +794,30 @@ Return ONLY valid JSON array, no explanation:
         primary_keyword = primary_kw.get('keyword', '') if primary_kw else ''
         secondary_kws = [kw['keyword'] for kw in keyword_data.get('secondary_keywords', [])]
 
-        prompt = f"""
-        You are an SEO expert. Optimize this blog for search engines.
+        # Strip code blocks from content to prevent Gemini from outputting code
+        clean_content = re.sub(r'```[\s\S]*?```', '[CODE_BLOCK_PRESERVED]', content[:4000])
+        # Also strip inline code that might confuse the model
+        clean_content = re.sub(r'`[^`]+`', '[inline-code]', clean_content)
 
-        PRIMARY KEYWORD: {primary_keyword}
-        SECONDARY KEYWORDS: {', '.join(secondary_kws)}
+        prompt = f"""TASK: Optimize this blog post for SEO. Return ONLY a JSON object.
 
-        ORIGINAL TITLE: {title}
-        ORIGINAL CONTENT:
-        {content}
+PRIMARY KEYWORD: {primary_keyword}
+SECONDARY KEYWORDS: {', '.join(secondary_kws)}
 
-        INSTRUCTIONS:
-        1. Rewrite the title to include the primary keyword (keep it 50-60 chars)
-        2. Ensure primary keyword appears naturally in the first paragraph
-        3. Add the primary keyword to at least one H2 heading
-        4. Distribute secondary keywords naturally throughout
-        5. Write a meta description (150-160 chars) including primary keyword
-        6. Add a FAQ section with 3 relevant questions
-        7. Keep content natural and readable - NO keyword stuffing
+TITLE: {title}
+CONTENT (code blocks replaced with placeholders):
+{clean_content}
 
-        RESPOND WITH THIS EXACT JSON FORMAT:
-        {{
-            "optimized_title": "...",
-            "meta_description": "...",
-            "optimized_content": "... (full markdown content)",
-            "faq_section": [
-                {{"question": "...", "answer": "..."}},
-                {{"question": "...", "answer": "..."}},
-                {{"question": "...", "answer": "..."}}
-            ]
-        }}
+RULES:
+1. Rewrite title to include primary keyword (50-60 chars)
+2. Place primary keyword in first paragraph and one H2 heading
+3. Write meta description (150-160 chars) with primary keyword
+4. Add FAQ section with 3 questions
+5. Keep [CODE_BLOCK_PRESERVED] placeholders in optimized_content where they appeared
+6. Write optimized_content as markdown text
 
-        Return ONLY valid JSON, no explanation.
-        """
+OUTPUT FORMAT - respond with ONLY this JSON structure, nothing else:
+{{"optimized_title": "string", "meta_description": "string", "optimized_content": "string with markdown", "faq_section": [{{"question": "string", "answer": "string"}}]}}"""
 
         try:
             response = None
@@ -1156,6 +897,14 @@ Return ONLY valid JSON array, no explanation:
 
             # NOW analyze the actual optimized content
             optimized_content = result.get('optimized_content', content)
+
+            # Restore original code blocks that were stripped for the prompt
+            code_blocks = re.findall(r'```[\s\S]*?```', content)
+            for block in code_blocks:
+                if '[CODE_BLOCK_PRESERVED]' in optimized_content:
+                    optimized_content = optimized_content.replace('[CODE_BLOCK_PRESERVED]', block, 1)
+            result['optimized_content'] = optimized_content
+
             optimized_title = result.get('optimized_title', title)
 
             # Run real analysis on the optimized content
@@ -1283,94 +1032,56 @@ Return ONLY valid JSON array, no explanation:
     # =========================================
     def analyze_url(self, url: str) -> Dict:
         """
-        Analyze a live URL's SEO using the SEO Checker API.
-        This is an async API - first call triggers processing, subsequent calls return results.
+        Analyze a live URL's SEO using the Ahrefs URL Research API.
         """
-        import http.client
-        import json
-        import time
-
-        if not self.rapidapi_key:
-            return {"success": False, "error": "RapidAPI key not configured"}
+        if not self.ahrefs_key:
+            return {"success": False, "error": "Ahrefs API key not configured"}
 
         cache_key = f"seo_url:{url}"
         cached = cache.get(cache_key)
         if cached:
             return cached
 
-        encoded_url = requests.utils.quote(url, safe='')
-        headers = {
-            'x-rapidapi-key': self.rapidapi_key,
-            'x-rapidapi-host': self.seo_checker_api["host"],
-            'Content-Type': "application/json"
-        }
-
         try:
-            # Poll the API (async endpoint: first call triggers, subsequent returns data)
-            for attempt in range(5):
-                conn = http.client.HTTPSConnection(self.seo_checker_api["host"])
-                conn.request("GET", f"/analyze?url={encoded_url}", headers=headers)
-                res = conn.getresponse()
-                data = res.read()
-                conn.close()
+            resp = requests.get(
+                "https://ahrefs-url-research.p.rapidapi.com/url-metrics",
+                params={"url": url},
+                headers={
+                    "x-rapidapi-key": self.ahrefs_key,
+                    "x-rapidapi-host": "ahrefs-url-research.p.rapidapi.com"
+                },
+                timeout=30
+            )
 
-                if res.status != 200:
-                    error_msg = json.loads(data.decode("utf-8")).get("message", "API error")
-                    return {"success": False, "error": error_msg}
+            if resp.status_code != 200:
+                return {"success": False, "error": f"API returned status {resp.status_code}"}
 
-                result = json.loads(data.decode("utf-8"))
+            raw = resp.json()
+            api_data = raw.get("data", raw) if raw.get("success") else raw
+            page = api_data.get("page", {}) if isinstance(api_data, dict) else {}
+            domain = api_data.get("domain", {}) if isinstance(api_data, dict) else {}
 
-                if not result.get("processing"):
-                    parsed = self._parse_seo_checker_results(result)
-                    cache.set(cache_key, parsed, ttl=1800)  # 30 min cache
-                    return parsed
+            result = {
+                "success": True,
+                "url": url,
+                "domain_rating": domain.get("domainRating", 0),
+                "url_rating": page.get("urlRating", 0),
+                "backlinks": page.get("backlinks", 0),
+                "ref_domains": page.get("refDomains", 0),
+                "organic_traffic": page.get("traffic", 0),
+                "organic_keywords": domain.get("organicKeywords", 0),
+                "word_count": page.get("numberOfWordsOnPage", 0),
+            }
 
-                if attempt < 4:
-                    time.sleep(4)
-
-            return {"success": False, "error": "Analysis timed out. Try again in a few seconds."}
+            cache.set(cache_key, result, ttl=1800)
+            return result
 
         except Exception as e:
-            print(f"SEO Checker API error: {e}")
+            print(f"Ahrefs URL analysis error: {e}")
             return {"success": False, "error": str(e)}
 
-    def _parse_seo_checker_results(self, data: Dict) -> Dict:
-        """Parse the SEO Checker API response into a structured format"""
-        return {
-            "success": True,
-            "url": data.get("url", ""),
-            "title": data.get("title", ""),
-            "description": data.get("description", ""),
-            "score": data.get("score", 0),
-            "load_time": data.get("loadTime") or data.get("load_time", "N/A"),
-            "content_analysis": {
-                "word_count": data.get("wordCount") or data.get("word_count", 0),
-                "title_length": data.get("titleLength") or data.get("title_length", 0),
-                "description_length": data.get("descriptionLength") or data.get("description_length", 0),
-                "headings": data.get("headings", {}),
-                "images": data.get("images", {}),
-                "links": data.get("links", {}),
-            },
-            "technical": {
-                "ssl": data.get("ssl", False),
-                "mobile_friendly": data.get("mobileFriendly") or data.get("mobile_friendly", False),
-                "robots_txt": data.get("robotsTxt") or data.get("robots_txt", False),
-                "sitemap": data.get("sitemap", False),
-                "canonical": data.get("canonical", ""),
-                "lang": data.get("lang", ""),
-            },
-            "social": {
-                "og_tags": data.get("ogTags") or data.get("og_tags", {}),
-                "twitter_tags": data.get("twitterTags") or data.get("twitter_tags", {}),
-            },
-            "issues": data.get("issues", []),
-            "warnings": data.get("warnings", []),
-            "passed": data.get("passed", []),
-            "raw": data
-        }
 
-
-    def optimize_blog(self, title: str, content: str, region: str = "PK") -> Dict:
+    def optimize_blog(self, title: str, content: str, region: str = "US") -> Dict:
         """Complete SEO optimization pipeline"""
         print(f"Starting SEO optimization for region: {region}")
 

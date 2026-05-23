@@ -30,6 +30,7 @@
           <button class="opt-tab active" data-tab="url-metrics"><i class="bi bi-globe2"></i> URL Metrics</button>
           <button class="opt-tab" data-tab="keyword-research"><i class="bi bi-key-fill"></i> Keyword Research</button>
           <button class="opt-tab" data-tab="site-audit"><i class="bi bi-shield-check"></i> Site Audit</button>
+          <button class="opt-tab" data-tab="auto-optimize"><i class="bi bi-magic"></i> Auto Optimize</button>
         </div>
 
         <!-- URL Metrics Tab -->
@@ -156,6 +157,108 @@
           <div class="optimization-empty" id="auditEmptyState">
             <i class="bi bi-shield-check"></i>
             <p>Enter a domain above to discover its top search keywords</p>
+          </div>
+        </div>
+
+        <!-- Auto Optimize Tab -->
+        <div class="opt-tab-content" id="tabAutoOptimize">
+          <div class="optimization-input-card">
+            <label class="input-label">Select Draft to Optimize</label>
+            <div class="kw-input-layout">
+              <select id="optimizeDraftSelect" class="draft-select">
+                <option value="">-- Select a draft --</option>
+              </select>
+              <div class="kw-input-row">
+                <select id="optimizeRegionSelect" class="country-select">
+                  <option value="US">United States</option>
+                  <option value="UK">United Kingdom</option>
+                  <option value="CA">Canada</option>
+                  <option value="AU">Australia</option>
+                  <option value="DE">Germany</option>
+                  <option value="FR">France</option>
+                  <option value="ES">Spain</option>
+                  <option value="IT">Italy</option>
+                  <option value="BR">Brazil</option>
+                  <option value="IN">India</option>
+                  <option value="PK">Pakistan</option>
+                  <option value="JP">Japan</option>
+                  <option value="NL">Netherlands</option>
+                  <option value="MX">Mexico</option>
+                </select>
+                <button class="btn-analyze btn-optimize-go" id="optimizeBtn" onclick="runAutoOptimize()">
+                  <i class="bi bi-magic"></i> Optimize
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="optimize-loading" id="optimizeLoading" style="display:none;">
+            <div class="optimize-loading-inner">
+              <div class="optimize-spinner"></div>
+              <p class="optimize-loading-text">AI is analyzing and optimizing your blog...</p>
+              <p class="optimize-loading-sub">This may take 15-30 seconds</p>
+            </div>
+          </div>
+
+          <div class="optimization-results" id="optimizeResultsSection">
+            <div class="optimize-success-banner">
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Blog optimized and saved successfully!</span>
+              <button class="btn-export-report" onclick="exportOptimizeReport()">
+                <i class="bi bi-file-earmark-arrow-down"></i> Report
+              </button>
+            </div>
+
+            <div class="optimize-score-comparison">
+              <div class="optimize-score-card before">
+                <span class="optimize-score-label">Before</span>
+                <span class="optimize-score-value" id="optimizeScoreBefore">0</span>
+                <span class="optimize-score-sub">SEO Score</span>
+              </div>
+              <div class="optimize-score-arrow">
+                <i class="bi bi-arrow-right"></i>
+              </div>
+              <div class="optimize-score-card after">
+                <span class="optimize-score-label">After</span>
+                <span class="optimize-score-value" id="optimizeScoreAfter">0</span>
+                <span class="optimize-score-sub">SEO Score</span>
+              </div>
+              <div class="optimize-score-card improvement">
+                <span class="optimize-score-label">Improvement</span>
+                <span class="optimize-score-value" id="optimizeScoreImprovement">+0</span>
+                <span class="optimize-score-sub">Points</span>
+              </div>
+            </div>
+
+            <div class="optimize-details-section">
+              <div class="optimize-detail-row">
+                <span class="optimize-detail-label"><i class="bi bi-fonts"></i> New Title</span>
+                <span class="optimize-detail-value" id="optimizeNewTitle"></span>
+              </div>
+              <div class="optimize-detail-row">
+                <span class="optimize-detail-label"><i class="bi bi-key-fill"></i> Primary Keyword</span>
+                <span class="optimize-detail-value" id="optimizePrimaryKw"></span>
+              </div>
+              <div class="optimize-detail-row">
+                <span class="optimize-detail-label"><i class="bi bi-trophy-fill"></i> SEO Grade</span>
+                <span class="optimize-detail-value" id="optimizeGrade"></span>
+              </div>
+            </div>
+
+            <div class="optimize-changes-card" id="optimizeChangesCard">
+              <div class="details-title"><i class="bi bi-list-check"></i> Changes Made</div>
+              <ul class="optimize-changes-list" id="optimizeChangesList"></ul>
+            </div>
+
+            <div class="optimize-suggestions-card" id="optimizeSuggestionsCard" style="display:none;">
+              <div class="details-title"><i class="bi bi-lightbulb-fill"></i> Suggestions to Improve Further</div>
+              <ul class="optimize-suggestions-list" id="optimizeSuggestionsList"></ul>
+            </div>
+          </div>
+
+          <div class="optimization-empty" id="optimizeEmptyState">
+            <i class="bi bi-magic"></i>
+            <p>Select a draft blog to automatically optimize its SEO with AI</p>
           </div>
         </div>
 

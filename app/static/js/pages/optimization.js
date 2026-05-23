@@ -15,6 +15,9 @@
                 document.getElementById('tabKeywordResearch').classList.add('active');
             } else if (target === 'site-audit') {
                 document.getElementById('tabSiteAudit').classList.add('active');
+            } else if (target === 'auto-optimize') {
+                document.getElementById('tabAutoOptimize').classList.add('active');
+                loadOptimizeDrafts();
             }
         });
     });
@@ -412,4 +415,248 @@
             auditDetailsCard.style.display = 'block';
         }
     }
+
+    // ========== AUTO OPTIMIZE ==========
+    var optimizeDraftSelect = document.getElementById('optimizeDraftSelect');
+    var optimizeRegionSelect = document.getElementById('optimizeRegionSelect');
+    var optimizeBtn = document.getElementById('optimizeBtn');
+    var optimizeLoading = document.getElementById('optimizeLoading');
+    var optimizeResultsSection = document.getElementById('optimizeResultsSection');
+    var optimizeEmptyState = document.getElementById('optimizeEmptyState');
+    var optimizeDraftsLoaded = false;
+    var lastOptimizeData = null;
+
+    function loadOptimizeDrafts() {
+        if (optimizeDraftsLoaded) return;
+        fetch('/api/seo/drafts')
+            .then(function(r) { return r.json(); })
+            .then(function(result) {
+                if (result.success && result.drafts) {
+                    optimizeDraftSelect.innerHTML = '<option value="">-- Select a draft --</option>';
+                    result.drafts.forEach(function(d) {
+                        var opt = document.createElement('option');
+                        opt.value = d.id;
+                        opt.textContent = d.title || 'Untitled';
+                        optimizeDraftSelect.appendChild(opt);
+                    });
+                    optimizeDraftsLoaded = true;
+                }
+            })
+            .catch(function() {});
+    }
+
+    window.runAutoOptimize = async function() {
+        var blogId = optimizeDraftSelect.value;
+        if (!blogId) {
+            showToast({ type: 'warning', title: 'No Draft Selected', message: 'Please select a draft blog to optimize.' });
+            optimizeDraftSelect.focus();
+            return;
+        }
+
+        var region = optimizeRegionSelect.value;
+        optimizeBtn.disabled = true;
+        optimizeBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Optimizing...';
+        optimizeEmptyState.style.display = 'none';
+        optimizeResultsSection.classList.remove('show');
+        optimizeLoading.style.display = 'flex';
+
+        try {
+            var response = await fetch('/api/seo/optimize-blog/' + blogId, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ region: region })
+            });
+            var result = await response.json();
+
+            if (!response.ok || !result.success) {
+                showToast({ type: 'error', title: 'Optimization Failed', message: result.error || 'Unable to optimize this blog.' });
+                optimizeEmptyState.style.display = 'block';
+                return;
+            }
+
+            renderOptimizeResults(result);
+
+        } catch (err) {
+            showToast({ type: 'error', title: 'Connection Error', message: 'Failed to connect. Please try again.' });
+            optimizeEmptyState.style.display = 'block';
+        } finally {
+            optimizeBtn.disabled = false;
+            optimizeBtn.innerHTML = '<i class="bi bi-magic"></i> Optimize';
+            optimizeLoading.style.display = 'none';
+        }
+    };
+
+    function renderOptimizeResults(data) {
+        lastOptimizeData = data;
+
+        var originalScore = data.original_score || 0;
+        var newScore = data.seo_score || 0;
+        var improvement = data.score_improvement || (newScore - originalScore);
+
+        document.getElementById('optimizeScoreBefore').textContent = Math.round(originalScore);
+        document.getElementById('optimizeScoreAfter').textContent = Math.round(newScore);
+        document.getElementById('optimizeScoreImprovement').textContent = '+' + Math.round(improvement);
+
+        document.getElementById('optimizeNewTitle').textContent = data.new_title || 'N/A';
+        document.getElementById('optimizeGrade').textContent = data.seo_grade || 'N/A';
+
+        var primaryKw = data.primary_keyword;
+        if (primaryKw && typeof primaryKw === 'object') {
+            document.getElementById('optimizePrimaryKw').textContent = primaryKw.keyword || primaryKw.term || 'N/A';
+        } else {
+            document.getElementById('optimizePrimaryKw').textContent = primaryKw || 'N/A';
+        }
+
+        var changesList = document.getElementById('optimizeChangesList');
+        var changes = data.changes_made || [];
+        if (changes.length > 0) {
+            var changesHtml = '';
+            changes.forEach(function(change) {
+                var text = typeof change === 'object' ? (change.description || JSON.stringify(change)) : String(change);
+                changesHtml += '<li>' + escapeHtml(text) + '</li>';
+            });
+            changesList.innerHTML = changesHtml;
+            document.getElementById('optimizeChangesCard').style.display = 'block';
+        } else {
+            document.getElementById('optimizeChangesCard').style.display = 'none';
+        }
+
+        // Render suggestions
+        var suggestionsList = document.getElementById('optimizeSuggestionsList');
+        var suggestionsCard = document.getElementById('optimizeSuggestionsCard');
+        var recommendations = data.recommendations || [];
+        if (recommendations.length > 0) {
+            var sugHtml = '';
+            recommendations.forEach(function(rec) {
+                sugHtml += '<li>' + escapeHtml(String(rec)) + '</li>';
+            });
+            suggestionsList.innerHTML = sugHtml;
+            suggestionsCard.style.display = 'block';
+        } else {
+            suggestionsCard.style.display = 'none';
+        }
+
+        optimizeResultsSection.classList.add('show');
+        showToast({ type: 'success', title: 'Optimization Complete', message: 'Your blog has been optimized and saved!' });
+    }
+
+    // ========== EXPORT HTML REPORT ==========
+    window.exportOptimizeReport = function() {
+        if (!lastOptimizeData) return;
+        var d = lastOptimizeData;
+        var originalScore = d.original_score || 0;
+        var newScore = d.seo_score || 0;
+        var improvement = d.score_improvement || (newScore - originalScore);
+        var grade = d.seo_grade || 'N/A';
+        var title = d.new_title || 'Optimized Blog';
+        var primaryKw = d.primary_keyword || {};
+        var kwText = primaryKw.keyword || primaryKw.term || 'N/A';
+        var kwVolume = primaryKw.search_volume || 0;
+        var kwDiff = primaryKw.difficulty_score || 0;
+        var kwCpc = primaryKw.cpc || 0;
+        var changes = d.changes_made || [];
+        var comparison = d.comparison || {};
+        var breakdown = comparison.breakdown_comparison || {};
+        var recommendations = d.recommendations || [];
+        var dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        var changesRows = '';
+        changes.forEach(function(c) {
+            var desc = typeof c === 'object' ? (c.description || '') : String(c);
+            var before = (c && c.before) ? escapeHtml(c.before) : '—';
+            var after = (c && c.after) ? escapeHtml(c.after) : '—';
+            var type = (c && c.type) ? c.type.charAt(0).toUpperCase() + c.type.slice(1) : '—';
+            changesRows += '<tr><td>' + escapeHtml(type) + '</td><td>' + escapeHtml(desc) + '</td><td>' + before + '</td><td>' + after + '</td></tr>';
+        });
+
+        var breakdownRows = '';
+        var categories = ['content_length', 'headings', 'keywords', 'readability', 'links', 'title'];
+        var catLabels = { content_length: 'Content Length', headings: 'Headings', keywords: 'Keywords', readability: 'Readability', links: 'Links', title: 'Title' };
+        categories.forEach(function(cat) {
+            var b = breakdown[cat] || {};
+            var bef = b.before || 0;
+            var aft = b.after || 0;
+            var diff = aft - bef;
+            var diffStr = diff > 0 ? '+' + diff : String(diff);
+            var diffColor = diff > 0 ? '#05CD99' : diff < 0 ? '#dc3545' : '#707EAE';
+            breakdownRows += '<tr><td>' + (catLabels[cat] || cat) + '</td><td>' + bef + '</td><td>' + aft + '</td><td style="color:' + diffColor + ';font-weight:700">' + diffStr + '</td></tr>';
+        });
+
+        var recommendationsHtml = '';
+        if (recommendations.length > 0) {
+            recommendationsHtml = '<div class="section"><h2>Further Recommendations</h2><ul class="suggestions">';
+            recommendations.forEach(function(rec) {
+                recommendationsHtml += '<li>' + escapeHtml(String(rec)) + '</li>';
+            });
+            recommendationsHtml += '</ul></div>';
+        }
+
+        var html = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>SEO Report - ' + escapeHtml(title) + '</title><style>'
+            + '*{margin:0;padding:0;box-sizing:border-box}'
+            + 'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f8fafc;color:#1B2559;line-height:1.6}'
+            + '.report{max-width:800px;margin:2rem auto;background:white;border-radius:20px;box-shadow:0 4px 24px rgba(112,144,176,0.12);overflow:hidden}'
+            + '.header{background:linear-gradient(135deg,#4318FF 0%,#6b4dff 100%);color:white;padding:2.5rem 2rem;text-align:center}'
+            + '.header h1{font-size:1.5rem;font-weight:800;margin-bottom:0.25rem}'
+            + '.header .subtitle{opacity:0.85;font-size:0.9rem}'
+            + '.header .date{opacity:0.7;font-size:0.8rem;margin-top:0.5rem}'
+            + '.scores{display:flex;justify-content:center;gap:1.5rem;padding:2rem;flex-wrap:wrap}'
+            + '.score-box{text-align:center;padding:1.25rem 1.5rem;border-radius:16px;border:1px solid #e2e8f0;min-width:130px;flex:1}'
+            + '.score-box.before{background:rgba(220,53,69,0.04);border-color:rgba(220,53,69,0.2)}'
+            + '.score-box.after{background:rgba(5,205,153,0.04);border-color:rgba(5,205,153,0.2)}'
+            + '.score-box.improvement{background:rgba(67,24,255,0.04);border-color:rgba(67,24,255,0.2)}'
+            + '.score-label{display:block;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#707EAE;margin-bottom:0.25rem}'
+            + '.score-value{display:block;font-size:2rem;font-weight:800}'
+            + '.score-box.before .score-value{color:#dc3545}'
+            + '.score-box.after .score-value{color:#05CD99}'
+            + '.score-box.improvement .score-value{color:#4318FF}'
+            + '.score-sub{display:block;font-size:0.72rem;color:#a3aed0;margin-top:0.15rem}'
+            + '.section{padding:1.5rem 2rem;border-top:1px solid #f1f5f9}'
+            + '.section h2{font-size:1rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;color:#1B2559}'
+            + '.section h2::before{content:"";width:4px;height:18px;background:#4318FF;border-radius:2px}'
+            + 'table{width:100%;border-collapse:collapse;font-size:0.85rem}'
+            + 'th{background:#f8fafc;padding:0.7rem 1rem;text-align:left;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.3px;color:#707EAE;border-bottom:1px solid #e2e8f0}'
+            + 'td{padding:0.7rem 1rem;border-bottom:1px solid #f1f5f9;color:#1B2559}'
+            + 'tr:last-child td{border-bottom:none}'
+            + '.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}'
+            + '.detail-item{background:#f8fafc;border-radius:10px;padding:0.85rem 1rem;border:1px solid #e2e8f0}'
+            + '.detail-item .label{font-size:0.72rem;font-weight:600;text-transform:uppercase;color:#707EAE;margin-bottom:0.2rem}'
+            + '.detail-item .value{font-size:0.95rem;font-weight:600;color:#1B2559}'
+            + '.grade-badge{display:inline-block;background:linear-gradient(135deg,#4318FF,#6b4dff);color:white;padding:0.3rem 0.8rem;border-radius:20px;font-size:0.8rem;font-weight:700}'
+            + '.suggestions{list-style:none;padding:0}'
+            + '.suggestions li{padding:0.6rem 0 0.6rem 1.5rem;position:relative;border-bottom:1px solid #f1f5f9;font-size:0.88rem}'
+            + '.suggestions li:last-child{border-bottom:none}'
+            + '.suggestions li::before{content:"\\26A1";position:absolute;left:0}'
+            + '.footer{text-align:center;padding:1.5rem 2rem;border-top:1px solid #f1f5f9;color:#a3aed0;font-size:0.8rem}'
+            + '@media print{body{background:white}.report{box-shadow:none;margin:0;border-radius:0}}'
+            + '@media(max-width:600px){.scores{flex-direction:column;align-items:center}.detail-grid{grid-template-columns:1fr}}'
+            + '</style></head><body><div class="report">'
+            + '<div class="header"><h1>SEO Optimization Report</h1><div class="subtitle">' + escapeHtml(title) + '</div><div class="date">' + dateStr + '</div></div>'
+            + '<div class="scores">'
+            + '<div class="score-box before"><span class="score-label">Before</span><span class="score-value">' + Math.round(originalScore) + '</span><span class="score-sub">SEO Score</span></div>'
+            + '<div class="score-box after"><span class="score-label">After</span><span class="score-value">' + Math.round(newScore) + '</span><span class="score-sub">SEO Score</span></div>'
+            + '<div class="score-box improvement"><span class="score-label">Improvement</span><span class="score-value">+' + Math.round(improvement) + '</span><span class="score-sub">Grade: <span class="grade-badge">' + escapeHtml(grade) + '</span></span></div>'
+            + '</div>'
+            + '<div class="section"><h2>Keyword Data</h2><div class="detail-grid">'
+            + '<div class="detail-item"><div class="label">Primary Keyword</div><div class="value">' + escapeHtml(kwText) + '</div></div>'
+            + '<div class="detail-item"><div class="label">Search Volume</div><div class="value">' + Number(kwVolume).toLocaleString() + '</div></div>'
+            + '<div class="detail-item"><div class="label">Difficulty</div><div class="value">' + kwDiff + '/100</div></div>'
+            + '<div class="detail-item"><div class="label">CPC</div><div class="value">$' + Number(kwCpc).toFixed(2) + '</div></div>'
+            + '</div></div>'
+            + '<div class="section"><h2>Changes Made</h2><table><thead><tr><th>Type</th><th>Description</th><th>Before</th><th>After</th></tr></thead><tbody>' + changesRows + '</tbody></table></div>'
+            + '<div class="section"><h2>Score Breakdown</h2><table><thead><tr><th>Category</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody>' + breakdownRows + '</tbody></table></div>'
+            + recommendationsHtml
+            + '<div class="footer">Generated by ScriptlyAI &mdash; ' + dateStr + '</div>'
+            + '</div></body></html>';
+
+        var blob = new Blob([html], { type: 'text/html' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        var slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').substring(0, 40);
+        a.download = 'seo-report-' + slug + '-' + new Date().toISOString().slice(0, 10) + '.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
 })();
