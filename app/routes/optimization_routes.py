@@ -9,7 +9,13 @@ optimization_bp = Blueprint('optimization', __name__)
 _cache = SimpleCache()
 
 AHREFS_HOST = "ahrefs-url-research.p.rapidapi.com"
+AHREFS_KEYWORD_HOST = "ahrefs-keyword-research.p.rapidapi.com"
 CACHE_TTL = 30 * 60  # 30 minutes
+
+VALID_COUNTRIES = {
+    'us', 'uk', 'ca', 'au', 'de', 'fr', 'es', 'it', 'br', 'in',
+    'jp', 'nl', 'se', 'no', 'dk', 'fi', 'pl', 'ru', 'mx', 'ar'
+}
 
 
 def admin_required(f):
@@ -102,6 +108,67 @@ def url_metrics():
         return jsonify({"success": False, "error": "Could not connect to the API. Check your network."}), 502
     except requests.exceptions.RequestException as e:
         current_app.logger.error(f"Ahrefs API request failed: {e}")
+        return jsonify({"success": False, "error": "Failed to connect to the API."}), 502
+    except ValueError:
+        return jsonify({"success": False, "error": "Invalid response from API."}), 502
+
+
+@optimization_bp.route('/api/optimization/keyword-metrics')
+@admin_required
+def keyword_metrics():
+    keyword = request.args.get('keyword', '').strip()
+    country = request.args.get('country', 'us').strip().lower()
+
+    if not keyword:
+        return jsonify({"success": False, "error": "Please enter a keyword."}), 400
+
+    if country not in VALID_COUNTRIES:
+        country = 'us'
+
+    cache_key = f"ahrefs_keyword:{keyword}:{country}"
+    cached = _cache.get(cache_key)
+    if cached:
+        return jsonify({"success": True, "data": cached, "cached": True})
+
+    api_key = current_app.config.get('AHREFS_RAPIDAPI_KEY')
+    if not api_key:
+        return jsonify({"success": False, "error": "API key not configured."}), 500
+
+    try:
+        response = requests.get(
+            f"https://{AHREFS_KEYWORD_HOST}/keyword-metrics",
+            params={"keyword": keyword, "country": country},
+            headers={
+                "x-rapidapi-key": api_key,
+                "x-rapidapi-host": AHREFS_KEYWORD_HOST
+            },
+            timeout=30
+        )
+
+        if response.status_code == 429:
+            return jsonify({"success": False, "error": "API rate limit reached. Please try again later."}), 429
+
+        if response.status_code == 403:
+            return jsonify({"success": False, "error": "API access denied. Check your subscription."}), 403
+
+        if response.status_code != 200:
+            current_app.logger.warning(
+                f"Ahrefs Keyword API returned {response.status_code}: {response.text[:200]}"
+            )
+            return jsonify({"success": False, "error": f"API returned status {response.status_code}."}), 502
+
+        raw = response.json()
+        data = raw.get("data", raw) if raw.get("success") else raw
+
+        _cache.set(cache_key, data, ttl=CACHE_TTL)
+        return jsonify({"success": True, "data": data, "cached": False})
+
+    except requests.exceptions.Timeout:
+        return jsonify({"success": False, "error": "Request timed out. Please try again."}), 504
+    except requests.exceptions.ConnectionError:
+        return jsonify({"success": False, "error": "Could not connect to the API. Check your network."}), 502
+    except requests.exceptions.RequestException as e:
+        current_app.logger.error(f"Ahrefs Keyword API request failed: {e}")
         return jsonify({"success": False, "error": "Failed to connect to the API."}), 502
     except ValueError:
         return jsonify({"success": False, "error": "Invalid response from API."}), 502

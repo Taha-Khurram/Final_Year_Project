@@ -15,45 +15,96 @@
   <main class="dashboard-main">
     <header class="dashboard-header">
       <div>
-        <div class="header-welcome-text">SEO Tools</div>
-        <h1 class="header-title">URL Optimization</h1>
+        <h1 class="header-title">Optimization</h1>
       </div>
     </header>
 
     <div class="dashboard-content-wrapper animate-fade-up">
 
-      <!-- URL Input Card -->
-      <div class="optimization-input-card">
-        <label class="input-label">Analyze URL Performance</label>
-        <div class="optimization-input-group">
-          <input type="text" id="urlInput" placeholder="Enter a URL (e.g., medium.com)" autocomplete="off">
-          <button class="btn-analyze" id="analyzeBtn" onclick="analyzeUrl()">
-            <i class="bi bi-search"></i> Analyze
-          </button>
-        </div>
-      </div>
+      <!-- Optimization Card -->
+      <div class="optimization-card">
+        <h3><i class="bi bi-graph-up-arrow"></i> SEO Optimization</h3>
 
-      <!-- Results Section -->
-      <div class="optimization-results" id="resultsSection">
-        <div class="analyzed-url-badge" id="analyzedUrl">
-          <i class="bi bi-link-45deg"></i>
-          <span id="analyzedUrlText"></span>
+        <!-- Tabs -->
+        <div class="optimization-tabs">
+          <button class="opt-tab active" data-tab="url-metrics"><i class="bi bi-globe2"></i> URL Metrics</button>
+          <button class="opt-tab" data-tab="keyword-research"><i class="bi bi-key-fill"></i> Keyword Research</button>
         </div>
 
-        <!-- Metrics Grid -->
-        <div class="optimization-metrics-grid" id="metricsGrid"></div>
+        <!-- URL Metrics Tab -->
+        <div class="opt-tab-content active" id="tabUrlMetrics">
+          <div class="optimization-input-card">
+            <label class="input-label">Analyze URL</label>
+            <div class="optimization-input-group">
+              <input type="text" id="urlInput" placeholder="Enter a URL (e.g., medium.com)" autocomplete="off">
+              <button class="btn-analyze" id="analyzeUrlBtn" onclick="analyzeUrl()">
+                <i class="bi bi-search"></i> Analyze
+              </button>
+            </div>
+          </div>
 
-        <!-- Details Card -->
-        <div class="optimization-details-card" id="detailsCard">
-          <div class="details-title"><i class="bi bi-info-circle-fill"></i> Full Metrics Breakdown</div>
-          <div class="details-grid" id="detailsGrid"></div>
+          <div class="optimization-results" id="urlResultsSection">
+            <div class="analyzed-url-badge" id="analyzedUrl">
+              <i class="bi bi-link-45deg"></i>
+              <span id="analyzedUrlText"></span>
+            </div>
+            <div class="optimization-metrics-grid" id="urlMetricsGrid"></div>
+            <div class="optimization-details-card" id="urlDetailsCard">
+              <div class="details-title"><i class="bi bi-info-circle-fill"></i> Full Metrics Breakdown</div>
+              <div class="details-grid" id="urlDetailsGrid"></div>
+            </div>
+          </div>
+
+          <div class="optimization-empty" id="urlEmptyState">
+            <i class="bi bi-speedometer2"></i>
+            <p>Enter a URL above to analyze its SEO performance metrics</p>
+          </div>
         </div>
-      </div>
 
-      <!-- Empty State -->
-      <div class="optimization-empty" id="emptyState">
-        <i class="bi bi-speedometer2"></i>
-        <p>Enter a URL above to analyze its SEO performance metrics</p>
+        <!-- Keyword Research Tab -->
+        <div class="opt-tab-content" id="tabKeywordResearch">
+          <div class="optimization-input-card">
+            <label class="input-label">Research Keyword</label>
+            <div class="optimization-input-group">
+              <input type="text" id="keywordInput" placeholder="Enter a keyword (e.g., web development)" autocomplete="off">
+              <select id="countrySelect" class="country-select">
+                <option value="us">United States</option>
+                <option value="uk">United Kingdom</option>
+                <option value="ca">Canada</option>
+                <option value="au">Australia</option>
+                <option value="de">Germany</option>
+                <option value="fr">France</option>
+                <option value="es">Spain</option>
+                <option value="it">Italy</option>
+                <option value="br">Brazil</option>
+                <option value="in">India</option>
+                <option value="jp">Japan</option>
+                <option value="nl">Netherlands</option>
+                <option value="se">Sweden</option>
+                <option value="no">Norway</option>
+                <option value="dk">Denmark</option>
+                <option value="mx">Mexico</option>
+              </select>
+              <button class="btn-analyze" id="analyzeKeywordBtn" onclick="analyzeKeyword()">
+                <i class="bi bi-search"></i> Research
+              </button>
+            </div>
+          </div>
+
+          <div class="optimization-results" id="kwResultsSection">
+            <div class="analyzed-url-badge" id="analyzedKeyword">
+              <i class="bi bi-key-fill"></i>
+              <span id="analyzedKeywordText"></span>
+            </div>
+            <div class="optimization-metrics-grid" id="kwMetricsGrid"></div>
+          </div>
+
+          <div class="optimization-empty" id="kwEmptyState">
+            <i class="bi bi-search"></i>
+            <p>Enter a keyword above to research its search volume, difficulty, and traffic potential</p>
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -64,13 +115,32 @@
 {% block extra_js %}
 <script>
 (function() {
-    var analyzeBtn = document.getElementById('analyzeBtn');
+    // Tab switching
+    var tabs = document.querySelectorAll('.opt-tab');
+    var tabContents = document.querySelectorAll('.opt-tab-content');
+
+    tabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            tabs.forEach(function(t) { t.classList.remove('active'); });
+            tabContents.forEach(function(c) { c.classList.remove('active'); });
+            tab.classList.add('active');
+            var target = tab.getAttribute('data-tab');
+            if (target === 'url-metrics') {
+                document.getElementById('tabUrlMetrics').classList.add('active');
+            } else {
+                document.getElementById('tabKeywordResearch').classList.add('active');
+            }
+        });
+    });
+
+    // ========== URL METRICS ==========
     var urlInput = document.getElementById('urlInput');
-    var resultsSection = document.getElementById('resultsSection');
-    var emptyState = document.getElementById('emptyState');
-    var metricsGrid = document.getElementById('metricsGrid');
-    var detailsGrid = document.getElementById('detailsGrid');
+    var urlResultsSection = document.getElementById('urlResultsSection');
+    var urlEmptyState = document.getElementById('urlEmptyState');
+    var urlMetricsGrid = document.getElementById('urlMetricsGrid');
+    var urlDetailsGrid = document.getElementById('urlDetailsGrid');
     var analyzedUrlText = document.getElementById('analyzedUrlText');
+    var analyzeUrlBtn = document.getElementById('analyzeUrlBtn');
 
     urlInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') analyzeUrl();
@@ -84,10 +154,10 @@
             return;
         }
 
-        analyzeBtn.disabled = true;
-        analyzeBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Analyzing...';
-        emptyState.style.display = 'none';
-        resultsSection.classList.remove('show');
+        analyzeUrlBtn.disabled = true;
+        analyzeUrlBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Analyzing...';
+        urlEmptyState.style.display = 'none';
+        urlResultsSection.classList.remove('show');
 
         try {
             var response = await fetch('/api/optimization/url-metrics?url=' + encodeURIComponent(url));
@@ -95,20 +165,29 @@
 
             if (!response.ok || !result.success) {
                 showToast({ type: 'error', title: 'Analysis Failed', message: result.error || 'Unable to fetch metrics.' });
-                emptyState.style.display = 'block';
+                urlEmptyState.style.display = 'block';
                 return;
             }
 
-            renderResults(url, result.data);
+            renderUrlResults(url, result.data);
 
         } catch (err) {
             showToast({ type: 'error', title: 'Connection Error', message: 'Failed to connect. Please try again.' });
-            emptyState.style.display = 'block';
+            urlEmptyState.style.display = 'block';
         } finally {
-            analyzeBtn.disabled = false;
-            analyzeBtn.innerHTML = '<i class="bi bi-search"></i> Analyze';
+            analyzeUrlBtn.disabled = false;
+            analyzeUrlBtn.innerHTML = '<i class="bi bi-search"></i> Analyze';
         }
     };
+
+    var urlMetricDefs = [
+        { key: 'domainRating', altKeys: ['domain_rating', 'dr'], label: 'Domain Rating', icon: 'bi-award-fill', color: 'purple' },
+        { key: 'backlinks', altKeys: ['total_backlinks', 'backlink'], label: 'Backlinks', icon: 'bi-link-45deg', color: 'green' },
+        { key: 'refDomains', altKeys: ['referring_domains', 'ref_domains'], label: 'Referring Domains', icon: 'bi-diagram-3-fill', color: 'blue' },
+        { key: 'traffic', altKeys: ['organic_traffic', 'org_traffic'], label: 'Organic Traffic', icon: 'bi-graph-up-arrow', color: 'orange' },
+        { key: 'organicKeywords', altKeys: ['organic_keywords', 'keywords'], label: 'Organic Keywords', icon: 'bi-key-fill', color: 'pink' },
+        { key: 'urlRating', altKeys: ['url_rating', 'ur'], label: 'URL Rating', icon: 'bi-shield-check', color: 'teal' }
+    ];
 
     function formatNumber(num) {
         if (num === null || num === undefined || num === '') return 'N/A';
@@ -126,15 +205,6 @@
         return div.innerHTML;
     }
 
-    var metricDefinitions = [
-        { key: 'domainRating', altKeys: ['domain_rating', 'dr'], label: 'Domain Rating', icon: 'bi-award-fill', color: 'purple' },
-        { key: 'backlinks', altKeys: ['total_backlinks', 'backlink'], label: 'Backlinks', icon: 'bi-link-45deg', color: 'green' },
-        { key: 'refDomains', altKeys: ['referring_domains', 'ref_domains'], label: 'Referring Domains', icon: 'bi-diagram-3-fill', color: 'blue' },
-        { key: 'traffic', altKeys: ['organic_traffic', 'org_traffic'], label: 'Organic Traffic', icon: 'bi-graph-up-arrow', color: 'orange' },
-        { key: 'organicKeywords', altKeys: ['organic_keywords', 'keywords'], label: 'Organic Keywords', icon: 'bi-key-fill', color: 'pink' },
-        { key: 'urlRating', altKeys: ['url_rating', 'ur'], label: 'URL Rating', icon: 'bi-shield-check', color: 'teal' }
-    ];
-
     function getMetricValue(data, def) {
         var val = data[def.key];
         if (val !== undefined && val !== null) return val;
@@ -145,11 +215,11 @@
         return null;
     }
 
-    function renderResults(url, data) {
+    function renderUrlResults(url, data) {
         analyzedUrlText.textContent = url;
 
         var metricsHtml = '';
-        metricDefinitions.forEach(function(def) {
+        urlMetricDefs.forEach(function(def) {
             var val = getMetricValue(data, def);
             metricsHtml += '<div class="metric-card">' +
                 '<div class="metric-icon ' + def.color + '"><i class="bi ' + def.icon + '"></i></div>' +
@@ -158,11 +228,11 @@
                     '<div class="metric-value">' + formatNumber(val) + '</div>' +
                 '</div></div>';
         });
-        metricsGrid.innerHTML = metricsHtml;
+        urlMetricsGrid.innerHTML = metricsHtml;
 
         var detailsHtml = '';
         var skipKeys = {};
-        metricDefinitions.forEach(function(def) {
+        urlMetricDefs.forEach(function(def) {
             skipKeys[def.key] = true;
             def.altKeys.forEach(function(k) { skipKeys[k] = true; });
         });
@@ -180,13 +250,96 @@
         });
 
         if (detailsHtml) {
-            detailsGrid.innerHTML = detailsHtml;
-            document.getElementById('detailsCard').style.display = 'block';
+            urlDetailsGrid.innerHTML = detailsHtml;
+            document.getElementById('urlDetailsCard').style.display = 'block';
         } else {
-            document.getElementById('detailsCard').style.display = 'none';
+            document.getElementById('urlDetailsCard').style.display = 'none';
         }
 
-        resultsSection.classList.add('show');
+        urlResultsSection.classList.add('show');
+    }
+
+    // ========== KEYWORD RESEARCH ==========
+    var keywordInput = document.getElementById('keywordInput');
+    var countrySelect = document.getElementById('countrySelect');
+    var kwResultsSection = document.getElementById('kwResultsSection');
+    var kwEmptyState = document.getElementById('kwEmptyState');
+    var kwMetricsGrid = document.getElementById('kwMetricsGrid');
+    var analyzedKeywordText = document.getElementById('analyzedKeywordText');
+    var analyzeKeywordBtn = document.getElementById('analyzeKeywordBtn');
+
+    keywordInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') analyzeKeyword();
+    });
+
+    window.analyzeKeyword = async function() {
+        var keyword = keywordInput.value.trim();
+        if (!keyword) {
+            showToast({ type: 'warning', title: 'Missing Keyword', message: 'Please enter a keyword to research.' });
+            keywordInput.focus();
+            return;
+        }
+
+        var country = countrySelect.value;
+        analyzeKeywordBtn.disabled = true;
+        analyzeKeywordBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Researching...';
+        kwEmptyState.style.display = 'none';
+        kwResultsSection.classList.remove('show');
+
+        try {
+            var response = await fetch('/api/optimization/keyword-metrics?keyword=' + encodeURIComponent(keyword) + '&country=' + encodeURIComponent(country));
+            var result = await response.json();
+
+            if (!response.ok || !result.success) {
+                showToast({ type: 'error', title: 'Research Failed', message: result.error || 'Unable to fetch keyword data.' });
+                kwEmptyState.style.display = 'block';
+                return;
+            }
+
+            renderKeywordResults(keyword, country, result.data);
+
+        } catch (err) {
+            showToast({ type: 'error', title: 'Connection Error', message: 'Failed to connect. Please try again.' });
+            kwEmptyState.style.display = 'block';
+        } finally {
+            analyzeKeywordBtn.disabled = false;
+            analyzeKeywordBtn.innerHTML = '<i class="bi bi-search"></i> Research';
+        }
+    };
+
+    var kwMetricDefs = [
+        { key: 'searchVolume', label: 'Search Volume', icon: 'bi-bar-chart-fill', color: 'purple', format: 'number' },
+        { key: 'difficulty', label: 'Difficulty', icon: 'bi-speedometer2', color: 'orange', format: 'difficulty' },
+        { key: 'clicks', label: 'Clicks', icon: 'bi-cursor-fill', color: 'green', format: 'number' },
+        { key: 'cpc', label: 'CPC', icon: 'bi-currency-dollar', color: 'blue', format: 'currency' },
+        { key: 'globalSearchVolume', label: 'Global Volume', icon: 'bi-globe2', color: 'pink', format: 'number' },
+        { key: 'trafficPotential', label: 'Traffic Potential', icon: 'bi-graph-up-arrow', color: 'teal', format: 'number' }
+    ];
+
+    function formatKwValue(val, format) {
+        if (val === null || val === undefined || val === '') return 'N/A';
+        val = Number(val);
+        if (isNaN(val)) return 'N/A';
+        if (format === 'currency') return '$' + val.toFixed(2);
+        if (format === 'difficulty') return val + '/100';
+        return formatNumber(val);
+    }
+
+    function renderKeywordResults(keyword, country, data) {
+        analyzedKeywordText.textContent = '"' + keyword + '" (' + country.toUpperCase() + ')';
+
+        var metricsHtml = '';
+        kwMetricDefs.forEach(function(def) {
+            var val = data[def.key] !== undefined ? data[def.key] : null;
+            metricsHtml += '<div class="metric-card">' +
+                '<div class="metric-icon ' + def.color + '"><i class="bi ' + def.icon + '"></i></div>' +
+                '<div class="metric-info">' +
+                    '<div class="metric-label">' + def.label + '</div>' +
+                    '<div class="metric-value">' + formatKwValue(val, def.format) + '</div>' +
+                '</div></div>';
+        });
+        kwMetricsGrid.innerHTML = metricsHtml;
+        kwResultsSection.classList.add('show');
     }
 })();
 </script>
