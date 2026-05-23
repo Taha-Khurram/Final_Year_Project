@@ -2,11 +2,15 @@ from flask import Blueprint, render_template, request, jsonify, session, redirec
 from functools import wraps
 from urllib.parse import urlparse
 import requests
+import google.generativeai as genai
+import os
 
 from app.utils.cache import SimpleCache
+from app.firebase.firestore_service import FirestoreService
 
 optimization_bp = Blueprint('optimization', __name__)
 _cache = SimpleCache()
+_db = FirestoreService()
 
 AHREFS_HOST = "ahrefs-url-research.p.rapidapi.com"
 AHREFS_KEYWORD_HOST = "ahrefs-keyword-research.p.rapidapi.com"
@@ -172,3 +176,108 @@ def keyword_metrics():
         return jsonify({"success": False, "error": "Failed to connect to the API."}), 502
     except ValueError:
         return jsonify({"success": False, "error": "Invalid response from API."}), 502
+
+
+def _extract_keywords_from_content(title, content):
+    """Use Gemini to extract focus keywords from blog content."""
+    genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
+    model = genai.GenerativeModel('gemini-2.0-flash')
+
+    prompt = f"""Extract 5 high-value SEO keywords from this blog post.
+Return ONLY a comma-separated list of keywords, nothing else.
+
+Title: {title}
+Content: {content[:1500]}
+
+Focus on:
+- Primary topic keywords
+- Long-tail search phrases users would type
+- High commercial/informational intent terms"""
+
+    response = model.generate_content(prompt)
+    text = (response.text or "") if response else ""
+    if not text.strip():
+        return [title.lower()] if title else []
+    keywords = [kw.strip() for kw in text.split(',') if kw.strip()]
+    return keywords[:5]
+
+
+def _fetch_keyword_metrics(keyword, country, api_key):
+    """Fetch metrics for a single keyword from Ahrefs API."""
+    try:
+        resp = requests.get(
+            f"https://{AHREFS_KEYWORD_HOST}/keyword-metrics",
+            params={"keyword": keyword, "country": country},
+            headers={
+                "x-rapidapi-key": api_key,
+                "x-rapidapi-host": AHREFS_KEYWORD_HOST
+            },
+            timeout=30
+        )
+        if resp.status_code == 200:
+            raw = resp.json()
+            data = raw.get("data", raw) if raw.get("success") else raw
+            return data
+    except Exception:
+        pass
+    return None
+
+
+@optimization_bp.route('/api/optimization/draft-keywords', methods=['POST'])
+@admin_required
+def draft_keywords():
+    body = request.get_json(silent=True) or {}
+    blog_id = body.get('blog_id', '').strip()
+    country = body.get('country', 'us').strip().lower()
+
+    if not blog_id:
+        return jsonify({"success": False, "error": "Please select a draft."}), 400
+
+    if country not in VALID_COUNTRIES:
+        country = 'us'
+
+    cache_key = f"draft_keywords:{blog_id}:{country}"
+    cached = _cache.get(cache_key)
+    if cached:
+        return jsonify({"success": True, "data": cached, "cached": True})
+
+    blog = _db.get_blog_by_id(blog_id)
+    if not blog:
+        return jsonify({"success": False, "error": "Draft not found."}), 404
+
+    user_id = session.get('user_id')
+    if blog.get('author_id') != user_id and blog.get('site_owner_id') != user_id:
+        return jsonify({"success": False, "error": "Access denied."}), 403
+
+    content = blog.get('content', '')
+    if isinstance(content, dict):
+        content = content.get('markdown') or content.get('body') or ''
+    title = blog.get('title', '')
+
+    if not content and not title:
+        return jsonify({"success": False, "error": "Draft has no content to analyze."}), 400
+
+    try:
+        keywords = _extract_keywords_from_content(title, content)
+    except Exception as e:
+        current_app.logger.error(f"Keyword extraction failed: {e}")
+        return jsonify({"success": False, "error": "Failed to extract keywords from content."}), 500
+
+    if not keywords:
+        return jsonify({"success": False, "error": "Could not extract keywords from this draft."}), 400
+
+    api_key = current_app.config.get('AHREFS_RAPIDAPI_KEY')
+    if not api_key:
+        return jsonify({"success": False, "error": "API key not configured."}), 500
+
+    results = []
+    for kw in keywords:
+        metrics = _fetch_keyword_metrics(kw, country, api_key)
+        if metrics:
+            results.append(metrics)
+        else:
+            results.append({"keyword": kw, "error": True})
+
+    data = {"keywords": results, "blog_title": title}
+    _cache.set(cache_key, data, ttl=CACHE_TTL)
+    return jsonify({"success": True, "data": data, "cached": False})

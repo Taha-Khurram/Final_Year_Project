@@ -64,44 +64,62 @@
         <!-- Keyword Research Tab -->
         <div class="opt-tab-content" id="tabKeywordResearch">
           <div class="optimization-input-card">
-            <label class="input-label">Research Keyword</label>
-            <div class="optimization-input-group">
-              <input type="text" id="keywordInput" placeholder="Enter a keyword (e.g., web development)" autocomplete="off">
-              <select id="countrySelect" class="country-select">
-                <option value="us">United States</option>
-                <option value="uk">United Kingdom</option>
-                <option value="ca">Canada</option>
-                <option value="au">Australia</option>
-                <option value="de">Germany</option>
-                <option value="fr">France</option>
-                <option value="es">Spain</option>
-                <option value="it">Italy</option>
-                <option value="br">Brazil</option>
-                <option value="in">India</option>
-                <option value="jp">Japan</option>
-                <option value="nl">Netherlands</option>
-                <option value="se">Sweden</option>
-                <option value="no">Norway</option>
-                <option value="dk">Denmark</option>
-                <option value="mx">Mexico</option>
+            <label class="input-label">Select Draft Blog</label>
+            <div class="kw-input-layout">
+              <select id="draftSelect" class="draft-select">
+                <option value="">-- Select a draft --</option>
               </select>
-              <button class="btn-analyze" id="analyzeKeywordBtn" onclick="analyzeKeyword()">
-                <i class="bi bi-search"></i> Research
-              </button>
+              <div class="kw-input-row">
+                <select id="countrySelect" class="country-select">
+                  <option value="us">United States</option>
+                  <option value="uk">United Kingdom</option>
+                  <option value="ca">Canada</option>
+                  <option value="au">Australia</option>
+                  <option value="de">Germany</option>
+                  <option value="fr">France</option>
+                  <option value="es">Spain</option>
+                  <option value="it">Italy</option>
+                  <option value="br">Brazil</option>
+                  <option value="in">India</option>
+                  <option value="jp">Japan</option>
+                  <option value="nl">Netherlands</option>
+                  <option value="se">Sweden</option>
+                  <option value="no">Norway</option>
+                  <option value="dk">Denmark</option>
+                  <option value="mx">Mexico</option>
+                </select>
+                <button class="btn-analyze" id="analyzeKeywordBtn" onclick="analyzeKeyword()">
+                  <i class="bi bi-search"></i> Research
+                </button>
+              </div>
             </div>
           </div>
 
           <div class="optimization-results" id="kwResultsSection">
             <div class="analyzed-url-badge" id="analyzedKeyword">
-              <i class="bi bi-key-fill"></i>
+              <i class="bi bi-file-text-fill"></i>
               <span id="analyzedKeywordText"></span>
             </div>
-            <div class="optimization-metrics-grid" id="kwMetricsGrid"></div>
+            <div class="kw-results-table-wrapper">
+              <table class="kw-results-table" id="kwResultsTable">
+                <thead>
+                  <tr>
+                    <th>Keyword</th>
+                    <th>Search Volume</th>
+                    <th>Difficulty</th>
+                    <th>CPC</th>
+                    <th>Clicks</th>
+                    <th>Traffic Potential</th>
+                  </tr>
+                </thead>
+                <tbody id="kwResultsBody"></tbody>
+              </table>
+            </div>
           </div>
 
           <div class="optimization-empty" id="kwEmptyState">
-            <i class="bi bi-search"></i>
-            <p>Enter a keyword above to research its search volume, difficulty, and traffic potential</p>
+            <i class="bi bi-file-earmark-text"></i>
+            <p>Select a draft blog to analyze its content and discover keyword opportunities</p>
           </div>
         </div>
 
@@ -260,43 +278,72 @@
     }
 
     // ========== KEYWORD RESEARCH ==========
-    var keywordInput = document.getElementById('keywordInput');
+    var draftSelect = document.getElementById('draftSelect');
     var countrySelect = document.getElementById('countrySelect');
     var kwResultsSection = document.getElementById('kwResultsSection');
     var kwEmptyState = document.getElementById('kwEmptyState');
-    var kwMetricsGrid = document.getElementById('kwMetricsGrid');
+    var kwResultsBody = document.getElementById('kwResultsBody');
     var analyzedKeywordText = document.getElementById('analyzedKeywordText');
     var analyzeKeywordBtn = document.getElementById('analyzeKeywordBtn');
+    var draftsLoaded = false;
 
-    keywordInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') analyzeKeyword();
+    function loadDrafts() {
+        if (draftsLoaded) return;
+        fetch('/api/seo/drafts')
+            .then(function(r) { return r.json(); })
+            .then(function(result) {
+                if (result.success && result.drafts) {
+                    draftSelect.innerHTML = '<option value="">-- Select a draft --</option>';
+                    result.drafts.forEach(function(d) {
+                        var opt = document.createElement('option');
+                        opt.value = d.id;
+                        opt.textContent = d.title || 'Untitled';
+                        draftSelect.appendChild(opt);
+                    });
+                    draftsLoaded = true;
+                }
+            })
+            .catch(function() {});
+    }
+
+    // Load drafts when keyword tab is clicked
+    tabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            if (tab.getAttribute('data-tab') === 'keyword-research') {
+                loadDrafts();
+            }
+        });
     });
 
     window.analyzeKeyword = async function() {
-        var keyword = keywordInput.value.trim();
-        if (!keyword) {
-            showToast({ type: 'warning', title: 'Missing Keyword', message: 'Please enter a keyword to research.' });
-            keywordInput.focus();
+        var blogId = draftSelect.value;
+        if (!blogId) {
+            showToast({ type: 'warning', title: 'No Draft Selected', message: 'Please select a draft blog to analyze.' });
+            draftSelect.focus();
             return;
         }
 
         var country = countrySelect.value;
         analyzeKeywordBtn.disabled = true;
-        analyzeKeywordBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Researching...';
+        analyzeKeywordBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Analyzing...';
         kwEmptyState.style.display = 'none';
         kwResultsSection.classList.remove('show');
 
         try {
-            var response = await fetch('/api/optimization/keyword-metrics?keyword=' + encodeURIComponent(keyword) + '&country=' + encodeURIComponent(country));
+            var response = await fetch('/api/optimization/draft-keywords', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ blog_id: blogId, country: country })
+            });
             var result = await response.json();
 
             if (!response.ok || !result.success) {
-                showToast({ type: 'error', title: 'Research Failed', message: result.error || 'Unable to fetch keyword data.' });
+                showToast({ type: 'error', title: 'Research Failed', message: result.error || 'Unable to analyze draft.' });
                 kwEmptyState.style.display = 'block';
                 return;
             }
 
-            renderKeywordResults(keyword, country, result.data);
+            renderKeywordResults(result.data);
 
         } catch (err) {
             showToast({ type: 'error', title: 'Connection Error', message: 'Failed to connect. Please try again.' });
@@ -307,38 +354,44 @@
         }
     };
 
-    var kwMetricDefs = [
-        { key: 'searchVolume', label: 'Search Volume', icon: 'bi-bar-chart-fill', color: 'purple', format: 'number' },
-        { key: 'difficulty', label: 'Difficulty', icon: 'bi-speedometer2', color: 'orange', format: 'difficulty' },
-        { key: 'clicks', label: 'Clicks', icon: 'bi-cursor-fill', color: 'green', format: 'number' },
-        { key: 'cpc', label: 'CPC', icon: 'bi-currency-dollar', color: 'blue', format: 'currency' },
-        { key: 'globalSearchVolume', label: 'Global Volume', icon: 'bi-globe2', color: 'pink', format: 'number' },
-        { key: 'trafficPotential', label: 'Traffic Potential', icon: 'bi-graph-up-arrow', color: 'teal', format: 'number' }
-    ];
-
-    function formatKwValue(val, format) {
-        if (val === null || val === undefined || val === '') return 'N/A';
-        val = Number(val);
-        if (isNaN(val)) return 'N/A';
-        if (format === 'currency') return '$' + val.toFixed(2);
-        if (format === 'difficulty') return val + '/100';
-        return formatNumber(val);
+    function formatKwNum(num) {
+        if (num === null || num === undefined) return '-';
+        num = Number(num);
+        if (isNaN(num)) return '-';
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+        return num.toLocaleString();
     }
 
-    function renderKeywordResults(keyword, country, data) {
-        analyzedKeywordText.textContent = '"' + keyword + '" (' + country.toUpperCase() + ')';
+    function getDifficultyClass(val) {
+        if (val === null || val === undefined) return '';
+        val = Number(val);
+        if (val >= 70) return 'difficulty-hard';
+        if (val >= 40) return 'difficulty-medium';
+        return 'difficulty-easy';
+    }
 
-        var metricsHtml = '';
-        kwMetricDefs.forEach(function(def) {
-            var val = data[def.key] !== undefined ? data[def.key] : null;
-            metricsHtml += '<div class="metric-card">' +
-                '<div class="metric-icon ' + def.color + '"><i class="bi ' + def.icon + '"></i></div>' +
-                '<div class="metric-info">' +
-                    '<div class="metric-label">' + def.label + '</div>' +
-                    '<div class="metric-value">' + formatKwValue(val, def.format) + '</div>' +
-                '</div></div>';
+    function renderKeywordResults(data) {
+        analyzedKeywordText.textContent = data.blog_title || 'Draft Analysis';
+
+        var html = '';
+        data.keywords.forEach(function(kw) {
+            if (kw.error) {
+                html += '<tr class="kw-row-error"><td>' + escapeHtml(kw.keyword) + '</td><td colspan="5">Failed to fetch metrics</td></tr>';
+                return;
+            }
+            var diff = kw.difficulty;
+            var diffClass = getDifficultyClass(diff);
+            html += '<tr>' +
+                '<td class="kw-cell-keyword">' + escapeHtml(kw.keyword || '') + '</td>' +
+                '<td>' + formatKwNum(kw.searchVolume) + '</td>' +
+                '<td><span class="difficulty-badge ' + diffClass + '">' + (diff !== null && diff !== undefined ? diff + '/100' : '-') + '</span></td>' +
+                '<td>' + (kw.cpc !== null && kw.cpc !== undefined ? '$' + Number(kw.cpc).toFixed(2) : '-') + '</td>' +
+                '<td>' + formatKwNum(kw.clicks) + '</td>' +
+                '<td>' + formatKwNum(kw.trafficPotential) + '</td>' +
+                '</tr>';
         });
-        kwMetricsGrid.innerHTML = metricsHtml;
+        kwResultsBody.innerHTML = html;
         kwResultsSection.classList.add('show');
     }
 })();
