@@ -132,3 +132,59 @@ document.getElementById('searchInput').addEventListener('keyup', function () {
     item.style.setProperty('display', text.includes(value) ? 'flex' : 'none', 'important');
   });
 });
+
+// View Blogs in Category
+async function viewCategoryBlogs(categoryId, categoryName) {
+  const modal = new bootstrap.Modal(document.getElementById('viewBlogsModal'));
+  document.getElementById('viewBlogsCategoryName').textContent = categoryName;
+  document.getElementById('blogsListLoading').classList.remove('d-none');
+  document.getElementById('blogsListEmpty').classList.add('d-none');
+  document.getElementById('blogsListContent').classList.add('d-none');
+  document.getElementById('blogsCount').textContent = '';
+  modal.show();
+
+  try {
+    const res = await fetch(`/api/category/${categoryId}/blogs`);
+    const data = await res.json();
+
+    document.getElementById('blogsListLoading').classList.add('d-none');
+
+    if (data.success && data.blogs.length > 0) {
+      const tbody = document.getElementById('blogsListBody');
+      tbody.innerHTML = '';
+
+      data.blogs.forEach(blog => {
+        const statusBadge = blog.status === 'published'
+          ? '<span class="badge bg-success-subtle text-success rounded-pill px-3">Published</span>'
+          : '<span class="badge bg-warning-subtle text-warning rounded-pill px-3">Draft</span>';
+
+        const createdAt = blog.created_at
+          ? new Date(blog.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          : '—';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="fw-medium">${blog.title}</td>
+          <td>${statusBadge}</td>
+          <td class="text-muted small">${createdAt}</td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      document.getElementById('blogsListContent').classList.remove('d-none');
+      document.getElementById('blogsCount').textContent = `${data.count} blog${data.count !== 1 ? 's' : ''} found`;
+    } else {
+      document.getElementById('blogsListEmpty').classList.remove('d-none');
+    }
+  } catch (err) {
+    console.error(err);
+    document.getElementById('blogsListLoading').classList.add('d-none');
+    document.getElementById('blogsListEmpty').classList.remove('d-none');
+    showToast({
+      type: 'error',
+      title: 'Error',
+      message: 'Failed to load blogs for this category.',
+      duration: 5000
+    });
+  }
+}

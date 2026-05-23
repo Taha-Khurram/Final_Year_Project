@@ -61,6 +61,14 @@
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                   <li>
+                    <button class="dropdown-item" onclick="viewCategoryBlogs('{{ cat.id }}', '{{ cat.name }}')">
+                      <i class="bi bi-journal-text" style="color: var(--info-color);"></i> View Blogs
+                    </button>
+                  </li>
+                  <li>
+                    <hr class="dropdown-divider">
+                  </li>
+                  <li>
                     <button class="dropdown-item" onclick="openEditModal('{{ cat.id }}', '{{ cat.name }}')">
                       <i class="bi bi-pencil-square" style="color: var(--primary-color);"></i> Edit Category
                     </button>
@@ -139,6 +147,52 @@
           <button type="submit" class="btn btn-primary text-white px-4 rounded-pill">Save Changes</button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- View Category Blogs Modal -->
+<div class="modal fade" id="viewBlogsModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content shadow-card">
+      <div class="modal-header border-bottom p-4">
+        <h5 class="modal-title fw-bold text-dark">
+          <i class="bi bi-journal-text me-2" style="color: var(--primary-color);"></i>
+          Blogs in "<span id="viewBlogsCategoryName"></span>"
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div id="blogsListLoading" class="text-center py-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="text-muted mt-2 mb-0">Loading blogs...</p>
+        </div>
+        <div id="blogsListEmpty" class="text-center py-4 d-none">
+          <div class="mb-3 text-muted opacity-25"><i class="bi bi-journal-x fs-1"></i></div>
+          <p class="text-muted fw-bold mb-0">No blogs found in this category.</p>
+        </div>
+        <div id="blogsListContent" class="d-none">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th class="fw-bold text-secondary small text-uppercase">Title</th>
+                  <th class="fw-bold text-secondary small text-uppercase">Status</th>
+                  <th class="fw-bold text-secondary small text-uppercase">Created</th>
+                </tr>
+              </thead>
+              <tbody id="blogsListBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-top p-3 bg-light">
+        <span id="blogsCount" class="text-muted small me-auto"></span>
+        <button type="button" class="btn btn-light text-secondary fw-bold px-4 rounded-pill"
+          data-bs-dismiss="modal">Close</button>
+      </div>
     </div>
   </div>
 </div>

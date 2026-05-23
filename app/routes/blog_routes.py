@@ -756,6 +756,32 @@ def delete_blog_api(blog_id):
 # ---------------------------------------------------
 
 
+@blog_bp.route('/api/category/<category_id>/blogs', methods=['GET'])
+def get_category_blogs(category_id):
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+        category = db_service.get_category_by_id(category_id, user_id=user_id)
+        if not category:
+            return jsonify({"success": False, "error": "Category not found"}), 404
+
+        blogs = db_service.get_blogs_by_category(category_id, user_id=user_id)
+        blogs_list = []
+        for blog in blogs:
+            blogs_list.append({
+                "id": blog.get("id", ""),
+                "title": blog.get("title", "Untitled"),
+                "status": blog.get("status", "draft"),
+                "created_at": blog.get("created_at").isoformat() if hasattr(blog.get("created_at", ""), 'isoformat') else str(blog.get("created_at", ""))
+            })
+
+        return jsonify({"success": True, "blogs": blogs_list, "count": len(blogs_list)})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 @blog_bp.route('/api/categories', methods=['POST'])
 def create_category_api():
     try:
