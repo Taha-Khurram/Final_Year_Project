@@ -22,6 +22,9 @@ class Config:
     # RapidAPI for Ahrefs URL Research (ahrefs-url-research.p.rapidapi.com)
     AHREFS_RAPIDAPI_KEY = os.getenv('AHREFS_RAPIDAPI_KEY')
 
+    # RapidAPI for Site Audit (website-analyze-and-seo-audit-pro.p.rapidapi.com)
+    SITE_AUDIT_RAPIDAPI_KEY = os.getenv('SITE_AUDIT_RAPIDAPI_KEY')
+
     # Google OAuth for Analytics integration
     GOOGLE_OAUTH_CLIENT_ID = os.getenv('GOOGLE_OAUTH_CLIENT_ID')
     GOOGLE_OAUTH_CLIENT_SECRET = os.getenv('GOOGLE_OAUTH_CLIENT_SECRET')

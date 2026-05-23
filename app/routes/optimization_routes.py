@@ -14,6 +14,7 @@ _db = FirestoreService()
 
 AHREFS_HOST = "ahrefs-url-research.p.rapidapi.com"
 AHREFS_KEYWORD_HOST = "ahrefs-keyword-research.p.rapidapi.com"
+SITE_AUDIT_HOST = "website-analyze-and-seo-audit-pro.p.rapidapi.com"
 CACHE_TTL = 30 * 60  # 30 minutes
 
 VALID_COUNTRIES = {
@@ -281,3 +282,75 @@ def draft_keywords():
     data = {"keywords": results, "blog_title": title}
     _cache.set(cache_key, data, ttl=CACHE_TTL)
     return jsonify({"success": True, "data": data, "cached": False})
+
+
+def _extract_domain(url):
+    """Extract clean domain from user input (strip protocol, path, etc.)."""
+    if not url or not url.strip():
+        return None
+    url = url.strip().lower()
+    if url.startswith(('http://', 'https://')):
+        parsed = urlparse(url)
+        domain = parsed.netloc
+    else:
+        domain = url.split('/')[0]
+    domain = domain.replace('www.', '')
+    if not domain or '.' not in domain:
+        return None
+    return domain
+
+
+@optimization_bp.route('/api/optimization/site-audit')
+@admin_required
+def site_audit():
+    domain_input = request.args.get('domain', '').strip()
+    domain = _extract_domain(domain_input)
+    if not domain:
+        return jsonify({"success": False, "error": "Please enter a valid domain (e.g., example.com)."}), 400
+
+    cache_key = f"site_audit:{domain}"
+    cached = _cache.get(cache_key)
+    if cached:
+        return jsonify({"success": True, "data": cached, "cached": True})
+
+    api_key = current_app.config.get('SITE_AUDIT_RAPIDAPI_KEY')
+    if not api_key:
+        return jsonify({"success": False, "error": "Site Audit API key not configured."}), 500
+
+    try:
+        response = requests.get(
+            f"https://{SITE_AUDIT_HOST}/topsearchkeywords.php",
+            params={"domain": domain},
+            headers={
+                "x-rapidapi-key": api_key,
+                "x-rapidapi-host": SITE_AUDIT_HOST,
+                "Content-Type": "application/json"
+            },
+            timeout=30
+        )
+
+        if response.status_code == 429:
+            return jsonify({"success": False, "error": "API rate limit reached. Please try again later."}), 429
+
+        if response.status_code == 403:
+            return jsonify({"success": False, "error": "API access denied. Check your subscription."}), 403
+
+        if response.status_code != 200:
+            current_app.logger.warning(
+                f"Site Audit API returned {response.status_code}: {response.text[:200]}"
+            )
+            return jsonify({"success": False, "error": f"API returned status {response.status_code}."}), 502
+
+        raw = response.json()
+        _cache.set(cache_key, raw, ttl=CACHE_TTL)
+        return jsonify({"success": True, "data": raw, "cached": False})
+
+    except requests.exceptions.Timeout:
+        return jsonify({"success": False, "error": "Request timed out. The API may be temporarily slow — please try again."}), 504
+    except requests.exceptions.ConnectionError:
+        return jsonify({"success": False, "error": "Could not connect to the API. Check your network."}), 502
+    except requests.exceptions.RequestException as e:
+        current_app.logger.error(f"Site Audit API request failed: {e}")
+        return jsonify({"success": False, "error": "Failed to connect to the API."}), 502
+    except ValueError:
+        return jsonify({"success": False, "error": "Invalid response from API."}), 502

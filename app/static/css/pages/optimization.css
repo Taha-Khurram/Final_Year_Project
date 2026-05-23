@@ -505,6 +505,15 @@
     .draft-select {
         max-width: none;
     }
+
+    .optimization-tabs {
+        gap: 0.25rem;
+    }
+
+    .optimization-tabs .opt-tab {
+        padding: 0.7rem 0.85rem;
+        font-size: 0.82rem;
+    }
 }
 
 @media (max-width: 480px) {
