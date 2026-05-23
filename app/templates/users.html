@@ -50,129 +50,130 @@
         </div>
       </div>
     </div>
+
+    <!-- Invite User Modal -->
+    <div id="inviteUserModal" class="modal fade" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-card">
+          <div class="modal-header border-bottom p-4">
+            <h5 class="modal-title fw-bold text-dark">Invite User</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <form id="inviteUserForm" class="no-loader">
+            <div class="modal-body p-4">
+              <div class="mb-3">
+                <label class="form-label text-secondary small fw-bold text-uppercase">Email Address</label>
+                <input type="email" id="inviteEmail" name="email" class="form-control rounded-pill px-3"
+                  placeholder="user@example.com" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label text-secondary small fw-bold text-uppercase">Role</label>
+                <select id="inviteRole" name="role" class="form-select rounded-pill px-3" required>
+                  <option value="editor">Editor</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <p class="text-muted small mb-0">
+                <i class="bi bi-info-circle"></i> An invitation email will be sent. The user will create their own account.
+              </p>
+            </div>
+            <div class="modal-footer border-top p-3 bg-light">
+              <button type="button" class="btn btn-light text-secondary fw-bold" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary text-white">
+                <i class="bi bi-send-fill"></i> Send Invitation
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Role Modal -->
+    <div id="editRoleModal" class="modal fade" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-card">
+          <div class="modal-header border-bottom p-4">
+            <h5 class="modal-title fw-bold text-dark">Edit User Role</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <form id="editRoleForm" class="no-loader">
+            <div class="modal-body p-4">
+              <input type="hidden" id="editUserId" name="userId">
+              <div class="mb-3">
+                <label class="form-label text-secondary small fw-bold text-uppercase">Username</label>
+                <input type="text" id="editUsername" name="username"
+                  class="form-control bg-light border-0 rounded-pill px-3" readonly>
+              </div>
+              <div class="mb-3">
+                <label class="form-label text-secondary small fw-bold text-uppercase">Role</label>
+                <select id="editRole" name="role" class="form-select rounded-pill px-3" required>
+                  <option value="editor">Editor</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+            </div>
+            <div class="modal-footer border-top p-3 bg-light">
+              <button type="button" class="btn btn-light text-secondary fw-bold" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary text-white">Update Role</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invite Link Modal -->
+    <div id="inviteLinkModal" class="modal fade" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-card">
+          <div class="modal-header border-bottom p-4">
+            <h5 class="modal-title fw-bold text-dark"><i class="bi bi-link-45deg"></i> Invitation Link</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4">
+            <p class="text-secondary mb-3" id="inviteLinkMessage">Share this link with the invited user:</p>
+            <div class="input-group">
+              <input type="text" id="inviteLinkInput" class="form-control bg-light border-0 rounded-start-pill px-3" readonly>
+              <button class="btn btn-primary rounded-end-pill px-4" onclick="copyInviteLink()" id="copyLinkBtn">
+                <i class="bi bi-clipboard"></i> Copy
+              </button>
+            </div>
+            <p class="text-muted small mt-3 mb-0">
+              <i class="bi bi-info-circle"></i> The user will use this link to create their account with the assigned role.
+            </p>
+          </div>
+          <div class="modal-footer border-top p-3 bg-light">
+            <button type="button" class="btn btn-light text-secondary fw-bold" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete User Confirmation Modal -->
+    <div id="deleteUserModal" class="modal fade" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-card">
+          <div class="modal-header border-bottom p-4">
+            <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Delete User</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4">
+            <p class="text-secondary mb-1">Are you sure you want to delete this user?</p>
+            <p class="fw-bold text-dark" id="deleteUserName"></p>
+            <p class="text-muted small mb-0">
+              <i class="bi bi-info-circle"></i> This action cannot be undone. The user will be removed from the system permanently.
+            </p>
+          </div>
+          <div class="modal-footer border-top p-3 bg-light">
+            <button type="button" class="btn btn-light text-secondary fw-bold" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-danger text-white" id="confirmDeleteBtn" onclick="executeDeleteUser()">
+              <i class="bi bi-trash"></i> Delete User
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
-</div>
-
-<!-- Invite User Modal -->
-<div id="inviteUserModal" class="modal fade" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content shadow-card">
-      <div class="modal-header border-bottom p-4">
-        <h5 class="modal-title fw-bold text-dark">Invite User</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <form id="inviteUserForm" class="no-loader">
-        <div class="modal-body p-4">
-          <div class="mb-3">
-            <label class="form-label text-secondary small fw-bold text-uppercase">Email Address</label>
-            <input type="email" id="inviteEmail" name="email" class="form-control rounded-pill px-3"
-              placeholder="user@example.com" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label text-secondary small fw-bold text-uppercase">Role</label>
-            <select id="inviteRole" name="role" class="form-select rounded-pill px-3" required>
-              <option value="editor">Editor</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-          <p class="text-muted small mb-0">
-            <i class="bi bi-info-circle"></i> An invitation email will be sent. The user will create their own account.
-          </p>
-        </div>
-        <div class="modal-footer border-top p-3 bg-light">
-          <button type="button" class="btn btn-light text-secondary fw-bold" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary text-white">
-            <i class="bi bi-send-fill"></i> Send Invitation
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Edit Role Modal -->
-<div id="editRoleModal" class="modal fade" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content shadow-card">
-      <div class="modal-header border-bottom p-4">
-        <h5 class="modal-title fw-bold text-dark">Edit User Role</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <form id="editRoleForm" class="no-loader">
-        <div class="modal-body p-4">
-          <input type="hidden" id="editUserId" name="userId">
-          <div class="mb-3">
-            <label class="form-label text-secondary small fw-bold text-uppercase">Username</label>
-            <input type="text" id="editUsername" name="username"
-              class="form-control bg-light border-0 rounded-pill px-3" readonly>
-          </div>
-          <div class="mb-3">
-            <label class="form-label text-secondary small fw-bold text-uppercase">Role</label>
-            <select id="editRole" name="role" class="form-select rounded-pill px-3" required>
-              <option value="editor">Editor</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-        </div>
-        <div class="modal-footer border-top p-3 bg-light">
-          <button type="button" class="btn btn-light text-secondary fw-bold" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary text-white">Update Role</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Invite Link Modal -->
-<div id="inviteLinkModal" class="modal fade" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content shadow-card">
-      <div class="modal-header border-bottom p-4">
-        <h5 class="modal-title fw-bold text-dark"><i class="bi bi-link-45deg"></i> Invitation Link</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body p-4">
-        <p class="text-secondary mb-3" id="inviteLinkMessage">Share this link with the invited user:</p>
-        <div class="input-group">
-          <input type="text" id="inviteLinkInput" class="form-control bg-light border-0 rounded-start-pill px-3" readonly>
-          <button class="btn btn-primary rounded-end-pill px-4" onclick="copyInviteLink()" id="copyLinkBtn">
-            <i class="bi bi-clipboard"></i> Copy
-          </button>
-        </div>
-        <p class="text-muted small mt-3 mb-0">
-          <i class="bi bi-info-circle"></i> The user will use this link to create their account with the assigned role.
-        </p>
-      </div>
-      <div class="modal-footer border-top p-3 bg-light">
-        <button type="button" class="btn btn-light text-secondary fw-bold" data-bs-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Delete User Confirmation Modal -->
-<div id="deleteUserModal" class="modal fade" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content shadow-card">
-      <div class="modal-header border-bottom p-4">
-        <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Delete User</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body p-4">
-        <p class="text-secondary mb-1">Are you sure you want to delete this user?</p>
-        <p class="fw-bold text-dark" id="deleteUserName"></p>
-        <p class="text-muted small mb-0">
-          <i class="bi bi-info-circle"></i> This action cannot be undone. The user will be removed from the system permanently.
-        </p>
-      </div>
-      <div class="modal-footer border-top p-3 bg-light">
-        <button type="button" class="btn btn-light text-secondary fw-bold" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-danger text-white" id="confirmDeleteBtn" onclick="executeDeleteUser()">
-          <i class="bi bi-trash"></i> Delete User
-        </button>
-      </div>
-    </div>
-  </div>
 </div>
 
 {% endblock %}
