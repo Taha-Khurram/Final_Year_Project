@@ -18,6 +18,9 @@
             } else if (target === 'auto-optimize') {
                 document.getElementById('tabAutoOptimize').classList.add('active');
                 loadOptimizeDrafts();
+            } else if (target === 'reports') {
+                document.getElementById('tabReports').classList.add('active');
+                loadReports();
             }
         });
     });
@@ -538,17 +541,163 @@
 
         optimizeResultsSection.classList.add('show');
         showToast({ type: 'success', title: 'Optimization Complete', message: 'Your blog has been optimized and saved!' });
+        loadReports();
     }
 
     // ========== EXPORT HTML REPORT ==========
     window.exportOptimizeReport = function() {
         if (!lastOptimizeData) return;
-        var d = lastOptimizeData;
+        generateAndDownloadReport(lastOptimizeData);
+    };
+
+    // ========== REPORTS TAB ==========
+    var reportsCache = [];
+
+    async function loadReports() {
+        var listEl = document.getElementById('reportsList');
+        var emptyEl = document.getElementById('reportsEmptyState');
+        if (!listEl) return;
+
+        try {
+            var response = await fetch('/api/optimization/reports');
+            var result = await response.json();
+            if (!result.success) {
+                listEl.innerHTML = '';
+                emptyEl.style.display = 'block';
+                return;
+            }
+            reportsCache = result.reports || [];
+            renderReportsList();
+        } catch (err) {
+            listEl.innerHTML = '';
+            emptyEl.style.display = 'block';
+        }
+    }
+
+    function renderReportsList() {
+        var listEl = document.getElementById('reportsList');
+        var emptyEl = document.getElementById('reportsEmptyState');
+
+        if (reportsCache.length === 0) {
+            listEl.innerHTML = '';
+            emptyEl.style.display = 'block';
+            return;
+        }
+        emptyEl.style.display = 'none';
+
+        var html = '';
+        reportsCache.forEach(function(report, idx) {
+            var title = report.new_title || report.blog_title || 'Untitled Blog';
+            var grade = report.seo_grade || 'N/A';
+            var gradeClass = 'grade-' + grade.charAt(0).toLowerCase();
+            var before = Math.round(report.original_score || 0);
+            var after = Math.round(report.seo_score || 0);
+            var diff = Math.round(report.score_improvement || (after - before));
+            var dateStr = '';
+            if (report.timestamp) {
+                var d = new Date(report.timestamp);
+                dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            }
+
+            html += '<div class="report-card" id="reportCard' + idx + '">'
+                + '<div class="report-card-header">'
+                + '<div class="report-card-meta">'
+                + '<p class="report-card-title">' + escapeHtml(title) + '</p>'
+                + '<span class="report-card-date">' + dateStr + '</span>'
+                + '</div>'
+                + '<div class="report-card-scores">'
+                + '<span class="report-grade ' + gradeClass + '">' + escapeHtml(grade) + '</span>'
+                + '<span class="report-score-pill">'
+                + '<span class="score-before">' + before + '</span>'
+                + '<span class="score-arrow"><i class="bi bi-arrow-right-short"></i></span>'
+                + '<span class="score-after">' + after + '</span>'
+                + '<span class="score-diff">(+' + diff + ')</span>'
+                + '</span>'
+                + '</div>'
+                + '<div class="report-card-actions">'
+                + '<button class="report-action-btn" title="View Details" onclick="toggleReportDetails(' + idx + ')"><i class="bi bi-eye"></i></button>'
+                + '<button class="report-action-btn" title="Export Report" onclick="exportSavedReport(' + idx + ')"><i class="bi bi-download"></i></button>'
+                + '<button class="report-action-btn delete" title="Delete" onclick="deleteReport(\'' + report.id + '\', ' + idx + ')"><i class="bi bi-trash3"></i></button>'
+                + '</div>'
+                + '</div>'
+                + '<div class="report-details" id="reportDetails' + idx + '">'
+                + buildReportDetails(report)
+                + '</div>'
+                + '</div>';
+        });
+        listEl.innerHTML = html;
+    }
+
+    function buildReportDetails(report) {
+        var primaryKw = report.primary_keyword || {};
+        var kwText = primaryKw.keyword || primaryKw.term || 'N/A';
+        var kwVolume = primaryKw.search_volume || 0;
+        var kwDiff = primaryKw.difficulty_score || 0;
+        var kwCpc = primaryKw.cpc || 0;
+
+        var detailsHtml = '<div class="report-details-grid">'
+            + '<div class="report-detail-item"><span class="label">Keyword</span><span class="value">' + escapeHtml(kwText) + '</span></div>'
+            + '<div class="report-detail-item"><span class="label">Volume</span><span class="value">' + Number(kwVolume).toLocaleString() + '</span></div>'
+            + '<div class="report-detail-item"><span class="label">Difficulty</span><span class="value">' + kwDiff + '/100</span></div>'
+            + '<div class="report-detail-item"><span class="label">CPC</span><span class="value">$' + Number(kwCpc).toFixed(2) + '</span></div>'
+            + '</div>';
+
+        var changes = report.changes_made || [];
+        if (changes.length > 0) {
+            detailsHtml += '<ul class="report-changes-list">';
+            changes.forEach(function(change) {
+                var text = typeof change === 'object' ? (change.description || JSON.stringify(change)) : String(change);
+                detailsHtml += '<li>' + escapeHtml(text) + '</li>';
+            });
+            detailsHtml += '</ul>';
+        }
+
+        var recs = report.recommendations || [];
+        if (recs.length > 0) {
+            detailsHtml += '<div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid #e2e8f0"><strong style="font-size:0.78rem;color:#707EAE">Suggestions:</strong><ul class="report-changes-list" style="margin-top:0.35rem">';
+            recs.forEach(function(r) {
+                detailsHtml += '<li>' + escapeHtml(String(r)) + '</li>';
+            });
+            detailsHtml += '</ul></div>';
+        }
+
+        return detailsHtml;
+    }
+
+    window.toggleReportDetails = function(idx) {
+        var el = document.getElementById('reportDetails' + idx);
+        if (el) el.classList.toggle('show');
+    };
+
+    window.deleteReport = async function(reportId, idx) {
+        if (!confirm('Delete this optimization report?')) return;
+        try {
+            var response = await fetch('/api/optimization/reports/' + reportId, { method: 'DELETE' });
+            var result = await response.json();
+            if (result.success) {
+                reportsCache.splice(idx, 1);
+                renderReportsList();
+                showToast({ type: 'success', title: 'Deleted', message: 'Report deleted successfully.' });
+            } else {
+                showToast({ type: 'error', title: 'Error', message: result.error || 'Could not delete report.' });
+            }
+        } catch (err) {
+            showToast({ type: 'error', title: 'Error', message: 'Failed to delete report.' });
+        }
+    };
+
+    window.exportSavedReport = function(idx) {
+        var report = reportsCache[idx];
+        if (!report) return;
+        generateAndDownloadReport(report);
+    };
+
+    function generateAndDownloadReport(d) {
         var originalScore = d.original_score || 0;
         var newScore = d.seo_score || 0;
         var improvement = d.score_improvement || (newScore - originalScore);
         var grade = d.seo_grade || 'N/A';
-        var title = d.new_title || 'Optimized Blog';
+        var title = d.new_title || d.blog_title || 'Optimized Blog';
         var primaryKw = d.primary_keyword || {};
         var kwText = primaryKw.keyword || primaryKw.term || 'N/A';
         var kwVolume = primaryKw.search_volume || 0;
@@ -556,26 +705,24 @@
         var kwCpc = primaryKw.cpc || 0;
         var changes = d.changes_made || [];
         var comparison = d.comparison || {};
-        var breakdown = comparison.breakdown_comparison || {};
         var recommendations = d.recommendations || [];
-        var dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        var dateStr = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
         var changesRows = '';
-        changes.forEach(function(c) {
-            var desc = typeof c === 'object' ? (c.description || '') : String(c);
-            var before = (c && c.before) ? escapeHtml(c.before) : '—';
-            var after = (c && c.after) ? escapeHtml(c.after) : '—';
-            var type = (c && c.type) ? c.type.charAt(0).toUpperCase() + c.type.slice(1) : '—';
-            changesRows += '<tr><td>' + escapeHtml(type) + '</td><td>' + escapeHtml(desc) + '</td><td>' + before + '</td><td>' + after + '</td></tr>';
+        changes.forEach(function(change) {
+            if (typeof change === 'object') {
+                changesRows += '<tr><td>' + escapeHtml(change.type || '') + '</td><td>' + escapeHtml(change.description || '') + '</td><td>' + escapeHtml(change.before || '—') + '</td><td>' + escapeHtml(change.after || '—') + '</td></tr>';
+            } else {
+                changesRows += '<tr><td colspan="4">' + escapeHtml(String(change)) + '</td></tr>';
+            }
         });
 
         var breakdownRows = '';
-        var categories = ['content_length', 'headings', 'keywords', 'readability', 'links', 'title'];
-        var catLabels = { content_length: 'Content Length', headings: 'Headings', keywords: 'Keywords', readability: 'Readability', links: 'Links', title: 'Title' };
-        categories.forEach(function(cat) {
-            var b = breakdown[cat] || {};
-            var bef = b.before || 0;
-            var aft = b.after || 0;
+        var catLabels = { content: 'Content', headings: 'Headings', keywords: 'Keywords', meta: 'Meta Tags', readability: 'Readability', structure: 'Structure', links: 'Links' };
+        var breakdown = comparison.breakdown_comparison || {};
+        Object.keys(breakdown).forEach(function(cat) {
+            var bef = breakdown[cat].before || 0;
+            var aft = breakdown[cat].after || 0;
             var diff = aft - bef;
             var diffStr = diff > 0 ? '+' + diff : String(diff);
             var diffColor = diff > 0 ? '#05CD99' : diff < 0 ? '#dc3545' : '#707EAE';
@@ -649,14 +796,15 @@
             + '</div></body></html>';
 
         var blob = new Blob([html], { type: 'text/html' });
-        var url = URL.createObjectURL(blob);
+        var dlUrl = URL.createObjectURL(blob);
         var a = document.createElement('a');
-        a.href = url;
+        a.href = dlUrl;
         var slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').substring(0, 40);
         a.download = 'seo-report-' + slug + '-' + new Date().toISOString().slice(0, 10) + '.html';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    };
+        URL.revokeObjectURL(dlUrl);
+    }
+
 })();

@@ -354,3 +354,25 @@ def site_audit():
         return jsonify({"success": False, "error": "Failed to connect to the API."}), 502
     except ValueError:
         return jsonify({"success": False, "error": "Invalid response from API."}), 502
+
+
+@optimization_bp.route('/api/optimization/reports')
+@admin_required
+def get_reports():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"success": False, "error": "Not authenticated."}), 401
+    reports = _db.get_user_seo_reports(user_id)
+    return jsonify({"success": True, "reports": reports})
+
+
+@optimization_bp.route('/api/optimization/reports/<report_id>', methods=['DELETE'])
+@admin_required
+def delete_report(report_id):
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"success": False, "error": "Not authenticated."}), 401
+    deleted = _db.delete_seo_report(report_id, user_id)
+    if deleted:
+        return jsonify({"success": True})
+    return jsonify({"success": False, "error": "Report not found or access denied."}), 404

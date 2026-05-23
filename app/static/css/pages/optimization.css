@@ -865,3 +865,232 @@
         font-size: 1.15rem;
     }
 }
+
+/* Reports Tab */
+.report-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.report-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.15rem 1.35rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.report-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(112, 144, 176, 0.12);
+    border-color: rgba(67, 24, 255, 0.15);
+}
+
+.report-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.report-card-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.report-card-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #1B2559;
+    margin: 0 0 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.report-card-date {
+    font-size: 0.75rem;
+    color: #707EAE;
+    font-weight: 500;
+}
+
+.report-card-scores {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.report-score-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #1B2559;
+}
+
+.report-score-pill .score-before {
+    color: #dc3545;
+}
+
+.report-score-pill .score-after {
+    color: #05CD99;
+}
+
+.report-score-pill .score-arrow {
+    color: #a3aed0;
+    font-size: 0.7rem;
+}
+
+.report-score-pill .score-diff {
+    color: #4318FF;
+    font-weight: 700;
+}
+
+.report-grade {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.report-grade.grade-a { background: rgba(5, 205, 153, 0.12); color: #05CD99; }
+.report-grade.grade-b { background: rgba(56, 152, 236, 0.12); color: #3898EC; }
+.report-grade.grade-c { background: rgba(255, 181, 71, 0.12); color: #e6a23c; }
+.report-grade.grade-d, .report-grade.grade-f { background: rgba(220, 53, 69, 0.12); color: #dc3545; }
+
+.report-card-actions {
+    display: flex;
+    gap: 0.35rem;
+}
+
+.report-action-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #707EAE;
+    font-size: 0.88rem;
+    transition: all 0.15s ease;
+}
+
+.report-action-btn:hover {
+    border-color: #4318FF;
+    color: #4318FF;
+    background: rgba(67, 24, 255, 0.04);
+}
+
+.report-action-btn.delete:hover {
+    border-color: #dc3545;
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.04);
+}
+
+.report-details {
+    display: none;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.report-details.show {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+.report-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+}
+
+.report-detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #f1f5f9;
+}
+
+.report-detail-item .label {
+    font-size: 0.78rem;
+    color: #707EAE;
+    font-weight: 500;
+}
+
+.report-detail-item .value {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #1B2559;
+}
+
+.report-changes-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.report-changes-list li {
+    padding: 0.4rem 0 0.4rem 1.25rem;
+    position: relative;
+    font-size: 0.82rem;
+    color: #1B2559;
+    font-weight: 500;
+}
+
+.report-changes-list li::before {
+    content: '\2713';
+    position: absolute;
+    left: 0;
+    color: #05CD99;
+    font-weight: 700;
+}
+
+/* Reports Empty Card */
+.report-empty-card {
+    background: #f8fafc;
+    border: 1.5px dashed #d1d9e6;
+    border-radius: 16px;
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+.report-empty-inner i {
+    font-size: 2.5rem;
+    color: #a3aed0;
+    margin-bottom: 0.75rem;
+    display: block;
+}
+
+.report-empty-inner h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1B2559;
+    margin: 0 0 0.4rem;
+}
+
+.report-empty-inner p {
+    font-size: 0.85rem;
+    color: #707EAE;
+    margin: 0;
+    max-width: 360px;
+    margin-inline: auto;
+    line-height: 1.5;
+}

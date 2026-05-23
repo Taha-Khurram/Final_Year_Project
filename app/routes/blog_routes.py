@@ -1021,6 +1021,23 @@ def optimize_existing_blog(blog_id):
                     blog_title=new_title
                 )
 
+            # Auto-save SEO report
+            try:
+                db_service.save_seo_report(user_id, {
+                    "blog_id": blog_id,
+                    "new_title": new_title,
+                    "original_score": result.get('original_analysis', {}).get('seo_score', {}).get('total', 0),
+                    "seo_score": optimized.get('seo_score', 0),
+                    "score_improvement": result.get('score_improvement', 0),
+                    "seo_grade": optimized.get('seo_grade', 'N/A'),
+                    "primary_keyword": result.get('keyword_research', {}).get('primary_keyword', {}),
+                    "comparison": result.get('comparison', {}),
+                    "changes_made": result.get('changes_made', []),
+                    "recommendations": result.get('recommendations', [])
+                })
+            except Exception:
+                pass
+
             return jsonify({
                 "success": success,
                 "seo_score": optimized.get('seo_score', 0),

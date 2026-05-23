@@ -134,10 +134,11 @@
       ]
     },
     {
-      "collectionGroup": "site_settings",
+      "collectionGroup": "seo_reports",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "site_slug", "order": "ASCENDING" }
+        { "fieldPath": "user_id", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
       ]
     }
   ],
