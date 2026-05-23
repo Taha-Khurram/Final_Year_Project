@@ -1176,6 +1176,64 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Site Statistics -->
+                    <div class="settings-card animate-fade-up mt-4">
+                        <h3><i class="bi bi-bar-chart"></i> Site Statistics</h3>
+                        <p class="text-muted">Overview of your published content.</p>
+
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <div class="text-center p-3 rounded" style="background: rgba(67, 24, 255, 0.05);">
+                                    <h2 class="mb-1" style="color: var(--primary-color);">{{ published_count }}</h2>
+                                    <p class="text-muted mb-0 small">Published Blogs</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3 rounded" style="background: rgba(5, 205, 153, 0.05);">
+                                    <h2 class="mb-1" style="color: var(--success-color);">{{ categories_count }}</h2>
+                                    <p class="text-muted mb-0 small">Categories</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3 rounded" style="background: rgba(255, 181, 71, 0.05);">
+                                    <h2 class="mb-1" style="color: var(--warning-color);">{{ pending_count }}</h2>
+                                    <p class="text-muted mb-0 small">Pending Review</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Published Blogs Management -->
+                    <div class="settings-card animate-fade-up mt-4">
+                        <h3><i class="bi bi-journal-check"></i> Published Blogs</h3>
+                        <p class="text-muted">Manage your live blog posts. Unpublishing moves them back to approval queue.</p>
+
+                        <div class="published-list">
+                            {% if published_blogs %}
+                            {% for blog in published_blogs %}
+                            <div class="published-item" id="published-{{ blog.id }}">
+                                <div class="published-item-info">
+                                    <div class="published-item-title">{{ blog.title.replace('**', '') if blog.title else 'Untitled' }}</div>
+                                    <div class="published-item-meta">
+                                        <span><i class="bi bi-folder2"></i> {{ blog.category or 'General' }}</span>
+                                        <span><i class="bi bi-calendar3"></i> {{ blog.updated_at.strftime('%b %d, %Y') if blog.updated_at else 'Recently' }}</span>
+                                    </div>
+                                </div>
+                                <button class="btn-unpublish" onclick="unpublishBlog('{{ blog.id }}')">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Unpublish
+                                </button>
+                            </div>
+                            {% endfor %}
+                            {% else %}
+                            <div class="empty-published">
+                                <i class="bi bi-journal-x d-block"></i>
+                                <p class="mb-0 fw-bold">No published blogs yet</p>
+                                <p class="small mb-0">Approved blogs will appear here</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Appearance Tab -->
@@ -2390,64 +2448,6 @@
                     </button>
                 </div>
             </form>
-        </div>
-
-        <!-- Published Blogs Management -->
-        <div class="settings-card animate-fade-up">
-            <h3><i class="bi bi-journal-check"></i> Published Blogs</h3>
-            <p class="text-muted">Manage your live blog posts. Unpublishing moves them back to approval queue.</p>
-
-            <div class="published-list">
-                {% if published_blogs %}
-                {% for blog in published_blogs %}
-                <div class="published-item" id="published-{{ blog.id }}">
-                    <div class="published-item-info">
-                        <div class="published-item-title">{{ blog.title.replace('**', '') if blog.title else 'Untitled' }}</div>
-                        <div class="published-item-meta">
-                            <span><i class="bi bi-folder2"></i> {{ blog.category or 'General' }}</span>
-                            <span><i class="bi bi-calendar3"></i> {{ blog.updated_at.strftime('%b %d, %Y') if blog.updated_at else 'Recently' }}</span>
-                        </div>
-                    </div>
-                    <button class="btn-unpublish" onclick="unpublishBlog('{{ blog.id }}')">
-                        <i class="bi bi-arrow-counterclockwise"></i> Unpublish
-                    </button>
-                </div>
-                {% endfor %}
-                {% else %}
-                <div class="empty-published">
-                    <i class="bi bi-journal-x d-block"></i>
-                    <p class="mb-0 fw-bold">No published blogs yet</p>
-                    <p class="small mb-0">Approved blogs will appear here</p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Site Statistics -->
-        <div class="settings-card animate-fade-up">
-            <h3><i class="bi bi-bar-chart"></i> Site Statistics</h3>
-            <p class="text-muted">Overview of your published content.</p>
-
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="text-center p-3 rounded" style="background: rgba(67, 24, 255, 0.05);">
-                        <h2 class="mb-1" style="color: var(--primary-color);">{{ published_count }}</h2>
-                        <p class="text-muted mb-0 small">Published Blogs</p>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="text-center p-3 rounded" style="background: rgba(5, 205, 153, 0.05);">
-                        <h2 class="mb-1" style="color: var(--success-color);">{{ categories_count }}</h2>
-                        <p class="text-muted mb-0 small">Categories</p>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="text-center p-3 rounded" style="background: rgba(255, 181, 71, 0.05);">
-                        <h2 class="mb-1" style="color: var(--warning-color);">{{ pending_count }}</h2>
-                        <p class="text-muted mb-0 small">Pending Review</p>
-                    </div>
-                </div>
-            </div>
         </div>
 
     </main>
