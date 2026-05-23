@@ -18,7 +18,33 @@ def schedule_page():
     user_id = session.get('user_id')
     site_owner_id = db_service.get_site_owner_for_user(user_id)
 
-    return render_template('schedule.html', user_role=user_role, site_owner_id=site_owner_id)
+    # Prefetch schedule data for instant rendering
+    prefetched_blogs = []
+    try:
+        blogs = db_service.get_all_scheduled_for_calendar(site_owner_id)
+        for blog in blogs:
+            scheduled_at = blog.get('scheduled_at')
+            if not scheduled_at:
+                continue
+            if hasattr(scheduled_at, 'isoformat'):
+                display_date = scheduled_at.isoformat()
+            else:
+                display_date = str(scheduled_at)
+
+            prefetched_blogs.append({
+                "id": blog.get("id"),
+                "title": (blog.get("title") or "Untitled").replace("**", ""),
+                "category": blog.get("category", "General"),
+                "author": blog.get("author", "Unknown"),
+                "status": blog.get("status"),
+                "scheduled_at": display_date
+            })
+    except Exception as e:
+        print(f"⚠ Schedule prefetch error: {e}")
+
+    import json
+    return render_template('schedule.html', user_role=user_role, site_owner_id=site_owner_id,
+                           prefetched_blogs=json.dumps(prefetched_blogs))
 
 
 @schedule_bp.route('/api/schedule/list')
@@ -125,6 +151,61 @@ def best_publish_time():
         traceback.print_exc()
         return jsonify({"success": True, "suggestions": [], "reason": "error",
                         "message": f"Analytics error: {str(e)}"})
+
+
+@schedule_bp.route('/api/schedule/available-blogs')
+def available_blogs():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    user_role = session.get('user_role', 'USER')
+    if user_role != 'ADMIN':
+        return jsonify({"success": False, "error": "Admin only"}), 403
+
+    try:
+        users_ref = db_service.db.collection("users")
+        user_docs = users_ref.where("created_by", "==", user_id).stream()
+        user_ids = [u.id for u in user_docs]
+        user_ids.append(user_id)
+
+        user_name_map = {}
+        for uid in user_ids:
+            doc = db_service.db.collection("users").document(uid).get()
+            if doc.exists:
+                u = doc.to_dict()
+                user_name_map[uid] = u.get('name') or u.get('email', '').split('@')[0] or 'Unknown'
+            else:
+                user_name_map[uid] = 'Unknown'
+
+        blogs_ref = db_service.db.collection("blogs")
+        results = []
+
+        batch_size = 10
+        for status in ["DRAFT", "UNDER_REVIEW"]:
+            for i in range(0, len(user_ids), batch_size):
+                batch_ids = user_ids[i:i + batch_size]
+                docs = (
+                    blogs_ref
+                    .where("author_id", "in", batch_ids)
+                    .where("status", "==", status)
+                    .stream()
+                )
+                for doc in docs:
+                    data = doc.to_dict()
+                    results.append({
+                        "id": doc.id,
+                        "title": (data.get("title") or "Untitled").replace("**", ""),
+                        "status": data.get("status"),
+                        "author_name": user_name_map.get(data.get("author_id"), "Unknown"),
+                        "updated_at": data.get("updated_at").isoformat() if hasattr(data.get("updated_at"), 'isoformat') else str(data.get("updated_at", ""))
+                    })
+
+        results.sort(key=lambda x: x.get("updated_at", ""), reverse=True)
+        return jsonify({"success": True, "blogs": results})
+    except Exception as e:
+        print(f"❌ Available blogs error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 @schedule_bp.route('/api/schedule/<blog_id>', methods=['POST'])

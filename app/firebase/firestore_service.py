@@ -1159,12 +1159,13 @@ class FirestoreService:
             return []
 
     def get_all_scheduled_for_calendar(self, site_owner_id):
-        """Returns scheduled blogs for the calendar page."""
+        """Returns scheduled and published (previously scheduled) blogs for the calendar page."""
         try:
             from datetime import timezone
             blogs_ref = self.db.collection("blogs")
             results = []
 
+            # Fetch currently scheduled blogs
             scheduled_docs = (
                 blogs_ref
                 .where(filter=FieldFilter("status", "==", "SCHEDULED"))
@@ -1174,6 +1175,19 @@ class FirestoreService:
                 data = doc.to_dict()
                 owner = data.get("site_owner_id") or data.get("author_id")
                 if owner == site_owner_id:
+                    data["id"] = doc.id
+                    results.append(data)
+
+            # Fetch published blogs that were previously scheduled (have scheduled_at)
+            published_docs = (
+                blogs_ref
+                .where(filter=FieldFilter("status", "==", "PUBLISHED"))
+                .stream()
+            )
+            for doc in published_docs:
+                data = doc.to_dict()
+                owner = data.get("site_owner_id") or data.get("author_id")
+                if owner == site_owner_id and data.get("scheduled_at"):
                     data["id"] = doc.id
                     results.append(data)
 

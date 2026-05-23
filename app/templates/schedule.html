@@ -17,6 +17,9 @@
         <div class="header-welcome-text">Content Planning</div>
         <h1 class="header-title">Blog Schedule</h1>
       </div>
+      <button class="btn-add-schedule" id="addScheduleBtn">
+        <i class="bi bi-plus-lg"></i> Add Schedule
+      </button>
     </header>
 
     <div class="dashboard-content-wrapper animate-fade-up">
@@ -34,23 +37,22 @@
           <div class="stat-icon stat-month"><i class="bi bi-calendar-range"></i></div>
           <div class="stat-info">
             <div class="stat-count" id="stat-month">0</div>
-            <div class="stat-label">This Month</div>
+            <div class="stat-label">This Week</div>
           </div>
         </div>
       </div>
 
-      <!-- Calendar Navigation -->
+      <!-- Week Navigation -->
       <div class="schedule-calendar-nav">
-        <div class="calendar-nav-center">
-          <button class="btn-nav" id="prevMonth"><i class="bi bi-chevron-left"></i></button>
-          <h3 class="calendar-month-title" id="monthTitle">May 2026</h3>
-          <button class="btn-nav" id="nextMonth"><i class="bi bi-chevron-right"></i></button>
-        </div>
+        <button class="btn-nav" id="prevWeek"><i class="bi bi-chevron-left"></i></button>
+        <h3 class="calendar-week-title" id="weekTitle">May 18 – May 24, 2026</h3>
+        <button class="btn-nav" id="nextWeek"><i class="bi bi-chevron-right"></i></button>
+        <button class="btn-today" id="todayBtn">Today</button>
       </div>
 
-      <!-- Timeline Container -->
-      <div class="schedule-timeline" id="timelineContainer">
-        <div class="timeline-loading">
+      <!-- Weekly Calendar Grid -->
+      <div class="weekly-calendar" id="weeklyCalendar">
+        <div class="calendar-loading">
           <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
           <span class="ms-2 text-muted">Loading schedule...</span>
         </div>
@@ -99,5 +101,61 @@
   </div>
 </div>
 
+<!-- Add Schedule Modal -->
+<div class="modal fade" id="addScheduleModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="custom-modal-header">
+        <h5 class="custom-modal-title">
+          <i class="bi bi-calendar-plus"></i> Schedule a Blog
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="custom-modal-body">
+        <div class="schedule-modal-search">
+          <i class="bi bi-search"></i>
+          <input type="text" id="blogSearchInput" placeholder="Search blogs..." autocomplete="off">
+        </div>
+        <div class="schedule-blog-list" id="blogListContainer">
+          <div class="blog-list-loading">
+            <div class="spinner-border spinner-border-sm text-primary"></div>
+            <span>Loading blogs...</span>
+          </div>
+        </div>
+
+        <!-- Schedule form (shown when a blog is selected) -->
+        <div class="schedule-form-section" id="scheduleFormSection" style="display:none;">
+          <div class="selected-blog-info" id="selectedBlogInfo"></div>
+          <label class="schedule-form-label">Pick date & time:</label>
+          <input type="datetime-local" class="schedule-datetime-input" id="scheduleDateTime">
+          <div id="bestTimeSuggestionsAdd" class="best-time-container mt-3">
+            <div class="best-time-header">
+              <i class="bi bi-robot"></i>
+              <span>AI Publish Time Agent — Recommended Times</span>
+            </div>
+            <div id="bestTimeSuggestionsListAdd" class="best-time-list">
+              <div class="best-time-loading">
+                <div class="spinner-border spinner-border-sm text-primary"></div>
+                <span>Analyzing best publish times...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="custom-modal-footer">
+        <button type="button" class="btn-modal btn-modal-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Cancel
+        </button>
+        <button type="button" class="btn-modal btn-modal-primary" id="confirmScheduleBtn" disabled>
+          <i class="bi bi-calendar-check"></i> Schedule
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.PREFETCHED_BLOGS = {{ prefetched_blogs|safe }};
+</script>
 <script src="{{ url_for('static', filename='js/pages/schedule.js') }}"></script>
 {% endblock %}
