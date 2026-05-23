@@ -130,15 +130,21 @@ async function openViewModal(id) {
       document.getElementById('view-modal-word-count').innerText = wordCount + ' words';
 
       // Set button actions
-      document.getElementById('view-edit-btn').onclick = function() {
-        bootstrap.Modal.getInstance(document.getElementById('viewModal')).hide();
-        openEditModal(id);
-      };
+      var editBtn = document.getElementById('view-edit-btn');
+      if (editBtn) {
+        editBtn.onclick = function() {
+          bootstrap.Modal.getInstance(document.getElementById('viewModal')).hide();
+          openEditModal(id);
+        };
+      }
 
-      document.getElementById('view-submit-btn').onclick = function() {
-        bootstrap.Modal.getInstance(document.getElementById('viewModal')).hide();
-        submitForReview(id);
-      };
+      var submitBtn = document.getElementById('view-submit-btn');
+      if (submitBtn) {
+        submitBtn.onclick = function() {
+          bootstrap.Modal.getInstance(document.getElementById('viewModal')).hide();
+          submitForReview(id);
+        };
+      }
 
       // Show modal
       const viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
@@ -277,6 +283,17 @@ function updateSeoCounters() {
   const seoDesc = document.getElementById('modal-seo-description');
   document.getElementById('seo-title-count').textContent = seoTitle.value.length;
   document.getElementById('seo-desc-count').textContent = seoDesc.value.length;
+}
+
+function copyDraftContent() {
+  const editor = tinymce.get('editor-canvas');
+  if (!editor) return;
+  const content = editor.getContent({ format: 'text' });
+  navigator.clipboard.writeText(content).then(function() {
+    showToast({ type: 'success', title: 'Copied', message: 'Content copied to clipboard.', duration: 2000 });
+  }).catch(function() {
+    showToast({ type: 'error', title: 'Error', message: 'Failed to copy content.', duration: 3000 });
+  });
 }
 
 async function saveModalChanges() {
