@@ -615,7 +615,7 @@ const Pjax = (() => {
         const scripts = [];
 
         // Base assets that should NOT be reloaded on navigation
-        const baseScripts = ['bootstrap.bundle', 'app.js'];
+        const baseScripts = ['bootstrap.bundle', 'app.js', 'activity-tracker'];
         const baseStyles = ['bootstrap', 'dashboard.css', 'fonts.googleapis'];
 
         // Get page-specific CSS (anything not from the base template)
@@ -698,6 +698,28 @@ const Pjax = (() => {
     }
 
     function executeScripts(scripts, inlineScripts) {
+        function runInlineScripts() {
+            inlineScripts.forEach(code => {
+                try {
+                    const script = document.createElement('script');
+                    script.setAttribute('data-pjax', 'true');
+                    script.textContent = code;
+                    document.body.appendChild(script);
+                } catch (e) {
+                    console.warn('Pjax: inline script error', e);
+                }
+            });
+
+            // Dispatch DOMContentLoaded-like event for scripts expecting it
+            document.dispatchEvent(new Event('pjax:complete'));
+            window.dispatchEvent(new Event('load'));
+        }
+
+        if (scripts.length === 0) {
+            runInlineScripts();
+            return;
+        }
+
         // Load external scripts sequentially
         const loadScript = (src) => {
             return new Promise((resolve) => {
@@ -721,22 +743,7 @@ const Pjax = (() => {
         });
 
         // Execute inline scripts after external ones load
-        chain.then(() => {
-            inlineScripts.forEach(code => {
-                try {
-                    const script = document.createElement('script');
-                    script.setAttribute('data-pjax', 'true');
-                    script.textContent = code;
-                    document.body.appendChild(script);
-                } catch (e) {
-                    console.warn('Pjax: inline script error', e);
-                }
-            });
-
-            // Dispatch DOMContentLoaded-like event for scripts expecting it
-            document.dispatchEvent(new Event('pjax:complete'));
-            window.dispatchEvent(new Event('load'));
-        });
+        chain.then(() => runInlineScripts());
     }
 
     function cleanupOldScripts() {
