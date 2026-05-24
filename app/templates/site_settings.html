@@ -1939,10 +1939,26 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="form-label">Newsletter Background Image URL</label>
-                                        <input type="text" class="form-control" id="hero_home_newsletter_image" name="hero_home_newsletter_image"
-                                               value="{{ settings.hero_home.newsletter_image if settings.hero_home else '' }}"
-                                               placeholder="https://images.unsplash.com/...">
+                                        <label class="form-label">Newsletter Background Image</label>
+                                        <input type="hidden" id="hero_home_newsletter_image" name="hero_home_newsletter_image"
+                                               value="{{ settings.hero_home.newsletter_image if settings.hero_home else '' }}">
+                                        <div class="cover-image-preview" id="newsletter-img-preview-container" style="{% if not settings.hero_home or not settings.hero_home.newsletter_image %}display:none{% endif %}">
+                                            <img id="newsletter-img-preview-img" src="{{ settings.hero_home.newsletter_image if settings.hero_home else '' }}" alt="Newsletter Background">
+                                            <div class="cover-image-actions">
+                                                <button type="button" class="cover-img-action-btn" onclick="openSettingsImagePicker('newsletter_img')" title="Change image">
+                                                    <i class="bi bi-arrow-repeat"></i>
+                                                </button>
+                                                <button type="button" class="cover-img-action-btn danger" onclick="removeSettingsImage('newsletter_img')" title="Remove image">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="cover-image-placeholder" id="newsletter-img-placeholder" onclick="openSettingsImagePicker('newsletter_img')" style="{% if settings.hero_home and settings.hero_home.newsletter_image %}display:none{% endif %}">
+                                            <div class="cover-placeholder-icon"><i class="bi bi-image"></i></div>
+                                            <div class="cover-placeholder-text">Click to select an image</div>
+                                            <div class="cover-placeholder-hint">Choose from your gallery</div>
+                                        </div>
+                                        <p class="form-hint">Recommended: 1400x800px (landscape)</p>
                                     </div>
                                 </div>
                             </div>
@@ -2948,7 +2964,8 @@
     var fieldMap = {
         'logo': { hidden: 'logo_url', preview: 'logo-preview-container', img: 'logo-preview-img', placeholder: 'logo-placeholder' },
         'favicon': { hidden: 'favicon_url', preview: 'favicon-preview-container', img: 'favicon-preview-img', placeholder: 'favicon-placeholder' },
-        'cover': { hidden: 'cover_image_url', preview: 'cover-preview-container', img: 'cover-preview-img', placeholder: 'cover-placeholder' }
+        'cover': { hidden: 'cover_image_url', preview: 'cover-preview-container', img: 'cover-preview-img', placeholder: 'cover-placeholder' },
+        'newsletter_img': { hidden: 'hero_home_newsletter_image', preview: 'newsletter-img-preview-container', img: 'newsletter-img-preview-img', placeholder: 'newsletter-img-placeholder' }
     };
 
     function openSettingsImagePicker(fieldKey) {
