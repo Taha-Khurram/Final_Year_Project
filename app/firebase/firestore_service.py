@@ -1640,7 +1640,8 @@ class FirestoreService:
                 "view_all_text": "View All Posts",
                 "about_kicker": "About the Platform",
                 "about_title": "{site_name} blends practical expertise with clear publishing vision.",
-                "newsletter_disclaimer": "No spam, unsubscribe anytime."
+                "newsletter_disclaimer": "No spam, unsubscribe anytime.",
+                "newsletter_image": ""
             },
             "hero_about": {
                 "subtitle": "{site_description}",

@@ -1937,6 +1937,14 @@
                                                placeholder="No spam, unsubscribe anytime.">
                                     </div>
                                 </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Newsletter Background Image URL</label>
+                                        <input type="text" class="form-control" id="hero_home_newsletter_image" name="hero_home_newsletter_image"
+                                               value="{{ settings.hero_home.newsletter_image if settings.hero_home else '' }}"
+                                               placeholder="https://images.unsplash.com/...">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2800,7 +2808,8 @@
                     view_all_text: _v('hero_home_view_all_text'),
                     about_kicker: _v('hero_home_about_kicker'),
                     about_title: _v('hero_home_about_title'),
-                    newsletter_disclaimer: _v('hero_home_newsletter_disclaimer')
+                    newsletter_disclaimer: _v('hero_home_newsletter_disclaimer'),
+                    newsletter_image: _v('hero_home_newsletter_image')
                 },
                 hero_about: {
                     subtitle: _v('hero_about_subtitle'),
