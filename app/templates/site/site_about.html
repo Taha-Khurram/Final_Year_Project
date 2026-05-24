@@ -4,75 +4,86 @@
 
 {% block extra_css %}
 <style>
-    /* ==================== ABOUT HERO ==================== */
+    .footer-newsletter-section {
+        display: none;
+    }
+
+    /* ==================== FULL-WIDTH HERO ==================== */
     .about-hero {
-        display: flex;
-        align-items: center;
-        gap: 3rem;
-        padding: 4rem 2rem;
-        margin: -2rem -2rem 3rem -2rem;
-        background: linear-gradient(135deg, rgba(67, 24, 255, 0.03) 0%, rgba(99, 102, 241, 0.08) 50%, rgba(139, 92, 246, 0.05) 100%);
         position: relative;
+        width: 100vw;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
+        padding: 5rem 2rem;
+        background: linear-gradient(145deg, rgba(67, 24, 255, 0.05) 0%, rgba(99, 102, 241, 0.1) 50%, rgba(139, 92, 246, 0.04) 100%);
         overflow: hidden;
+        margin-bottom: 4rem;
     }
 
     .about-hero::before {
         content: '';
         position: absolute;
-        top: -50%;
-        right: -20%;
-        width: 500px;
-        height: 500px;
-        background: radial-gradient(circle, rgba(67, 24, 255, 0.06) 0%, transparent 70%);
+        top: -100px;
+        right: -80px;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(67, 24, 255, 0.08) 0%, transparent 70%);
         border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .about-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -80px;
+        left: -60px;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .about-hero-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        position: relative;
+        z-index: 1;
     }
 
     .about-hero-content {
-        flex: 1;
-        position: relative;
-        z-index: 1;
-    }
-
-    .about-hero-illustration {
-        flex: 1;
         display: flex;
-        justify-content: center;
+        flex-direction: column;
         align-items: center;
-        position: relative;
-        z-index: 1;
+        gap: 1.25rem;
     }
 
-    .about-hero-illustration svg {
-        width: 100%;
-        max-width: 400px;
-        height: auto;
-    }
-
-    .about-avatar {
-        width: 120px;
-        height: auto;
-        display: flex;
+    .about-hero-badge {
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
-        margin: 0 auto 2rem;
-    }
-
-    .about-avatar img {
-        width: 100%;
-        height: auto;
-        object-fit: contain;
-    }
-
-    .about-avatar i {
-        font-size: 3rem;
-        color: white;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: #fff;
+        padding: 0.4rem 1rem;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        width: fit-content;
     }
 
     .about-hero h1 {
-        font-size: 2.75rem;
+        font-size: clamp(2.2rem, 4vw, 3rem);
         font-weight: 800;
         color: var(--text-primary);
-        margin-bottom: 1rem;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        margin: 0;
     }
 
     .about-hero h1 span {
@@ -83,61 +94,78 @@
     }
 
     .about-hero-description {
-        font-size: 1.15rem;
+        font-size: 1.05rem;
         color: var(--text-secondary);
-        max-width: 700px;
-        margin: 0 auto 1.5rem;
-        line-height: 1.7;
+        line-height: 1.75;
+        max-width: 620px;
+        margin: 0;
     }
 
-    .niche-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-        color: white;
-        padding: 0.5rem 1.5rem;
-        border-radius: 30px;
-        font-size: 0.85rem;
-        font-weight: 700;
+    .about-hero-stats {
+        display: flex;
+        gap: 2.5rem;
+        margin-top: 0.5rem;
+        justify-content: center;
+    }
+
+    .about-hero-stat {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .about-hero-stat strong {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1.2;
+    }
+
+    .about-hero-stat span {
+        font-size: 0.78rem;
+        color: var(--text-secondary);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.06em;
+        font-weight: 600;
+        margin-top: 0.2rem;
+    }
+
+    /* ==================== SECTION DIVIDERS ==================== */
+    .section-divider {
+        border: none;
+        height: 1px;
+        background: linear-gradient(90deg, transparent 0%, rgba(15, 23, 42, 0.1) 20%, rgba(15, 23, 42, 0.1) 80%, transparent 100%);
+        margin: 0 0 4rem;
     }
 
     /* ==================== STORY SECTION ==================== */
     .story-section {
-        max-width: 800px;
-        margin: 0 auto 3rem;
+        max-width: 100%;
+        margin: 0 0 4rem;
+        text-align: center;
     }
 
-    .story-card {
-        background: var(--bg-card);
-        border-radius: var(--radius-lg);
-        padding: 2.5rem;
-        box-shadow: var(--shadow-card);
-    }
-
-    .story-card h2 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin-bottom: 1.5rem;
+    .story-section .section-title {
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 0.75rem;
+        margin-bottom: 1.5rem;
     }
 
-    .story-card h2 i {
+    .story-section .section-title i {
         color: var(--primary-color);
         padding: 0.5rem;
-        background: var(--primary-light);
+        background: rgba(67, 24, 255, 0.08);
         border-radius: 10px;
+        font-size: 1.1rem;
     }
 
     .story-content {
-        font-size: 1.05rem;
-        line-height: 1.8;
+        font-size: 1rem;
+        line-height: 1.85;
         color: var(--text-secondary);
+        max-width: 700px;
+        margin: 0 auto;
     }
 
     .story-content p {
@@ -150,47 +178,67 @@
 
     /* ==================== VALUES SECTION ==================== */
     .values-section {
-        margin-bottom: 3rem;
+        margin-bottom: 4rem;
     }
 
     .section-title {
         text-align: center;
-        font-size: 1.75rem;
+        font-size: 1.6rem;
         font-weight: 800;
         color: var(--text-primary);
-        margin-bottom: 2rem;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.01em;
+        justify-content: center;
+    }
+
+    .section-subtitle {
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        margin-bottom: 2.5rem;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .values-section {
+        margin-bottom: 4rem;
+        text-align: center;
     }
 
     .values-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 1.5rem;
+        gap: 1.75rem;
+        max-width: 1000px;
+        margin: 0 auto;
     }
 
     .value-card {
         background: var(--bg-card);
-        border-radius: var(--radius-lg);
-        padding: 2rem;
+        border-radius: 14px;
+        padding: 2rem 1.75rem;
         text-align: center;
-        box-shadow: var(--shadow-card);
-        transition: var(--transition-base);
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
 
     .value-card:hover {
-        transform: translateY(-6px);
-        box-shadow: var(--shadow-lg);
+        transform: translateY(-5px);
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.1);
     }
 
     .value-icon {
-        width: 70px;
-        height: 70px;
-        background: var(--primary-light);
-        border-radius: 50%;
+        width: 64px;
+        height: 64px;
+        background: rgba(67, 24, 255, 0.08);
+        border-radius: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
         margin: 0 auto 1.25rem;
-        transition: var(--transition-base);
+        transition: all 0.25s ease;
     }
 
     .value-card:hover .value-icon {
@@ -198,9 +246,9 @@
     }
 
     .value-icon i {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
         color: var(--primary-color);
-        transition: var(--transition-base);
+        transition: color 0.25s ease;
     }
 
     .value-card:hover .value-icon i {
@@ -208,24 +256,25 @@
     }
 
     .value-card h3 {
-        font-size: 1.15rem;
+        font-size: 1.05rem;
         font-weight: 700;
         color: var(--text-primary);
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.6rem;
     }
 
     .value-card p {
-        font-size: 0.9rem;
+        font-size: 0.88rem;
         color: var(--text-secondary);
-        line-height: 1.6;
+        line-height: 1.65;
+        margin: 0;
     }
 
     /* ==================== STATS SECTION ==================== */
     .stats-section {
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-        border-radius: var(--radius-lg);
-        padding: 3rem 2rem;
-        margin-bottom: 3rem;
+        background: linear-gradient(145deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        border-radius: 16px;
+        padding: 3.5rem 2.5rem;
+        margin-bottom: 4rem;
         position: relative;
         overflow: hidden;
     }
@@ -234,22 +283,24 @@
         content: '';
         position: absolute;
         top: -50%;
-        right: -20%;
-        width: 300px;
-        height: 300px;
-        background: rgba(255, 255, 255, 0.1);
+        right: -15%;
+        width: 350px;
+        height: 350px;
+        background: rgba(255, 255, 255, 0.08);
         border-radius: 50%;
+        pointer-events: none;
     }
 
     .stats-section::after {
         content: '';
         position: absolute;
-        bottom: -30%;
+        bottom: -40%;
         left: -10%;
-        width: 200px;
-        height: 200px;
+        width: 250px;
+        height: 250px;
         background: rgba(255, 255, 255, 0.05);
         border-radius: 50%;
+        pointer-events: none;
     }
 
     .stats-content {
@@ -259,10 +310,10 @@
 
     .stats-title {
         text-align: center;
-        font-size: 1.5rem;
+        font-size: 1.4rem;
         font-weight: 800;
         color: white;
-        margin-bottom: 2rem;
+        margin-bottom: 2.5rem;
     }
 
     .stats-grid {
@@ -276,15 +327,15 @@
     }
 
     .stat-number {
-        font-size: 2.75rem;
+        font-size: 2.5rem;
         font-weight: 800;
         color: white;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.4rem;
         line-height: 1;
     }
 
     .stat-label {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         color: rgba(255, 255, 255, 0.85);
         font-weight: 600;
     }
@@ -292,24 +343,27 @@
     /* ==================== CTA SECTION ==================== */
     .cta-section {
         background: var(--bg-card);
-        border-radius: var(--radius-lg);
-        padding: 3rem;
+        border-radius: 16px;
+        padding: 3.5rem 2.5rem;
         text-align: center;
-        box-shadow: var(--shadow-card);
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        box-shadow: 0 4px 24px rgba(15, 23, 42, 0.05);
+        margin-bottom: 2rem;
     }
 
     .cta-section h2 {
-        font-size: 1.75rem;
+        font-size: 1.6rem;
         font-weight: 800;
         color: var(--text-primary);
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.6rem;
     }
 
     .cta-section p {
         font-size: 1rem;
         color: var(--text-secondary);
-        max-width: 500px;
-        margin: 0 auto 1.5rem;
+        max-width: 480px;
+        margin: 0 auto 2rem;
+        line-height: 1.6;
     }
 
     .cta-buttons {
@@ -325,18 +379,18 @@
         gap: 0.5rem;
         background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
         color: white;
-        padding: 1rem 2rem;
-        border-radius: 30px;
+        padding: 0.9rem 1.8rem;
+        border-radius: 10px;
         text-decoration: none;
         font-weight: 700;
-        font-size: 0.95rem;
-        transition: var(--transition-base);
-        box-shadow: 0 4px 15px rgba(67, 24, 255, 0.3);
+        font-size: 0.92rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 4px 14px rgba(67, 24, 255, 0.25);
     }
 
     .btn-primary:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 20px rgba(67, 24, 255, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(67, 24, 255, 0.35);
     }
 
     .btn-outline {
@@ -345,75 +399,71 @@
         gap: 0.5rem;
         background: transparent;
         color: var(--text-primary);
-        padding: 1rem 2rem;
-        border-radius: 30px;
+        padding: 0.9rem 1.8rem;
+        border-radius: 10px;
         text-decoration: none;
         font-weight: 700;
-        font-size: 0.95rem;
-        border: 2px solid rgba(0, 0, 0, 0.1);
-        transition: var(--transition-base);
+        font-size: 0.92rem;
+        border: 1.5px solid rgba(15, 23, 42, 0.15);
+        transition: all 0.2s ease;
     }
 
     .btn-outline:hover {
         border-color: var(--primary-color);
         color: var(--primary-color);
-        transform: translateY(-3px);
+        transform: translateY(-2px);
     }
 
     /* ==================== RESPONSIVE ==================== */
     @media (max-width: 900px) {
-        .about-hero {
-            flex-direction: column;
+        .about-hero-inner {
             text-align: center;
         }
 
-        .about-hero-illustration {
-            order: -1;
-        }
-
-        .about-hero-illustration svg {
-            max-width: 300px;
+        .about-hero-stats {
+            justify-content: center;
         }
 
         .values-grid {
             grid-template-columns: 1fr;
+            gap: 1.25rem;
         }
 
         .stats-grid {
             grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
+            gap: 1.75rem;
         }
     }
 
     @media (max-width: 768px) {
         .about-hero {
-            padding: 3rem 1.5rem;
-            margin: -1.5rem -1.5rem 2rem -1.5rem;
+            padding: 3.5rem 1.5rem;
+            margin-bottom: 3rem;
         }
 
         .about-hero h1 {
             font-size: 2rem;
         }
 
-        .about-hero-illustration svg {
-            max-width: 250px;
-        }
-
-        .about-avatar {
-            width: 100px;
-            height: 100px;
-        }
-
-        .about-avatar i {
-            font-size: 2.5rem;
+        .about-hero-stats {
+            gap: 1.5rem;
         }
 
         .story-card {
-            padding: 1.5rem;
+            padding: 2rem 1.5rem;
+        }
+
+        .story-section {
+            margin-bottom: 3rem;
+        }
+
+        .values-section {
+            margin-bottom: 3rem;
         }
 
         .stats-section {
-            padding: 2rem 1.5rem;
+            padding: 2.5rem 1.5rem;
+            margin-bottom: 3rem;
         }
 
         .stat-number {
@@ -421,7 +471,7 @@
         }
 
         .cta-section {
-            padding: 2rem 1.5rem;
+            padding: 2.5rem 1.5rem;
         }
 
         .cta-buttons {
@@ -437,155 +487,57 @@
 {% endblock %}
 
 {% block content %}
-<!-- About Hero -->
+<!-- Full-Width Hero -->
 <section class="about-hero">
-    <div class="about-hero-content" data-animate="fade-up">
-        <div class="about-avatar">
-            {% if settings.logo_url %}
-            <img src="{{ settings.logo_url }}" alt="{{ settings.site_name }}">
-            {% else %}
-            <i class="bi bi-journal-richtext"></i>
-            {% endif %}
+    <div class="about-hero-inner" data-animate="fade-up">
+        <div class="about-hero-content">
+            <span class="about-hero-badge">
+                <i class="bi bi-info-circle"></i> About Us
+            </span>
+            <h1>About <span>{{ settings.site_name }}</span></h1>
+            <p class="about-hero-description">
+                {% set subtitle_text = settings.hero_about.subtitle | default(settings.site_description) | default('Discover insightful articles, tips, and stories that inspire and inform. Join our community of readers today.') %}
+                {{ subtitle_text | replace('{site_description}', settings.site_description | default('')) | replace('{site_name}', settings.site_name | default('')) }}
+            </p>
+            <div class="about-hero-stats">
+                <div class="about-hero-stat">
+                    <strong>{{ published_count }}+</strong>
+                    <span>Articles</span>
+                </div>
+                <div class="about-hero-stat">
+                    <strong>{{ categories_count }}</strong>
+                    <span>Categories</span>
+                </div>
+                <div class="about-hero-stat">
+                    <strong>{{ (published_count * 50) }}+</strong>
+                    <span>Readers</span>
+                </div>
+            </div>
         </div>
-        <h1>About <span>{{ settings.site_name }}</span></h1>
-        <p class="about-hero-description">
-            {% set subtitle_text = settings.hero_about.subtitle | default(settings.site_description) | default('Discover insightful articles, tips, and stories that inspire and inform. Join our community of readers today.') %}
-            {{ subtitle_text | replace('{site_description}', settings.site_description | default('')) | replace('{site_name}', settings.site_name | default('')) }}
-        </p>
-        {% if settings.niche %}
-        <span class="niche-badge">
-            <i class="bi bi-stars"></i> {{ settings.niche }}
-        </span>
+    </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- Our Story Section -->
+<section class="story-section" data-animate="fade-up">
+    <h2 class="section-title"><i class="bi bi-book"></i> Our Story</h2>
+    <div class="story-content">
+        {% if settings.about_content %}
+        {{ settings.about_content|safe }}
+        {% else %}
+        <p>We started this platform with a simple belief: everyone deserves access to quality content that educates, inspires, and empowers. What began as a small project has grown into a thriving community of readers and writers.</p>
+        <p>Every article we publish is crafted with care, backed by research, and written with our readers in mind. We're not just a blog — we're a community dedicated to sharing knowledge and fostering meaningful conversations.</p>
         {% endif %}
     </div>
-
-    <div class="about-hero-illustration">
-        <svg viewBox="0 0 400 350" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Background elements -->
-            <ellipse cx="200" cy="175" rx="160" ry="140" fill="url(#aboutGrad1)" opacity="0.1"/>
-            <circle cx="320" cy="80" r="40" fill="url(#aboutGrad2)" opacity="0.08"/>
-            <circle cx="60" cy="280" r="35" fill="url(#aboutGrad2)" opacity="0.06"/>
-
-            <!-- Main figure - person at desk -->
-            <!-- Desk -->
-            <rect x="80" y="220" width="240" height="12" rx="3" fill="#4A5568"/>
-            <rect x="100" y="232" width="8" height="60" fill="#2D3748"/>
-            <rect x="292" y="232" width="8" height="60" fill="#2D3748"/>
-
-            <!-- Monitor -->
-            <rect x="140" y="140" width="120" height="80" rx="6" fill="#2D3748"/>
-            <rect x="147" y="147" width="106" height="66" rx="3" fill="url(#screenGrad2)"/>
-            <rect x="190" y="220" width="20" height="12" fill="#4A5568"/>
-            <rect x="180" y="230" width="40" height="4" rx="2" fill="#4A5568"/>
-
-            <!-- Screen content -->
-            <rect x="157" y="157" width="50" height="6" rx="3" fill="rgba(255,255,255,0.9)"/>
-            <rect x="157" y="168" width="80" height="4" rx="2" fill="rgba(255,255,255,0.4)"/>
-            <rect x="157" y="177" width="70" height="4" rx="2" fill="rgba(255,255,255,0.4)"/>
-            <rect x="157" y="186" width="75" height="4" rx="2" fill="rgba(255,255,255,0.4)"/>
-            <rect x="157" y="198" width="35" height="8" rx="4" style="fill:var(--secondary-color)"/>
-
-            <!-- Person silhouette -->
-            <ellipse cx="200" cy="100" rx="28" ry="30" style="fill:var(--secondary-color)"/>
-            <ellipse cx="200" cy="170" rx="45" ry="50" style="fill:var(--secondary-color)"/>
-            <!-- Face details -->
-            <circle cx="192" cy="95" r="3" fill="white" opacity="0.8"/>
-            <circle cx="208" cy="95" r="3" fill="white" opacity="0.8"/>
-            <path d="M193 108 Q200 114 207 108" stroke="white" stroke-width="2" fill="none" opacity="0.8"/>
-
-            <!-- Arms typing -->
-            <ellipse cx="160" cy="200" rx="12" ry="8" style="fill:var(--secondary-color)"/>
-            <ellipse cx="240" cy="200" rx="12" ry="8" style="fill:var(--secondary-color)"/>
-
-            <!-- Keyboard -->
-            <rect x="155" y="208" width="90" height="12" rx="2" fill="#CBD5E0"/>
-            <rect x="160" y="210" width="6" height="3" rx="1" fill="#A0AEC0"/>
-            <rect x="168" y="210" width="6" height="3" rx="1" fill="#A0AEC0"/>
-            <rect x="176" y="210" width="6" height="3" rx="1" fill="#A0AEC0"/>
-            <rect x="184" y="210" width="6" height="3" rx="1" fill="#A0AEC0"/>
-            <rect x="192" y="210" width="16" height="3" rx="1" fill="#A0AEC0"/>
-            <rect x="210" y="210" width="6" height="3" rx="1" fill="#A0AEC0"/>
-            <rect x="218" y="210" width="6" height="3" rx="1" fill="#A0AEC0"/>
-            <rect x="226" y="210" width="6" height="3" rx="1" fill="#A0AEC0"/>
-            <rect x="234" y="210" width="6" height="3" rx="1" fill="#A0AEC0"/>
-
-            <!-- Plant -->
-            <rect x="290" y="190" width="25" height="30" rx="4" fill="#ED8936"/>
-            <ellipse cx="302" cy="190" rx="15" ry="5" fill="#48BB78"/>
-            <path d="M302 190 C302 170 290 165 302 150" stroke="#48BB78" stroke-width="4" fill="none"/>
-            <ellipse cx="302" cy="150" rx="12" ry="8" fill="#48BB78"/>
-            <path d="M302 170 C315 165 320 175 320 165" stroke="#48BB78" stroke-width="3" fill="none"/>
-            <ellipse cx="320" cy="162" rx="8" ry="5" fill="#68D391"/>
-
-            <!-- Coffee mug -->
-            <rect x="60" y="195" width="22" height="25" rx="3" fill="#E2E8F0"/>
-            <ellipse cx="71" cy="195" rx="11" ry="4" fill="#CBD5E0"/>
-            <ellipse cx="71" cy="197" rx="8" ry="3" style="fill:var(--primary-color)"/>
-            <path d="M82 202 Q92 202 92 210 Q92 218 82 218" stroke="#CBD5E0" stroke-width="3" fill="none"/>
-            <!-- Steam -->
-            <path d="M66 188 Q63 182 66 176" stroke="#A0AEC0" stroke-width="1.5" fill="none" opacity="0.5"/>
-            <path d="M73 186 Q70 180 73 174" stroke="#A0AEC0" stroke-width="1.5" fill="none" opacity="0.5"/>
-
-            <!-- Floating icons/badges -->
-            <!-- Lightbulb idea -->
-            <circle cx="330" cy="130" r="22" fill="#FBD38D" opacity="0.9"/>
-            <path d="M330 118 L330 125 M330 135 Q325 140 330 145 Q335 140 330 135 M320 125 L323 127 M340 125 L337 127" stroke="#D69E2E" stroke-width="2.5" fill="none"/>
-
-            <!-- Heart/engagement -->
-            <path d="M70 130 C70 120 85 120 85 130 C85 145 70 155 70 155 C70 155 55 145 55 130 C55 120 70 120 70 130" fill="#FC8181" opacity="0.9"/>
-
-            <!-- Stars -->
-            <g style="fill:var(--secondary-color)" opacity="0.7">
-                <path d="M350 200 L352 206 L358 206 L353 210 L355 216 L350 212 L345 216 L347 210 L342 206 L348 206 Z"/>
-                <path d="M50 90 L51.5 95 L57 95 L53 98 L54.5 103 L50 100 L45.5 103 L47 98 L43 95 L48.5 95 Z" transform="scale(0.8) translate(10, 10)"/>
-            </g>
-
-            <!-- Chat bubbles -->
-            <rect x="280" cy="50" width="50" height="25" rx="8" fill="white" filter="url(#shadow)"/>
-            <circle cx="290" cy="62" r="3" style="fill:var(--secondary-color)"/>
-            <circle cx="300" cy="62" r="3" style="fill:var(--secondary-color)"/>
-            <circle cx="310" cy="62" r="3" style="fill:var(--secondary-color)"/>
-
-            <defs>
-                <linearGradient id="aboutGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:var(--secondary-color)"/>
-                    <stop offset="100%" style="stop-color:var(--secondary-color)"/>
-                </linearGradient>
-                <linearGradient id="aboutGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:var(--primary-color)"/>
-                    <stop offset="100%" style="stop-color:var(--secondary-color)"/>
-                </linearGradient>
-                <linearGradient id="screenGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" style="stop-color:#1A202C"/>
-                    <stop offset="100%" style="stop-color:#2D3748"/>
-                </linearGradient>
-                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15"/>
-                </filter>
-            </defs>
-        </svg>
-    </div>
 </section>
 
-<!-- Story Section -->
-<section class="story-section">
-    <div class="story-card" data-animate="fade-up">
-        <h2><i class="bi bi-book"></i> {{ settings.hero_about.story_title if settings.hero_about else 'Our Story' }}</h2>
-        <div class="story-content">
-            {% if settings.about_content %}
-            {{ settings.about_content|safe }}
-            {% else %}
-            <p>Welcome to {{ settings.site_name }}! We're passionate about sharing valuable insights and stories with our readers.</p>
-            <p>Our mission is to provide high-quality content that informs, inspires, and engages our community. Whether you're here to learn something new, find inspiration, or simply enjoy great content, we've got you covered.</p>
-            <p>Thank you for being part of our journey. We're constantly working to bring you the best content and experiences possible.</p>
-            {% endif %}
-        </div>
-    </div>
-</section>
+<hr class="section-divider">
 
 <!-- Values Section -->
 <section class="values-section">
     <h2 class="section-title">{{ settings.hero_about.values_title if settings.hero_about else 'What We Stand For' }}</h2>
+    <p class="section-subtitle">The principles that guide everything we create and share.</p>
     <div class="values-grid" data-animate-stagger>
         <div class="value-card">
             <div class="value-icon">
@@ -611,6 +563,8 @@
     </div>
 </section>
 
+<hr class="section-divider">
+
 <!-- Stats Section -->
 <section class="stats-section" data-animate="fade-up">
     <div class="stats-content">
@@ -618,15 +572,15 @@
         <div class="stats-grid">
             <div class="stat-item">
                 <div class="stat-number">{{ published_count }}</div>
-                <div class="stat-label">{{ settings.hero_home.stats_label_1 if settings.hero_home else 'Articles' }} Published</div>
+                <div class="stat-label">Articles Published</div>
             </div>
             <div class="stat-item">
                 <div class="stat-number">{{ categories_count }}</div>
-                <div class="stat-label">{{ settings.hero_home.stats_label_2 if settings.hero_home else 'Categories' }}</div>
+                <div class="stat-label">Categories</div>
             </div>
             <div class="stat-item">
                 <div class="stat-number">{{ (published_count * 50) }}+</div>
-                <div class="stat-label">Happy {{ settings.hero_home.stats_label_3 if settings.hero_home else 'Readers' }}</div>
+                <div class="stat-label">Happy Readers</div>
             </div>
             <div class="stat-item">
                 <div class="stat-number">24/7</div>
@@ -636,16 +590,18 @@
     </div>
 </section>
 
+<hr class="section-divider">
+
 <!-- CTA Section -->
 <section class="cta-section" data-animate="fade-up">
     <h2>{{ settings.hero_about.cta_title if settings.hero_about else 'Ready to Explore?' }}</h2>
     <p>{{ settings.hero_about.cta_subtitle if settings.hero_about else "Discover our latest articles or get in touch with us. We'd love to hear from you!" }}</p>
     <div class="cta-buttons">
         <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}" class="btn-primary">
-            <i class="bi bi-journal-text"></i> Browse {{ settings.hero_home.stats_label_1 if settings.hero_home else 'Articles' }}
+            <i class="bi bi-journal-text"></i> Browse Articles
         </a>
         <a href="{{ url_for('site_bp.site_contact', site_identifier=settings.site_slug|default(user_id, true)) }}" class="btn-outline">
-            <i class="bi bi-envelope"></i> {{ settings.header.nav_contact if settings.header else 'Contact' }} Us
+            <i class="bi bi-envelope"></i> Contact Us
         </a>
     </div>
 </section>
