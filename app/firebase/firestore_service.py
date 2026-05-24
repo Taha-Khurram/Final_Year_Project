@@ -1979,7 +1979,7 @@ For questions about these Terms, contact us at {contact_email}.
                 validated['posts_per_page'] = 10
 
         # Boolean fields
-        bool_fields = ['show_reading_time', 'show_author']
+        bool_fields = ['show_reading_time', 'show_author', 'activity_tracking_enabled']
         for field in bool_fields:
             if field in settings:
                 validated[field] = bool(settings[field])
