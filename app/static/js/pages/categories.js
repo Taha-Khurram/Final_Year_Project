@@ -2,6 +2,11 @@
  * Categories Page JavaScript
  */
 
+// Initialize Bootstrap dropdowns (required after PJAX navigation)
+document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(el => {
+  new bootstrap.Dropdown(el);
+});
+
 // Add Category
 document.getElementById('addCategoryForm').addEventListener('submit', async (e) => {
   e.preventDefault();
