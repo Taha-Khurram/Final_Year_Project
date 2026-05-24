@@ -272,11 +272,20 @@ def site_blog(site_identifier):
 
         results = run_parallel_simple([
             (db_service.get_published_blogs, (user_id, 100)),
-            (db_service.get_all_categories, (user_id,)),
-        ], max_workers=2)
+        ], max_workers=1)
 
         all_blogs = results[0] or []
-        categories = results[1] or []
+
+        # Build categories only from published blogs
+        category_counts = {}
+        for blog in all_blogs:
+            cat = blog.get('category', '').strip()
+            if cat:
+                category_counts[cat] = category_counts.get(cat, 0) + 1
+        categories = [{'name': name, 'count': count} for name, count in category_counts.items()]
+        categories.sort(key=lambda c: c['count'], reverse=True)
+
+        total_posts = len(all_blogs)
 
         if search_query:
             search_lower = search_query.lower()
@@ -293,8 +302,8 @@ def site_blog(site_identifier):
                 if b.get('category', '').lower() == category.lower()
             ]
 
-        total_posts = len(all_blogs)
-        total_pages = math.ceil(total_posts / per_page) if total_posts > 0 else 1
+        filtered_count = len(all_blogs)
+        total_pages = math.ceil(filtered_count / per_page) if filtered_count > 0 else 1
         start = (page - 1) * per_page
         paginated_blogs = all_blogs[start:start + per_page]
 
