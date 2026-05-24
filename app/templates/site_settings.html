@@ -1903,6 +1903,53 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="section-divider">
+                                <div class="section-title">Sections Content</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Latest Posts Title</label>
+                                        <input type="text" class="form-control" id="hero_home_latest_title" name="hero_home_latest_title"
+                                               value="{{ settings.hero_home.latest_title if settings.hero_home else 'Latest Posts' }}" placeholder="Latest Posts">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Latest Posts Subtitle</label>
+                                        <input type="text" class="form-control" id="hero_home_latest_subtitle" name="hero_home_latest_subtitle"
+                                               value="{{ settings.hero_home.latest_subtitle if settings.hero_home else 'Curated insights from our latest published articles.' }}"
+                                               placeholder="Curated insights from our latest published articles.">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="form-label">About Kicker</label>
+                                        <input type="text" class="form-control" id="hero_home_about_kicker" name="hero_home_about_kicker"
+                                               value="{{ settings.hero_home.about_kicker if settings.hero_home else 'About the Platform' }}" placeholder="About the Platform">
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <label class="form-label">About Section Title</label>
+                                        <input type="text" class="form-control" id="hero_home_about_title" name="hero_home_about_title"
+                                               value="{{ settings.hero_home.about_title if settings.hero_home else '{site_name} blends practical expertise with clear publishing vision.' }}"
+                                               placeholder="{site_name} blends practical expertise with clear publishing vision.">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Newsletter Disclaimer</label>
+                                        <input type="text" class="form-control" id="hero_home_newsletter_disclaimer" name="hero_home_newsletter_disclaimer"
+                                               value="{{ settings.hero_home.newsletter_disclaimer if settings.hero_home else 'No spam, unsubscribe anytime.' }}"
+                                               placeholder="No spam, unsubscribe anytime.">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -2009,6 +2056,87 @@
                                         <label class="form-label">CTA Subtitle</label>
                                         <input type="text" class="form-control" id="hero_about_cta_subtitle" name="hero_about_cta_subtitle"
                                                value="{{ settings.hero_about.cta_subtitle if settings.hero_about else 'Dive into our articles and join the conversation.' }}" placeholder="Dive into our articles...">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="section-divider">
+                                <div class="section-title">Badge & Values</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="form-label">Hero Badge Text</label>
+                                        <input type="text" class="form-control" id="hero_about_badge_text" name="hero_about_badge_text"
+                                               value="{{ settings.hero_about.badge_text if settings.hero_about else 'About Us' }}" placeholder="About Us">
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <label class="form-label">Values Section Subtitle</label>
+                                        <input type="text" class="form-control" id="hero_about_values_subtitle" name="hero_about_values_subtitle"
+                                               value="{{ settings.hero_about.values_subtitle if settings.hero_about else 'The principles that guide everything we create and share.' }}"
+                                               placeholder="The principles that guide everything we create and share.">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="section-divider">
+                                <div class="section-title">Stats Labels</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="form-label">Stat 1 Label</label>
+                                        <input type="text" class="form-control" id="hero_about_stat_1_label" name="hero_about_stat_1_label"
+                                               value="{{ settings.hero_about.stat_1_label if settings.hero_about else 'Articles Published' }}" placeholder="Articles Published">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="form-label">Stat 2 Label</label>
+                                        <input type="text" class="form-control" id="hero_about_stat_2_label" name="hero_about_stat_2_label"
+                                               value="{{ settings.hero_about.stat_2_label if settings.hero_about else 'Categories' }}" placeholder="Categories">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="form-label">Stat 3 Label</label>
+                                        <input type="text" class="form-control" id="hero_about_stat_3_label" name="hero_about_stat_3_label"
+                                               value="{{ settings.hero_about.stat_3_label if settings.hero_about else 'Happy Readers' }}" placeholder="Happy Readers">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="form-label">Stat 4 Label</label>
+                                        <input type="text" class="form-control" id="hero_about_stat_4_label" name="hero_about_stat_4_label"
+                                               value="{{ settings.hero_about.stat_4_label if settings.hero_about else 'Always Available' }}" placeholder="Always Available">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="form-label">Stat 4 Value</label>
+                                        <input type="text" class="form-control" id="hero_about_stat_4_value" name="hero_about_stat_4_value"
+                                               value="{{ settings.hero_about.stat_4_value if settings.hero_about else '24/7' }}" placeholder="24/7">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="section-divider">
+                                <div class="section-title">CTA Buttons</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Primary Button Text</label>
+                                        <input type="text" class="form-control" id="hero_about_cta_btn_primary" name="hero_about_cta_btn_primary"
+                                               value="{{ settings.hero_about.cta_btn_primary if settings.hero_about else 'Browse Articles' }}" placeholder="Browse Articles">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Secondary Button Text</label>
+                                        <input type="text" class="form-control" id="hero_about_cta_btn_secondary" name="hero_about_cta_btn_secondary"
+                                               value="{{ settings.hero_about.cta_btn_secondary if settings.hero_about else 'Contact Us' }}" placeholder="Contact Us">
                                     </div>
                                 </div>
                             </div>
@@ -2688,7 +2816,12 @@
                     cta_secondary: _v('hero_home_cta_secondary'),
                     stats_label_1: _v('hero_home_stats_label_1'),
                     stats_label_2: _v('hero_home_stats_label_2'),
-                    stats_label_3: _v('hero_home_stats_label_3')
+                    stats_label_3: _v('hero_home_stats_label_3'),
+                    latest_title: _v('hero_home_latest_title'),
+                    latest_subtitle: _v('hero_home_latest_subtitle'),
+                    about_kicker: _v('hero_home_about_kicker'),
+                    about_title: _v('hero_home_about_title'),
+                    newsletter_disclaimer: _v('hero_home_newsletter_disclaimer')
                 },
                 hero_about: {
                     title: _v('hero_about_title'),
@@ -2703,7 +2836,16 @@
                     value_3_desc: _v('hero_about_value_3_desc'),
                     stats_title: _v('hero_about_stats_title'),
                     cta_title: _v('hero_about_cta_title'),
-                    cta_subtitle: _v('hero_about_cta_subtitle')
+                    cta_subtitle: _v('hero_about_cta_subtitle'),
+                    badge_text: _v('hero_about_badge_text'),
+                    values_subtitle: _v('hero_about_values_subtitle'),
+                    stat_1_label: _v('hero_about_stat_1_label'),
+                    stat_2_label: _v('hero_about_stat_2_label'),
+                    stat_3_label: _v('hero_about_stat_3_label'),
+                    stat_4_label: _v('hero_about_stat_4_label'),
+                    stat_4_value: _v('hero_about_stat_4_value'),
+                    cta_btn_primary: _v('hero_about_cta_btn_primary'),
+                    cta_btn_secondary: _v('hero_about_cta_btn_secondary')
                 },
                 hero_blog: {
                     title: _v('hero_blog_title'),

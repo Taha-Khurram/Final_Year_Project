@@ -1312,8 +1312,8 @@
 <section class="latest-inline-section" data-animate="fade-up">
     <div class="latest-inline-header">
         <div class="latest-inline-title">
-            <h2>Latest Posts</h2>
-            <p>Curated insights from our latest published articles.</p>
+            <h2>{{ settings.hero_home.latest_title if settings.hero_home else 'Latest Posts' }}</h2>
+            <p>{{ settings.hero_home.latest_subtitle if settings.hero_home else 'Curated insights from our latest published articles.' }}</p>
         </div>
         <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}" class="view-all">
             View All Posts <i class="bi bi-arrow-up-right"></i>
@@ -1400,8 +1400,9 @@
         >
     </div>
     <div class="about-platform-content">
-        <p class="about-platform-kicker">About the Platform</p>
-        <h2 class="about-platform-title">{{ settings.site_name }} blends practical expertise with clear publishing vision.</h2>
+        <p class="about-platform-kicker">{{ settings.hero_home.about_kicker if settings.hero_home else 'About the Platform' }}</p>
+        {% set about_title_text = settings.hero_home.about_title | default('{site_name} blends practical expertise with clear publishing vision.') %}
+        <h2 class="about-platform-title">{{ about_title_text | replace('{site_name}', settings.site_name | default('')) }}</h2>
         <p class="about-platform-description">
             {{ settings.site_description | default('Our public site shares actionable insights, thoughtful writing, and useful guidance built for readers who want clarity and consistency.') }}
         </p>
@@ -1435,15 +1436,15 @@
                 <text x="38" y="15" text-anchor="middle" fill="white" font-size="9" font-weight="bold">1</text>
             </svg>
         </div>
-        <h2>Stay Updated</h2>
-        <p>Subscribe to our newsletter and never miss a new article. Get the latest posts delivered right to your inbox.</p>
+        <h2>{{ settings.footer.newsletter_title if settings.footer else 'Stay Updated' }}</h2>
+        <p>{{ settings.footer.newsletter_description if settings.footer else 'Subscribe to our newsletter and never miss a new article. Get the latest posts delivered right to your inbox.' }}</p>
         <form class="newsletter-form-lg" id="home-newsletter-form">
             <input type="email" name="email" placeholder="Enter your email address" required>
             <button type="submit">
                 Subscribe <i class="bi bi-arrow-right"></i>
             </button>
         </form>
-        <p class="newsletter-disclaimer">No spam, unsubscribe anytime.</p>
+        <p class="newsletter-disclaimer">{{ settings.hero_home.newsletter_disclaimer if settings.hero_home else 'No spam, unsubscribe anytime.' }}</p>
     </div>
 </section>
 {% endblock %}

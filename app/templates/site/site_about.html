@@ -492,7 +492,7 @@
     <div class="about-hero-inner" data-animate="fade-up">
         <div class="about-hero-content">
             <span class="about-hero-badge">
-                <i class="bi bi-info-circle"></i> About Us
+                <i class="bi bi-info-circle"></i> {{ settings.hero_about.badge_text if settings.hero_about else 'About Us' }}
             </span>
             <h1>About <span>{{ settings.site_name }}</span></h1>
             <p class="about-hero-description">
@@ -537,7 +537,7 @@
 <!-- Values Section -->
 <section class="values-section">
     <h2 class="section-title">{{ settings.hero_about.values_title if settings.hero_about else 'What We Stand For' }}</h2>
-    <p class="section-subtitle">The principles that guide everything we create and share.</p>
+    <p class="section-subtitle">{{ settings.hero_about.values_subtitle if settings.hero_about else 'The principles that guide everything we create and share.' }}</p>
     <div class="values-grid" data-animate-stagger>
         <div class="value-card">
             <div class="value-icon">
@@ -572,19 +572,19 @@
         <div class="stats-grid">
             <div class="stat-item">
                 <div class="stat-number">{{ published_count }}</div>
-                <div class="stat-label">Articles Published</div>
+                <div class="stat-label">{{ settings.hero_about.stat_1_label if settings.hero_about else 'Articles Published' }}</div>
             </div>
             <div class="stat-item">
                 <div class="stat-number">{{ categories_count }}</div>
-                <div class="stat-label">Categories</div>
+                <div class="stat-label">{{ settings.hero_about.stat_2_label if settings.hero_about else 'Categories' }}</div>
             </div>
             <div class="stat-item">
                 <div class="stat-number">{{ (published_count * 50) }}+</div>
-                <div class="stat-label">Happy Readers</div>
+                <div class="stat-label">{{ settings.hero_about.stat_3_label if settings.hero_about else 'Happy Readers' }}</div>
             </div>
             <div class="stat-item">
-                <div class="stat-number">24/7</div>
-                <div class="stat-label">Always Available</div>
+                <div class="stat-number">{{ settings.hero_about.stat_4_value if settings.hero_about else '24/7' }}</div>
+                <div class="stat-label">{{ settings.hero_about.stat_4_label if settings.hero_about else 'Always Available' }}</div>
             </div>
         </div>
     </div>
@@ -598,10 +598,10 @@
     <p>{{ settings.hero_about.cta_subtitle if settings.hero_about else "Discover our latest articles or get in touch with us. We'd love to hear from you!" }}</p>
     <div class="cta-buttons">
         <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}" class="btn-primary">
-            <i class="bi bi-journal-text"></i> Browse Articles
+            <i class="bi bi-journal-text"></i> {{ settings.hero_about.cta_btn_primary if settings.hero_about else 'Browse Articles' }}
         </a>
         <a href="{{ url_for('site_bp.site_contact', site_identifier=settings.site_slug|default(user_id, true)) }}" class="btn-outline">
-            <i class="bi bi-envelope"></i> Contact Us
+            <i class="bi bi-envelope"></i> {{ settings.hero_about.cta_btn_secondary if settings.hero_about else 'Contact Us' }}
         </a>
     </div>
 </section>

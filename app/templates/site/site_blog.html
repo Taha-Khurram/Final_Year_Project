@@ -489,8 +489,8 @@
 {% block content %}
 <!-- Page Header -->
 <header class="blog-page-header" data-animate="fade-up">
-    <h1>Blogs</h1>
-    <p>Explore our collection of articles, tutorials, and insights.</p>
+    <h1>{{ settings.hero_blog.title if settings.hero_blog else 'Blogs' }}</h1>
+    <p>{{ settings.hero_blog.subtitle if settings.hero_blog else 'Explore our collection of articles, tutorials, and insights.' }}</p>
     <div class="blog-page-meta">
         <span class="blog-page-meta-item">
             <i class="bi bi-journal-text"></i>

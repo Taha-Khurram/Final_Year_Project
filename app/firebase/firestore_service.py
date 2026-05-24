@@ -1637,7 +1637,12 @@ class FirestoreService:
                 "cta_secondary": "Learn More",
                 "stats_label_1": "Articles",
                 "stats_label_2": "Categories",
-                "stats_label_3": "Readers"
+                "stats_label_3": "Readers",
+                "latest_title": "Latest Posts",
+                "latest_subtitle": "Curated insights from our latest published articles.",
+                "about_kicker": "About the Platform",
+                "about_title": "{site_name} blends practical expertise with clear publishing vision.",
+                "newsletter_disclaimer": "No spam, unsubscribe anytime."
             },
             "hero_about": {
                 "title": "About {site_name}",
@@ -1652,7 +1657,16 @@ class FirestoreService:
                 "value_3_desc": "Real experiences, honest opinions, genuine insights.",
                 "stats_title": "By the Numbers",
                 "cta_title": "Ready to Explore?",
-                "cta_subtitle": "Dive into our articles and join the conversation."
+                "cta_subtitle": "Dive into our articles and join the conversation.",
+                "badge_text": "About Us",
+                "values_subtitle": "The principles that guide everything we create and share.",
+                "stat_1_label": "Articles Published",
+                "stat_2_label": "Categories",
+                "stat_3_label": "Happy Readers",
+                "stat_4_label": "Always Available",
+                "stat_4_value": "24/7",
+                "cta_btn_primary": "Browse Articles",
+                "cta_btn_secondary": "Contact Us"
             },
             "hero_blog": {
                 "title": "Our Blog",
