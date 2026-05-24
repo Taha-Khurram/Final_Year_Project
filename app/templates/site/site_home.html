@@ -7,66 +7,46 @@
     /* ==================== HERO SECTION ==================== */
     .site-hero {
         position: relative;
-        min-height: 520px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        padding: 4rem 2rem;
-        margin: -2rem -2rem 3rem -2rem;
-        background: linear-gradient(135deg, rgba(67, 24, 255, 0.03) 0%, rgba(99, 102, 241, 0.08) 50%, rgba(139, 92, 246, 0.05) 100%);
+        width: 100vw;
+        margin: 0 0 3rem 0;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
+        padding: 0;
         overflow: hidden;
+        background: linear-gradient(145deg, rgba(67, 24, 255, 0.06) 0%, rgba(99, 102, 241, 0.12) 45%, rgba(255, 255, 255, 0.95) 100%);
     }
 
     .site-hero::before {
         content: '';
         position: absolute;
-        top: -50%;
-        right: -20%;
-        width: 600px;
-        height: 600px;
-        background: radial-gradient(circle, rgba(67, 24, 255, 0.08) 0%, transparent 70%);
+        top: -120px;
+        right: -120px;
+        width: 340px;
+        height: 340px;
         border-radius: 50%;
+        background: radial-gradient(circle, rgba(67, 24, 255, 0.16) 0%, transparent 72%);
+        pointer-events: none;
     }
 
     .site-hero::after {
         content: '';
         position: absolute;
-        bottom: -30%;
-        left: -10%;
-        width: 400px;
-        height: 400px;
-        background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, transparent 70%);
+        bottom: -120px;
+        left: -100px;
+        width: 300px;
+        height: 300px;
         border-radius: 50%;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.16) 0%, transparent 72%);
+        pointer-events: none;
     }
 
     .hero-container {
         position: relative;
         z-index: 1;
-        max-width: 1200px;
+        max-width: none;
         margin: 0 auto;
         width: 100%;
-        display: flex;
-        align-items: center;
-        gap: 3rem;
-    }
-
-    .hero-content {
-        flex: 1;
-        text-align: left;
-    }
-
-    .hero-illustration {
-        flex: 1;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .hero-illustration svg {
-        width: 100%;
-        max-width: 450px;
-        height: auto;
+        display: block;
     }
 
     .hero-badge {
@@ -74,26 +54,23 @@
         align-items: center;
         gap: 0.5rem;
         background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-        color: white;
-        padding: 0.5rem 1.25rem;
-        border-radius: 30px;
-        font-size: 0.8rem;
+        color: #fff;
+        padding: 0.45rem 1rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
         font-weight: 700;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 1.75rem;
-    }
-
-    .hero-badge i {
-        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        width: fit-content;
     }
 
     .hero-title {
-        font-size: 3.5rem;
+        font-size: 2.4rem;
         font-weight: 800;
-        color: var(--text-primary);
-        margin-bottom: 1.5rem;
         line-height: 1.2;
+        margin-bottom: 0.85rem;
+        color: var(--text-primary);
     }
 
     .hero-title span {
@@ -104,20 +81,188 @@
     }
 
     .hero-subtitle {
-        font-size: 1.2rem;
         color: var(--text-secondary);
-        max-width: 600px;
-        margin: 0 auto 3.5rem;
+        font-size: 1rem;
         line-height: 1.7;
-        padding-bottom: 20px;
+        margin-bottom: 1.5rem;
     }
 
     .hero-cta {
         display: flex;
-        gap: 1rem;
-        justify-content: center;
+        gap: 0.75rem;
         flex-wrap: wrap;
-        margin-bottom: 3.5rem;
+    }
+
+    .hero-slider {
+        position: relative;
+        min-height: 560px;
+        border-radius: 0;
+        overflow: hidden;
+        box-shadow: none;
+        background: #0f172a;
+    }
+
+    .hero-slide {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(1.02);
+        transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+
+    .hero-slide.is-active {
+        opacity: 1;
+        pointer-events: auto;
+        transform: scale(1);
+    }
+
+    .hero-slide-media {
+        position: absolute;
+        inset: 0;
+    }
+
+    .hero-slide-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .hero-slide-fallback {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(145deg, #1e293b 0%, #334155 55%, #475569 100%);
+    }
+
+    .hero-slide-fallback i {
+        font-size: 4rem;
+        color: rgba(255, 255, 255, 0.35);
+    }
+
+    .hero-slide-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(15, 23, 42, 0.12) 0%, rgba(15, 23, 42, 0.82) 78%, rgba(15, 23, 42, 0.95) 100%);
+    }
+
+    .hero-slide-content {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 2;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2.5rem 2rem;
+        color: #fff;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .hero-slide-category {
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        background: rgba(255, 255, 255, 0.14);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 999px;
+        padding: 0.35rem 0.8rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .hero-slide-title {
+        font-size: clamp(1.45rem, 2vw, 2rem);
+        font-weight: 800;
+        margin-bottom: 0.65rem;
+        line-height: 1.3;
+    }
+
+    .hero-slide-title a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .hero-slide-title a:hover {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+
+    .hero-slide-excerpt {
+        color: rgba(255, 255, 255, 0.88);
+        font-size: 0.95rem;
+        line-height: 1.7;
+        margin-bottom: 0.9rem;
+        max-width: 72ch;
+    }
+
+    .hero-slide-meta {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 0.82rem;
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .hero-slider-controls {
+        position: absolute;
+        right: 2rem;
+        top: 1.4rem;
+        z-index: 3;
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .hero-control-btn {
+        width: 38px;
+        height: 38px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        background: rgba(15, 23, 42, 0.45);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition-base);
+    }
+
+    .hero-control-btn:hover {
+        background: rgba(15, 23, 42, 0.75);
+        transform: translateY(-2px);
+    }
+
+    .hero-slider-dots {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 1.2rem;
+        z-index: 3;
+        display: flex;
+        gap: 0.45rem;
+    }
+
+    .hero-dot {
+        width: 9px;
+        height: 9px;
+        border: none;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.45);
+        cursor: pointer;
+        transition: width 0.2s ease, background 0.2s ease;
+    }
+
+    .hero-dot.is-active {
+        width: 24px;
+        background: #fff;
     }
 
     .btn-primary {
@@ -161,39 +306,6 @@
         transform: translateY(-3px);
     }
 
-    .hero-stats {
-        display: flex;
-        gap: 4rem;
-        justify-content: center;
-        align-items: center;
-        flex-wrap: wrap;
-        padding-top: 1rem;
-        border-top: 1px solid rgba(0, 0, 0, 0.06);
-        max-width: 500px;
-        margin: 0 auto;
-    }
-
-    .hero-stat {
-        text-align: center;
-        min-width: 80px;
-    }
-
-    .hero-stat-number {
-        font-size: 2.25rem;
-        font-weight: 800;
-        color: var(--primary-color);
-        display: block;
-        line-height: 1.2;
-    }
-
-    .hero-stat-label {
-        font-size: 0.9rem;
-        color: var(--text-secondary);
-        font-weight: 600;
-        margin-top: 0.25rem;
-        display: block;
-    }
-
     /* ==================== FEATURED SECTION ==================== */
     .featured-section {
         margin-bottom: 3rem;
@@ -233,6 +345,140 @@
 
     .section-header .view-all:hover {
         gap: 0.6rem;
+    }
+
+    .latest-inline-section {
+        margin-bottom: 2.5rem;
+        padding: 0.25rem 0;
+    }
+
+    .latest-inline-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .latest-inline-title h2 {
+        margin: 0;
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--text-primary);
+    }
+
+    .latest-inline-title p {
+        margin: 0.45rem 0 0;
+        color: var(--text-secondary);
+        font-size: 0.92rem;
+    }
+
+    .latest-inline-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .latest-inline-card {
+        background: var(--bg-card);
+        border-radius: 12px;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        overflow: hidden;
+        box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .latest-inline-image {
+        position: relative;
+        height: 150px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .latest-inline-image.has-cover {
+        background: #e2e8f0;
+    }
+
+    .latest-inline-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .latest-inline-image i {
+        font-size: 2.5rem;
+        color: rgba(255, 255, 255, 0.3);
+    }
+
+    .latest-inline-body {
+        padding: 0.9rem 0.95rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        flex: 1;
+    }
+
+    .latest-inline-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.65rem;
+        font-size: 0.72rem;
+        line-height: 1.2;
+    }
+
+    .latest-inline-category {
+        color: var(--primary-color);
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .latest-inline-date {
+        color: var(--text-secondary);
+        white-space: nowrap;
+    }
+
+    .latest-inline-heading {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1.4;
+        margin: 0;
+    }
+
+    .latest-inline-heading a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .latest-inline-heading a:hover {
+        color: var(--primary-color);
+    }
+
+    .latest-inline-excerpt {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        line-height: 1.55;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        margin: 0;
+        flex: 1;
+    }
+
+    .latest-inline-read {
+        margin-top: 0.2rem;
+        color: var(--text-secondary);
+        font-size: 0.78rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
     }
 
     .featured-grid {
@@ -684,25 +930,16 @@
 
     /* ==================== RESPONSIVE ==================== */
     @media (max-width: 900px) {
-        .hero-container {
-            flex-direction: column;
-            text-align: center;
+        .latest-inline-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
-        .hero-content {
-            text-align: center;
+        .hero-slider {
+            min-height: 420px;
         }
 
-        .hero-illustration {
-            order: -1;
-        }
-
-        .hero-illustration svg {
-            max-width: 320px;
-        }
-
-        .hero-stats {
-            justify-content: center;
+        .hero-slide-content {
+            padding: 1.6rem;
         }
 
         .featured-grid {
@@ -722,41 +959,52 @@
     }
 
     @media (max-width: 768px) {
+        .latest-inline-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .latest-inline-grid {
+            grid-template-columns: 1fr;
+        }
+
         .site-hero {
-            min-height: auto;
-            padding: 3rem 1.5rem;
-            margin: -1.5rem -1.5rem 2rem -1.5rem;
-        }
-
-        .hero-illustration svg {
-            max-width: 260px;
-        }
-
-        .hero-title {
-            font-size: 2.25rem;
-        }
-
-        .hero-subtitle {
-            font-size: 1rem;
             margin-bottom: 2rem;
         }
 
-        .hero-cta {
-            margin-bottom: 2.5rem;
-            justify-content: center;
+        .hero-title {
+            font-size: 1.9rem;
         }
 
-        .hero-stats {
-            gap: 2.5rem;
-            max-width: 100%;
+        .hero-subtitle {
+            font-size: 0.95rem;
+            margin-bottom: 1.2rem;
         }
 
-        .hero-stat-number {
-            font-size: 1.75rem;
+        .hero-slider {
+            min-height: 360px;
         }
 
-        .hero-stat-label {
-            font-size: 0.85rem;
+        .hero-slide-content {
+            padding: 1.2rem 1.1rem 2rem;
+        }
+
+        .hero-slide-title {
+            font-size: 1.2rem;
+        }
+
+        .hero-slide-excerpt {
+            font-size: 0.88rem;
+            margin-bottom: 0.65rem;
+        }
+
+        .hero-slider-dots {
+            bottom: 0.7rem;
+        }
+
+        .hero-slider-controls {
+            top: 0.7rem;
+            right: 0.7rem;
         }
 
         .featured-secondary {
@@ -786,218 +1034,124 @@
 {% endblock %}
 
 {% block content %}
+{% if blogs and blogs|length > 0 %}
 <!-- Hero Section -->
 <section class="site-hero">
     <div class="hero-container">
-        <div class="hero-content" data-animate="fade-up">
-            {% if settings.niche %}
-            <div class="hero-badge">
-                <i class="bi bi-stars"></i>
-                {{ (settings.hero_home.badge | default(settings.niche)) | replace('{niche}', settings.niche) }}
-            </div>
+        <div class="hero-slider" id="blog-hero-slider" data-animate="fade-up">
+            {% set hero_blogs = slider_blogs if slider_blogs is defined and slider_blogs else blogs %}
+            {% if hero_blogs and hero_blogs|length > 0 %}
+                {% for hero_blog in hero_blogs %}
+                <article class="hero-slide{% if loop.first %} is-active{% endif %}" data-slide-index="{{ loop.index0 }}">
+                    <div class="hero-slide-media">
+                        {% if hero_blog.cover_image %}
+                        <img src="{{ hero_blog.cover_image }}" alt="{{ hero_blog.title }}" loading="{% if loop.first %}eager{% else %}lazy{% endif %}">
+                        {% else %}
+                        <div class="hero-slide-fallback"><i class="bi bi-image"></i></div>
+                        {% endif %}
+                    </div>
+                    <div class="hero-slide-overlay"></div>
+                    <div class="hero-slide-content">
+                        <div class="hero-badge">
+                            <i class="bi bi-images"></i>
+                            {{ settings.site_name }} Stories
+                        </div>
+                        {% if hero_blog.category %}
+                        <span class="hero-slide-category">{{ hero_blog.category }}</span>
+                        {% endif %}
+                        <h2 class="hero-slide-title">
+                            <a href="{{ url_for('site_bp.site_post', site_identifier=settings.site_slug|default(user_id, true), slug_or_id=hero_blog.slug or hero_blog.id) }}">
+                                {{ hero_blog.title }}
+                            </a>
+                        </h2>
+                        <p class="hero-slide-excerpt">
+                            {% if hero_blog.content is mapping %}
+                                {{ (hero_blog.content.body or hero_blog.content.markdown or hero_blog.content.text or '')|striptags|truncate(180) }}
+                            {% else %}
+                                {{ hero_blog.content|striptags|truncate(180) }}
+                            {% endif %}
+                        </p>
+                        <div class="hero-slide-meta">
+                            <i class="bi bi-calendar3"></i>
+                            {{ hero_blog.updated_at.strftime('%B %d, %Y') if hero_blog.updated_at else 'Recently Published' }}
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+
+                {% if hero_blogs|length > 1 %}
+                <div class="hero-slider-controls" aria-label="Hero slider controls">
+                    <button class="hero-control-btn" type="button" data-slide-control="prev" aria-label="Previous slide">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <button class="hero-control-btn" type="button" data-slide-control="next" aria-label="Next slide">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="hero-slider-dots" role="tablist" aria-label="Slide dots">
+                    {% for hero_blog in hero_blogs %}
+                    <button type="button" class="hero-dot{% if loop.first %} is-active{% endif %}" data-slide-dot="{{ loop.index0 }}" aria-label="Show slide {{ loop.index }}"></button>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% else %}
+                <article class="hero-slide is-active">
+                    <div class="hero-slide-media">
+                        <div class="hero-slide-fallback"><i class="bi bi-journal-richtext"></i></div>
+                    </div>
+                    <div class="hero-slide-overlay"></div>
+                    <div class="hero-slide-content">
+                        <h2 class="hero-slide-title">Fresh stories are coming soon</h2>
+                        <p class="hero-slide-excerpt">This highlight slider will automatically showcase featured images from your newest blog posts.</p>
+                    </div>
+                </article>
             {% endif %}
-
-            <h1 class="hero-title">
-                Welcome to <span>{{ settings.site_name }}</span>
-            </h1>
-
-            <p class="hero-subtitle">
-                {% set subtitle_text = settings.hero_home.subtitle | default(settings.site_description) | default('Discover insightful articles, tips, and stories that inspire and inform. Join our community of readers today.') %}
-                {{ subtitle_text | replace('{site_description}', settings.site_description | default('')) | replace('{site_name}', settings.site_name | default('')) }}
-            </p>
-
-            <div class="hero-cta">
-                <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}" class="btn-primary">
-                    <i class="bi bi-journal-text"></i> {{ settings.hero_home.cta_primary | default('Explore Articles') }}
-                </a>
-                <a href="{{ url_for('site_bp.site_about', site_identifier=settings.site_slug|default(user_id, true)) }}" class="btn-outline">
-                    <i class="bi bi-info-circle"></i> {{ settings.hero_home.cta_secondary | default('Learn More') }}
-                </a>
-            </div>
-
-            <div class="hero-stats">
-                <div class="hero-stat">
-                    <span class="hero-stat-number">{{ blogs|length if blogs else 0 }}</span>
-                    <span class="hero-stat-label">{{ settings.hero_home.stats_label_1 | default('Articles') }}</span>
-                </div>
-                <div class="hero-stat">
-                    <span class="hero-stat-number">{{ categories|length if categories else 0 }}</span>
-                    <span class="hero-stat-label">{{ settings.hero_home.stats_label_2 | default('Categories') }}</span>
-                </div>
-                <div class="hero-stat">
-                    <span class="hero-stat-number">{{ (blogs|length * 50) if blogs else 0 }}+</span>
-                    <span class="hero-stat-label">{{ settings.hero_home.stats_label_3 | default('Readers') }}</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="hero-illustration">
-            <svg viewBox="0 0 500 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <!-- Background blob shapes -->
-                <ellipse cx="250" cy="200" rx="180" ry="160" fill="url(#heroGrad1)" opacity="0.15"/>
-                <circle cx="380" cy="100" r="60" fill="url(#heroGrad2)" opacity="0.1"/>
-                <circle cx="100" cy="320" r="50" fill="url(#heroGrad2)" opacity="0.08"/>
-
-                <!-- Laptop/Computer -->
-                <rect x="120" y="140" width="260" height="170" rx="12" fill="#2D3748"/>
-                <rect x="130" y="150" width="240" height="140" rx="6" fill="#1A202C"/>
-                <rect x="140" y="160" width="220" height="120" fill="url(#screenGrad)"/>
-
-                <!-- Screen content - blog lines -->
-                <rect x="155" y="175" width="90" height="8" rx="4" fill="rgba(255,255,255,0.9)"/>
-                <rect x="155" y="190" width="140" height="5" rx="2" fill="rgba(255,255,255,0.4)"/>
-                <rect x="155" y="200" width="120" height="5" rx="2" fill="rgba(255,255,255,0.4)"/>
-                <rect x="155" y="210" width="130" height="5" rx="2" fill="rgba(255,255,255,0.4)"/>
-
-                <!-- Image placeholder on screen -->
-                <rect x="155" y="225" width="80" height="45" rx="4" fill="rgba(99,102,241,0.6)"/>
-                <circle cx="175" cy="242" r="8" fill="rgba(255,255,255,0.5)"/>
-                <polygon points="160,265 195,245 230,265" fill="rgba(255,255,255,0.3)"/>
-
-                <!-- Sidebar on screen -->
-                <rect x="245" y="225" width="60" height="12" rx="3" fill="rgba(255,255,255,0.2)"/>
-                <rect x="245" y="242" width="60" height="12" rx="3" fill="rgba(255,255,255,0.2)"/>
-                <rect x="245" y="259" width="40" height="12" rx="3" fill="rgba(99,102,241,0.8)"/>
-
-                <!-- Keyboard base -->
-                <path d="M100 310 L130 310 L125 330 L105 330 Z" fill="#4A5568"/>
-                <path d="M130 310 L370 310 L375 330 L125 330 Z" fill="#2D3748"/>
-                <path d="M370 310 L400 310 L395 330 L375 330 Z" fill="#4A5568"/>
-
-                <!-- Floating elements -->
-                <!-- Pencil -->
-                <g transform="rotate(-30, 420, 180)">
-                    <rect x="400" y="140" width="40" height="8" rx="2" fill="#F6AD55"/>
-                    <polygon points="400,144 390,144 400,148" fill="#2D3748"/>
-                    <rect x="430" y="140" width="10" height="8" rx="1" fill="#FC8181"/>
-                </g>
-
-                <!-- Coffee cup -->
-                <ellipse cx="85" cy="200" rx="30" ry="8" fill="#CBD5E0"/>
-                <path d="M55 200 L60 250 Q67.5 260 85 260 Q102.5 260 110 250 L115 200" fill="#E2E8F0"/>
-                <ellipse cx="85" cy="200" rx="25" ry="6" fill="#805AD5"/>
-                <path d="M115 210 Q135 210 135 225 Q135 240 115 240" stroke="#CBD5E0" stroke-width="5" fill="none"/>
-                <!-- Steam -->
-                <path d="M75 185 Q70 175 75 165" stroke="#A0AEC0" stroke-width="2" fill="none" opacity="0.6"/>
-                <path d="M85 180 Q80 170 85 160" stroke="#A0AEC0" stroke-width="2" fill="none" opacity="0.6"/>
-                <path d="M95 185 Q90 175 95 165" stroke="#A0AEC0" stroke-width="2" fill="none" opacity="0.6"/>
-
-                <!-- Floating shapes -->
-                <circle cx="430" cy="280" r="15" fill="url(#heroGrad2)" opacity="0.7"/>
-                <rect x="60" y="120" width="20" height="20" rx="4" fill="url(#heroGrad2)" opacity="0.5" transform="rotate(15, 70, 130)"/>
-                <polygon points="420,90 430,110 410,110" fill="#F6AD55" opacity="0.7"/>
-
-                <!-- Notification badges -->
-                <circle cx="340" cy="165" r="10" fill="#FC8181"/>
-                <text x="340" y="169" text-anchor="middle" fill="white" font-size="10" font-weight="bold">3</text>
-
-                <!-- Stars/sparkles -->
-                <g style="fill:var(--secondary-color)" opacity="0.8">
-                    <path d="M450 150 L452 155 L458 155 L454 159 L456 165 L450 161 L444 165 L446 159 L442 155 L448 155 Z"/>
-                    <path d="M70 90 L71.5 94 L76 94 L73 97 L74 102 L70 99 L66 102 L67 97 L64 94 L68.5 94 Z" transform="scale(0.8)"/>
-                </g>
-
-                <!-- Gradients -->
-                <defs>
-                    <linearGradient id="heroGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:var(--secondary-color)"/>
-                        <stop offset="100%" style="stop-color:#8B5CF6"/>
-                    </linearGradient>
-                    <linearGradient id="heroGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#4318FF"/>
-                        <stop offset="100%" style="stop-color:var(--secondary-color)"/>
-                    </linearGradient>
-                    <linearGradient id="screenGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style="stop-color:#4318FF"/>
-                        <stop offset="100%" style="stop-color:var(--secondary-color)"/>
-                    </linearGradient>
-                </defs>
-            </svg>
         </div>
     </div>
 </section>
 
-{% if blogs and blogs|length > 0 %}
-<!-- Featured Posts Section -->
-<section class="featured-section">
-    <div class="section-header">
-        <h2><i class="bi bi-bookmark-star"></i> Featured Posts</h2>
+<section class="latest-inline-section" data-animate="fade-up">
+    <div class="latest-inline-header">
+        <div class="latest-inline-title">
+            <h2>Latest Posts</h2>
+            <p>Curated insights from our latest published articles.</p>
+        </div>
         <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}" class="view-all">
-            View All <i class="bi bi-arrow-right"></i>
+            View All Posts <i class="bi bi-arrow-up-right"></i>
         </a>
     </div>
 
-    <div class="featured-grid" data-animate-stagger>
-        <!-- Main Featured Post -->
-        {% set main_post = featured_post if featured_post else blogs[0] %}
-        <div class="featured-main">
-            <article class="featured-card">
-                <div class="featured-card-image{% if main_post.cover_image %} has-cover{% endif %}">
-                    {% if main_post.cover_image %}
-                    <img src="{{ main_post.cover_image }}" alt="{{ main_post.title }}" loading="lazy">
+    <div class="latest-inline-grid">
+        {% for blog in blogs[:3] %}
+        <article class="latest-inline-card">
+            <div class="latest-inline-image{% if blog.cover_image %} has-cover{% endif %}">
+                {% if blog.cover_image %}
+                <img src="{{ blog.cover_image }}" alt="{{ blog.title }}" loading="lazy">
+                {% else %}
+                <i class="bi bi-journal-richtext"></i>
+                {% endif %}
+            </div>
+            <div class="latest-inline-body">
+                <div class="latest-inline-top">
+                    <span class="latest-inline-category">{{ blog.category if blog.category else 'General' }}</span>
+                    <span class="latest-inline-date">{{ blog.updated_at.strftime('%b %d, %Y') if blog.updated_at else 'Recently' }}</span>
+                </div>
+                <h3 class="latest-inline-heading">
+                    <a href="{{ url_for('site_bp.site_post', site_identifier=settings.site_slug|default(user_id, true), slug_or_id=blog.slug or blog.id) }}">
+                        {{ blog.title }}
+                    </a>
+                </h3>
+                <p class="latest-inline-excerpt">
+                    {% if blog.content is mapping %}
+                        {{ (blog.content.body or blog.content.markdown or blog.content.text or '')|striptags|truncate(115) }}
                     {% else %}
-                    <i class="bi bi-journal-richtext"></i>
+                        {{ blog.content|striptags|truncate(115) }}
                     {% endif %}
-                    {% if main_post.category %}
-                    <span class="featured-card-category">{{ main_post.category }}</span>
-                    {% endif %}
-                </div>
-                <div class="featured-card-body">
-                    <h3 class="featured-card-title">
-                        <a href="{{ url_for('site_bp.site_post', site_identifier=settings.site_slug|default(user_id, true), slug_or_id=main_post.slug or main_post.id) }}">
-                            {{ main_post.title }}
-                        </a>
-                    </h3>
-                    <p class="featured-card-excerpt">
-                        {% if main_post.content is mapping %}
-                            {{ (main_post.content.body or main_post.content.markdown or main_post.content.text or '')|striptags|truncate(200) }}
-                        {% else %}
-                            {{ main_post.content|striptags|truncate(200) }}
-                        {% endif %}
-                    </p>
-                    <div class="featured-card-meta">
-                        <i class="bi bi-calendar3"></i>
-                        {{ main_post.updated_at.strftime('%B %d, %Y') if main_post.updated_at else 'Recently Published' }}
-                    </div>
-                </div>
-            </article>
-        </div>
-
-        <!-- Secondary Featured Posts -->
-        <div class="featured-secondary">
-            {% for blog in blogs[1:3] %}
-            <article class="featured-card">
-                <div class="featured-card-image{% if blog.cover_image %} has-cover{% endif %}">
-                    {% if blog.cover_image %}
-                    <img src="{{ blog.cover_image }}" alt="{{ blog.title }}" loading="lazy">
-                    {% else %}
-                    <i class="bi bi-journal-richtext"></i>
-                    {% endif %}
-                    {% if blog.category %}
-                    <span class="featured-card-category">{{ blog.category }}</span>
-                    {% endif %}
-                </div>
-                <div class="featured-card-body">
-                    <h3 class="featured-card-title">
-                        <a href="{{ url_for('site_bp.site_post', site_identifier=settings.site_slug|default(user_id, true), slug_or_id=blog.slug or blog.id) }}">
-                            {{ blog.title }}
-                        </a>
-                    </h3>
-                    <p class="featured-card-excerpt">
-                        {% if blog.content is mapping %}
-                            {{ (blog.content.body or blog.content.markdown or blog.content.text or '')|striptags|truncate(100) }}
-                        {% else %}
-                            {{ blog.content|striptags|truncate(100) }}
-                        {% endif %}
-                    </p>
-                    <div class="featured-card-meta">
-                        <i class="bi bi-calendar3"></i>
-                        {{ blog.updated_at.strftime('%b %d, %Y') if blog.updated_at else 'Recently' }}
-                    </div>
-                </div>
-            </article>
-            {% endfor %}
-        </div>
+                </p>
+                <span class="latest-inline-read"><i class="bi bi-clock"></i> {{ 4 + (loop.index % 7) }} min read</span>
+            </div>
+        </article>
+        {% endfor %}
     </div>
 </section>
 
@@ -1131,36 +1285,103 @@
 
 {% block extra_js %}
 <script>
-    // Newsletter Form
-    document.getElementById('home-newsletter-form').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const email = this.querySelector('input[name="email"]').value;
-        const button = this.querySelector('button');
-        const originalHTML = button.innerHTML;
+    // Hero blog image slider
+    (function initHeroSlider() {
+        const slider = document.getElementById('blog-hero-slider');
+        if (!slider) return;
 
-        button.innerHTML = '<i class="bi bi-hourglass-split"></i> Subscribing...';
-        button.disabled = true;
+        const slides = Array.from(slider.querySelectorAll('.hero-slide'));
+        const dots = Array.from(slider.querySelectorAll('.hero-dot'));
+        const prevBtn = slider.querySelector('[data-slide-control="prev"]');
+        const nextBtn = slider.querySelector('[data-slide-control="next"]');
 
-        try {
-            const response = await fetch('{{ url_for("site_bp.site_subscribe", site_identifier=settings.site_slug|default(user_id, true)) }}', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `email=${encodeURIComponent(email)}`
+        if (slides.length <= 1) return;
+
+        let index = 0;
+        let timer = null;
+
+        const showSlide = (nextIndex) => {
+            index = (nextIndex + slides.length) % slides.length;
+            slides.forEach((slide, i) => {
+                slide.classList.toggle('is-active', i === index);
             });
-            const data = await response.json();
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('is-active', i === index);
+            });
+        };
 
-            if (data.success) {
-                button.innerHTML = '<i class="bi bi-check-lg"></i> Subscribed!';
-                this.querySelector('input').value = '';
-                setTimeout(() => { button.innerHTML = originalHTML; button.disabled = false; }, 3000);
-            } else {
-                button.innerHTML = '<i class="bi bi-x-lg"></i> Failed';
+        const startAutoplay = () => {
+            stopAutoplay();
+            timer = setInterval(() => showSlide(index + 1), 15000);
+        };
+
+        const stopAutoplay = () => {
+            if (timer) {
+                clearInterval(timer);
+                timer = null;
+            }
+        };
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                showSlide(index - 1);
+                startAutoplay();
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                showSlide(index + 1);
+                startAutoplay();
+            });
+        }
+
+        dots.forEach((dot, dotIndex) => {
+            dot.addEventListener('click', () => {
+                showSlide(dotIndex);
+                startAutoplay();
+            });
+        });
+
+        slider.addEventListener('mouseenter', stopAutoplay);
+        slider.addEventListener('mouseleave', startAutoplay);
+
+        startAutoplay();
+    })();
+
+    // Newsletter Form
+    const homeNewsletterForm = document.getElementById('home-newsletter-form');
+    if (homeNewsletterForm) {
+        homeNewsletterForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = this.querySelector('input[name="email"]').value;
+            const button = this.querySelector('button');
+            const originalHTML = button.innerHTML;
+
+            button.innerHTML = '<i class="bi bi-hourglass-split"></i> Subscribing...';
+            button.disabled = true;
+
+            try {
+                const response = await fetch('{{ url_for("site_bp.site_subscribe", site_identifier=settings.site_slug|default(user_id, true)) }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `email=${encodeURIComponent(email)}`
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    button.innerHTML = '<i class="bi bi-check-lg"></i> Subscribed!';
+                    this.querySelector('input').value = '';
+                    setTimeout(() => { button.innerHTML = originalHTML; button.disabled = false; }, 3000);
+                } else {
+                    button.innerHTML = '<i class="bi bi-x-lg"></i> Failed';
+                    setTimeout(() => { button.innerHTML = originalHTML; button.disabled = false; }, 2000);
+                }
+            } catch (err) {
+                button.innerHTML = '<i class="bi bi-x-lg"></i> Error';
                 setTimeout(() => { button.innerHTML = originalHTML; button.disabled = false; }, 2000);
             }
-        } catch (err) {
-            button.innerHTML = '<i class="bi bi-x-lg"></i> Error';
-            setTimeout(() => { button.innerHTML = originalHTML; button.disabled = false; }, 2000);
-        }
-    });
+        });
+    }
 </script>
 {% endblock %}

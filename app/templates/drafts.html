@@ -30,7 +30,7 @@
           <div class="col-title">Title</div>
           <div class="col-tags">Category</div>
           <div class="col-status">Last Updated</div>
-          <div class="col-actions"></div>
+          <div class="col-actions">Actions</div>
         </div>
 
         {% for draft in drafts %}
@@ -38,7 +38,7 @@
           <div class="col-title title text-truncate pe-3">
             {{ draft.title.replace('**', '') if draft.title else 'Untitled' }}
           </div>
-          <div class="col-tags">
+          <div class="  col-tags">
             <span class="badge-tag">{{ draft.category or 'General' }}</span>
           </div>
           <div class="col-status">

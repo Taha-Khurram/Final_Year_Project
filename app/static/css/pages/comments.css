@@ -134,16 +134,16 @@
 }
 
 .commenter-avatar {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    background: var(--primary-color);
+    background: #4318FF;
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     flex-shrink: 0;
 }
 
@@ -359,8 +359,8 @@
 .commenter-card-avatar {
     width: 40px;
     height: 40px;
-    border-radius: 10px;
-    background: var(--primary-color, #4318FF);
+    border-radius: 50%;
+    background: #4318FF;
     color: white;
     display: flex;
     align-items: center;

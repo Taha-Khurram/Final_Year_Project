@@ -8,7 +8,7 @@ logger = logging.getLogger('waitress')
 logger.setLevel(logging.INFO)
 
 if __name__ == "__main__":
-    print("🚀 ScriptlyAI is running at http://localhost:5000")
+    print("ScriptlyAI is running at http://localhost:5000")
     
     # threads=12: Handles more simultaneous internal tasks
     # connection_limit=100: Prevents the server from hanging on ghost connections

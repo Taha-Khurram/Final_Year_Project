@@ -99,6 +99,9 @@
     justify-content: center !important;
     text-align: center;
     line-height: 1;
+    background: #4318FF !important;
+    color: white !important;
+    font-weight: 700 !important;
 }
 
 /* ==================== BADGES ==================== */

@@ -190,16 +190,16 @@
 }
 
 .blog-author-avatar {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary-color) 0%, #8B5CF6 100%);
+    background: #4318FF;
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 0.7rem;
+    font-size: 0.85rem;
     flex-shrink: 0;
 }
 
