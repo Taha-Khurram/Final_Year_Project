@@ -311,6 +311,19 @@
         transform: translateY(-3px);
     }
 
+    /* ==================== SECTION DIVIDERS ==================== */
+    .section-divider {
+        border: none;
+        height: 1px;
+        background: linear-gradient(90deg, transparent 0%, rgba(15, 23, 42, 0.1) 20%, rgba(15, 23, 42, 0.1) 80%, transparent 100%);
+        margin: 0 0 3rem;
+    }
+
+    .section-divider--thick {
+        height: 2px;
+        background: linear-gradient(90deg, transparent 0%, rgba(67, 24, 255, 0.15) 20%, rgba(99, 102, 241, 0.15) 80%, transparent 100%);
+    }
+
     /* ==================== FEATURED SECTION ==================== */
     .featured-section {
         margin-bottom: 3rem;
@@ -1294,6 +1307,8 @@
     </div>
 </section>
 
+<hr class="section-divider section-divider--thick">
+
 <section class="latest-inline-section" data-animate="fade-up">
     <div class="latest-inline-header">
         <div class="latest-inline-title">
@@ -1374,6 +1389,8 @@
 {% endif %}
 
 <!-- About the Platform Section -->
+<hr class="section-divider">
+
 <section class="about-platform-section" data-animate="fade-up">
     <div class="about-platform-media">
         <img
@@ -1404,7 +1421,9 @@
     </div>
 </section>
 
-<!-- Newsletter Section --> 
+<!-- Newsletter Section -->
+<hr class="section-divider">
+
 <section class="newsletter-section" data-animate="fade-up">
     <div class="newsletter-content">
         <div class="newsletter-icon">
