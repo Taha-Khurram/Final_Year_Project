@@ -2676,6 +2676,11 @@
             // Add active to clicked tab and corresponding content
             this.classList.add('active');
             document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+
+            // Auto-load recent activity when Google Sheets tab is opened
+            if (this.dataset.tab === 'google-sheets') {
+                loadRecentSheetActivity();
+            }
         });
     });
 
