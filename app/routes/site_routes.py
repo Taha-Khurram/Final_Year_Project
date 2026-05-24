@@ -97,20 +97,23 @@ def site_home(site_identifier):
         queries = [
             (db_service.get_published_blogs, (user_id, posts_limit)),
             (db_service.get_all_categories, (user_id,)),
+            (db_service.get_published_blogs, (user_id, 100)),
         ]
         if featured_post_id:
             queries.append((db_service.get_published_blog_by_id, (featured_post_id,)))
 
-        results = run_parallel_simple(queries, max_workers=3)
+        results = run_parallel_simple(queries, max_workers=4)
 
         published_blogs = results[0] or []
         categories = results[1] or []
-        featured_post = results[2] if featured_post_id else None
+        slider_blogs = results[2] or []
+        featured_post = results[3] if featured_post_id else None
 
         return render_template(
             'site/site_home.html',
             settings=settings,
             blogs=published_blogs,
+            slider_blogs=slider_blogs,
             categories=categories,
             featured_post=featured_post,
             user_id=user_id
