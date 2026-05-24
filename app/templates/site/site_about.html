@@ -502,15 +502,15 @@
             <div class="about-hero-stats">
                 <div class="about-hero-stat">
                     <strong>{{ published_count }}+</strong>
-                    <span>Articles</span>
+                    <span>{{ settings.hero_home.stats_label_1 if settings.hero_home else 'Articles' }}</span>
                 </div>
                 <div class="about-hero-stat">
                     <strong>{{ categories_count }}</strong>
-                    <span>Categories</span>
+                    <span>{{ settings.hero_home.stats_label_2 if settings.hero_home else 'Categories' }}</span>
                 </div>
                 <div class="about-hero-stat">
                     <strong>{{ (published_count * 50) }}+</strong>
-                    <span>Readers</span>
+                    <span>{{ settings.hero_home.stats_label_3 if settings.hero_home else 'Readers' }}</span>
                 </div>
             </div>
         </div>
@@ -521,7 +521,7 @@
 
 <!-- Our Story Section -->
 <section class="story-section" data-animate="fade-up">
-    <h2 class="section-title"><i class="bi bi-book"></i> Our Story</h2>
+    <h2 class="section-title"><i class="bi bi-book"></i> {{ settings.hero_about.story_title if settings.hero_about else 'Our Story' }}</h2>
     <div class="story-content">
         {% if settings.about_content %}
         {{ settings.about_content|safe }}

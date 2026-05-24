@@ -1846,35 +1846,14 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="form-label">Badge Text</label>
+                                        <label class="form-label">Slider Badge Text</label>
                                         <input type="text" class="form-control" id="hero_home_badge" name="hero_home_badge"
-                                               value="{{ settings.hero_home.badge if settings.hero_home else '{niche}' }}" placeholder="{niche}">
+                                               value="{{ settings.hero_home.badge if settings.hero_home else '{site_name} Stories' }}" placeholder="{site_name} Stories">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="form-label">Title</label>
-                                        <input type="text" class="form-control" id="hero_home_title" name="hero_home_title"
-                                               value="{{ settings.hero_home.title if settings.hero_home else 'Welcome to {site_name}' }}" placeholder="Welcome to {site_name}">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Subtitle</label>
-                                <input type="text" class="form-control" id="hero_home_subtitle" name="hero_home_subtitle"
-                                       value="{{ settings.hero_home.subtitle if settings.hero_home else '{site_description}' }}" placeholder="{site_description}">
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="form-label">Primary CTA Button</label>
-                                        <input type="text" class="form-control" id="hero_home_cta_primary" name="hero_home_cta_primary"
-                                               value="{{ settings.hero_home.cta_primary if settings.hero_home else 'Explore Articles' }}" placeholder="Explore Articles">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="form-label">Secondary CTA Button</label>
+                                        <label class="form-label">About Section Button</label>
                                         <input type="text" class="form-control" id="hero_home_cta_secondary" name="hero_home_cta_secondary"
                                                value="{{ settings.hero_home.cta_secondary if settings.hero_home else 'Learn More' }}" placeholder="Learn More">
                                     </div>
@@ -1924,6 +1903,15 @@
                                 </div>
                             </div>
                             <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">View All Link Text</label>
+                                        <input type="text" class="form-control" id="hero_home_view_all_text" name="hero_home_view_all_text"
+                                               value="{{ settings.hero_home.view_all_text if settings.hero_home else 'View All Posts' }}" placeholder="View All Posts">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label class="form-label">About Kicker</label>
@@ -1963,20 +1951,11 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="form-label">Title</label>
-                                        <input type="text" class="form-control" id="hero_about_title" name="hero_about_title"
-                                               value="{{ settings.hero_about.title if settings.hero_about else 'About {site_name}' }}" placeholder="About {site_name}">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="form-label">Subtitle</label>
+                                        <label class="form-label">Hero Subtitle</label>
                                         <input type="text" class="form-control" id="hero_about_subtitle" name="hero_about_subtitle"
                                                value="{{ settings.hero_about.subtitle if settings.hero_about else '{site_description}' }}" placeholder="{site_description}">
                                     </div>
                                 </div>
-                            </div>
-                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="form-label">Story Section Title</label>
@@ -1984,6 +1963,8 @@
                                                value="{{ settings.hero_about.story_title if settings.hero_about else 'Our Story' }}" placeholder="Our Story">
                                     </div>
                                 </div>
+                            </div>
+                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="form-label">Values Section Title</label>
@@ -2810,21 +2791,18 @@
                 },
                 hero_home: {
                     badge: _v('hero_home_badge'),
-                    title: _v('hero_home_title'),
-                    subtitle: _v('hero_home_subtitle'),
-                    cta_primary: _v('hero_home_cta_primary'),
                     cta_secondary: _v('hero_home_cta_secondary'),
                     stats_label_1: _v('hero_home_stats_label_1'),
                     stats_label_2: _v('hero_home_stats_label_2'),
                     stats_label_3: _v('hero_home_stats_label_3'),
                     latest_title: _v('hero_home_latest_title'),
                     latest_subtitle: _v('hero_home_latest_subtitle'),
+                    view_all_text: _v('hero_home_view_all_text'),
                     about_kicker: _v('hero_home_about_kicker'),
                     about_title: _v('hero_home_about_title'),
                     newsletter_disclaimer: _v('hero_home_newsletter_disclaimer')
                 },
                 hero_about: {
-                    title: _v('hero_about_title'),
                     subtitle: _v('hero_about_subtitle'),
                     story_title: _v('hero_about_story_title'),
                     values_title: _v('hero_about_values_title'),

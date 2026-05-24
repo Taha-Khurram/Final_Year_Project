@@ -1251,7 +1251,8 @@
                     <div class="hero-slide-content">
                         <div class="hero-badge">
                             <i class="bi bi-images"></i>
-                            {{ settings.site_name }} Stories
+                            {% set badge_text = settings.hero_home.badge | default('{site_name} Stories') %}
+                            {{ badge_text | replace('{site_name}', settings.site_name | default('')) | replace('{niche}', settings.niche | default('')) }}
                         </div>
                         {% if hero_blog.category %}
                         <span class="hero-slide-category">{{ hero_blog.category }}</span>
@@ -1316,7 +1317,7 @@
             <p>{{ settings.hero_home.latest_subtitle if settings.hero_home else 'Curated insights from our latest published articles.' }}</p>
         </div>
         <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}" class="view-all">
-            View All Posts <i class="bi bi-arrow-up-right"></i>
+            {{ settings.hero_home.view_all_text if settings.hero_home else 'View All Posts' }} <i class="bi bi-arrow-up-right"></i>
         </a>
     </div>
 
@@ -1409,15 +1410,15 @@
         <div class="about-platform-stats">
             <div class="about-platform-stat">
                 <strong>{{ blogs|length if blogs else 0 }}+</strong>
-                <span>Published Articles</span>
+                <span>{{ settings.hero_home.stats_label_1 if settings.hero_home else 'Published Articles' }}</span>
             </div>
             <div class="about-platform-stat">
                 <strong>{{ categories|length if categories else 0 }}</strong>
-                <span>Active Categories</span>
+                <span>{{ settings.hero_home.stats_label_2 if settings.hero_home else 'Active Categories' }}</span>
             </div>
         </div>
         <a href="{{ url_for('site_bp.site_about', site_identifier=settings.site_slug|default(user_id, true)) }}" class="about-platform-link">
-            Learn More About {{ settings.site_name }}
+            {{ settings.hero_home.cta_secondary if settings.hero_home else 'Learn More' }} <i class="bi bi-arrow-right"></i>
         </a>
     </div>
 </section>

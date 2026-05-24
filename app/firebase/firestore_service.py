@@ -1630,22 +1630,19 @@ class FirestoreService:
             },
             # Hero Sections
             "hero_home": {
-                "badge": "{niche}",
-                "title": "Welcome to {site_name}",
-                "subtitle": "{site_description}",
-                "cta_primary": "Explore Articles",
+                "badge": "{site_name} Stories",
                 "cta_secondary": "Learn More",
                 "stats_label_1": "Articles",
                 "stats_label_2": "Categories",
                 "stats_label_3": "Readers",
                 "latest_title": "Latest Posts",
                 "latest_subtitle": "Curated insights from our latest published articles.",
+                "view_all_text": "View All Posts",
                 "about_kicker": "About the Platform",
                 "about_title": "{site_name} blends practical expertise with clear publishing vision.",
                 "newsletter_disclaimer": "No spam, unsubscribe anytime."
             },
             "hero_about": {
-                "title": "About {site_name}",
                 "subtitle": "{site_description}",
                 "story_title": "Our Story",
                 "values_title": "What We Stand For",

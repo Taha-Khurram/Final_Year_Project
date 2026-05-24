@@ -621,8 +621,8 @@
 
         <!-- Newsletter -->
         <div class="sidebar-card sidebar-newsletter">
-            <h3><i class="bi bi-envelope"></i> Newsletter</h3>
-            <p>Get the latest articles delivered to your inbox.</p>
+            <h3><i class="bi bi-envelope"></i> {{ settings.footer.newsletter_title if settings.footer else 'Newsletter' }}</h3>
+            <p>{{ settings.footer.newsletter_description if settings.footer else 'Get the latest articles delivered to your inbox.' }}</p>
             <form id="sidebar-newsletter-form">
                 <input type="email" name="email" placeholder="Your email" required>
                 <button type="submit">Subscribe</button>
