@@ -6,7 +6,7 @@ class CategoryAgent:
     def __init__(self):
         self.db_service = FirestoreService()
         genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-        self.model = genai.GenerativeModel('gemini-3-flash-preview')
+        self.model = genai.GenerativeModel('gemini-2.5-flash')
 
     def categorize_blog(self, title, content_body, categories=None):
         """

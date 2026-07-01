@@ -8,7 +8,7 @@ class OutlineAgent:
     def __init__(self):
         # Always configure inside the class or factory to ensure app context
         genai.configure(api_key=current_app.config['GEMINI_API_KEY'])
-        self.model = genai.GenerativeModel('gemini-3-flash-preview')
+        self.model = genai.GenerativeModel('gemini-2.5-flash')
 
     def generate_outline(self, topic):
         prompt = f"Create a structured SEO blog outline for: {topic}. Return ONLY a JSON list of strings."

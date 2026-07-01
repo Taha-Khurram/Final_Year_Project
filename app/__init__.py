@@ -1,4 +1,16 @@
 import os
+import sys
+
+# Agents log progress with emoji (🔄, ✅, …). On Windows the default console /
+# piped stdout is cp1252, which can't encode those characters and raises
+# UnicodeEncodeError mid-task — crashing background jobs (e.g. humanization)
+# before any real work runs. Force UTF-8 so logging can never abort a task.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding='utf-8', errors='replace')
+    except (AttributeError, ValueError):
+        pass
+
 from flask import Flask, redirect, url_for, session, render_template, abort, request, jsonify, current_app
 from flask_compress import Compress
 from config import Config

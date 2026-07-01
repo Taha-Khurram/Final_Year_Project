@@ -98,6 +98,7 @@ AI_WORD_MAP = {
 _SHARED_RULES = """You are an expert Editor and Content Strategist. Transform this AI draft into human-first content that meets Google's E-E-A-T standards.
 
 CORE RULES (apply to EVERY rewrite):
+- PRESERVE LENGTH (most important): Keep the rewrite roughly the same length as the original section — target within 10% of the original word count. Do NOT summarize, condense, or drop any detail, example, or nuance; but do NOT pad with filler to inflate it either. "Short punchy sentences" means splitting one idea across more sentences, NOT deleting content. Every point in the original must still be present.
 - PERPLEXITY & BURSTINESS: Vary sentence length wildly. Mix short punchy lines (3-8 words) with medium explanatory ones (10-16 words). Never 3+ sentences of similar length in a row.
 - INFORMATION GAIN: Don't just rephrase. Add a specific example, a hypothetical scenario, or a nuanced "insider" observation where it fits naturally. Make the reader learn something extra.
 - REMOVE AI-ISMS: Eliminate "In conclusion," "It is important to note," "Furthermore," "In the rapidly evolving world of," "It's worth mentioning," and all similar filler.
@@ -192,15 +193,20 @@ class HumanizeAgent:
 
     def __init__(self):
         genai.configure(api_key=current_app.config['GEMINI_API_KEY'])
-        self.model = genai.GenerativeModel('gemini-3-flash-preview')
-        # A chunk is ~half a blog (~500-700 words in → ~700-1000 tokens out).
-        # Capping output well below the old 8192 bounds generation time and
-        # sharply cuts the odds of hitting the server-side 504 deadline, while
-        # still leaving generous headroom over any real chunk.
+        self.model = genai.GenerativeModel('gemini-2.5-flash')
+        # gemini-2.5-flash is a THINKING model: its internal reasoning tokens
+        # are drawn from max_output_tokens BEFORE the visible answer. Measured
+        # ~2,500-3,500 thinking tokens per chunk, so a low cap (the old 3072)
+        # gets fully consumed by thinking and truncates the rewrite to a
+        # handful of words (finish_reason=MAX_TOKENS). This SDK (0.8.6) predates
+        # ThinkingConfig, so thinking can't be disabled — instead give a ceiling
+        # generous enough for thinking + a full-length rewrite of a half-blog
+        # chunk. 8192 completes (finish=STOP) on chunks past 1,100 words with
+        # headroom; going higher just makes the model think more, not better.
         self.generation_config = genai.types.GenerationConfig(
             temperature=0.9,
             top_p=0.88,
-            max_output_tokens=3072,
+            max_output_tokens=8192,
         )
 
     def humanize_content(self, markdown, topic=""):
@@ -342,6 +348,15 @@ class HumanizeAgent:
                 new_headings = re.findall(r'^#{1,3}\s', result, re.MULTILINE)
                 if len(orig_headings) > 0 and len(new_headings) == 0:
                     print(f"⚠️ Lost all headings, keeping original")
+                    return chunk
+
+                # Truncation guard: if the rewrite lost more than half the
+                # words, the model almost certainly ran out of output budget
+                # mid-generation (finish_reason=MAX_TOKENS). Keep THIS chunk's
+                # original so one truncated chunk can't drag the whole blog
+                # past the final ratio check and discard everything.
+                if result_words < chunk_words * 0.5:
+                    print(f"⚠️ Rewrite truncated ({chunk_words} → {result_words} words), keeping original")
                     return chunk
 
                 print(f"✅ Done ({chunk_words} → {result_words} words)")
@@ -637,9 +652,14 @@ class HumanizeAgent:
         orig_words = len(original.split())
         new_words = len(humanized.split())
 
+        # This guard only catches genuinely broken output — a truncated
+        # response (content lost) or a runaway expansion. Humanization
+        # legitimately varies length as it rewrites, so the bounds are wide;
+        # too tight and every valid rewrite gets discarded (returning the
+        # untouched original, which reads as "humanization did nothing").
         if orig_words > 0:
             ratio = new_words / orig_words
-            if ratio < 0.65 or ratio > 1.35:
+            if ratio < 0.6 or ratio > 2.0:
                 print(f"⚠️ Word count ratio {ratio:.2f} out of bounds ({orig_words} → {new_words}) — using original")
                 return original
 

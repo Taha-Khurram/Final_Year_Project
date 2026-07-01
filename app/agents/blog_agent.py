@@ -88,7 +88,7 @@ class BlogAgent:
                 "seo": seo_data if seo_data else {"enabled": False},
                 "metadata": {
                     "word_count": word_count,
-                    "model_used": "gemini-3-flash-preview",
+                    "model_used": "gemini-2.5-flash",
                     "status": "success",
                     "seo_enabled": enable_seo,
                     "humanized": False,
