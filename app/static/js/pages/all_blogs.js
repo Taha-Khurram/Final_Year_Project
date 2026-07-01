@@ -3,15 +3,15 @@
  * Handles blog listing, filtering, pagination, and date range modal
  */
 
-let currentStatus = 'all';
-let currentCategory = 'all';
-let currentSearch = '';
-let currentDateFrom = '';
-let currentDateTo = '';
-let currentPage = 1;
-const perPage = 10;
-let searchTimeout = null;
-let initialLoadDone = false;
+var currentStatus = 'all';
+var currentCategory = 'all';
+var currentSearch = '';
+var currentDateFrom = '';
+var currentDateTo = '';
+var currentPage = 1;
+var perPage = 10;
+var searchTimeout = null;
+var initialLoadDone = false;
 
 (function initAllBlogs() {
     applyUrlParams();

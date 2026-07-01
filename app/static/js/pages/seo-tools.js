@@ -2,9 +2,9 @@
  * SEO Tools Page JavaScript
  */
 
-let currentDraftId = null;
-let currentDraftTitle = null;
-let originalAnalysisData = null;
+var currentDraftId = null;
+var currentDraftTitle = null;
+var originalAnalysisData = null;
 
 // Load drafts on page load
 document.addEventListener('DOMContentLoaded', function() {

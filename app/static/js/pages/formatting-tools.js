@@ -2,10 +2,10 @@
  * Formatting Tools Page JavaScript
  */
 
-let formattedData = null;
-let draftsData = [];
-let selectedDraftId = null;
-let selectedDraftData = null;
+var formattedData = null;
+var draftsData = [];
+var selectedDraftId = null;
+var selectedDraftData = null;
 
 // Load drafts on page load
 document.addEventListener('DOMContentLoaded', function() {

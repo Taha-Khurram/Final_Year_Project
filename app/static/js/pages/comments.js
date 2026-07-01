@@ -3,11 +3,11 @@
  * Handles comment listing, filtering, modals, editing, and deletion
  */
 
-let currentFilter = 'all';
-let currentPage = 1;
-let currentCommentId = null;
-const perPage = 15;
-let initialLoadDone = false;
+var currentFilter = 'all';
+var currentPage = 1;
+var currentCommentId = null;
+var perPage = 15;
+var initialLoadDone = false;
 
 function initComments() {
     setupFilterTabs();
@@ -20,8 +20,9 @@ function initComments() {
     }
 }
 
+// Fires on full page load and on every Pjax navigation (page scripts are
+// re-executed on nav, and the DOMContentLoaded patch in app.js re-runs this).
 document.addEventListener('DOMContentLoaded', initComments);
-document.addEventListener('pjax:complete', initComments);
 
 // ==================== FILTER TABS ====================
 

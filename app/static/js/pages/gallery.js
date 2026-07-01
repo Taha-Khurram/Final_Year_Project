@@ -3,8 +3,8 @@
  * Handles image upload, listing, delete, copy URL
  */
 
-let currentPage = 1;
-let deleteImageId = null;
+var currentPage = 1;
+var deleteImageId = null;
 
 (function initGallery() {
     try { setupUploadZone(); } catch(e) { console.error(e); }

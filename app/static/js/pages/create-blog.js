@@ -14,7 +14,7 @@ function handleKeyPress(event) {
   }
 }
 
-const STAGE_MESSAGES = {
+var STAGE_MESSAGES = {
   'starting': 'Starting generation...',
   'outline': 'Generating outline...',
   'content': 'Writing blog content...',

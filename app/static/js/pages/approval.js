@@ -2,8 +2,8 @@
  * Approval Queue Page JavaScript
  */
 
-let currentBlogId = null;
-let currentBlogTitle = '';
+var currentBlogId = null;
+var currentBlogTitle = '';
 
 // Check if there are remaining approvals and show empty state if needed
 function checkEmptyState() {
@@ -439,7 +439,7 @@ async function rejectToDraft(id) {
 
 // ==================== BEST TIME SUGGESTIONS ====================
 
-const FALLBACK_SUGGESTIONS = [
+var FALLBACK_SUGGESTIONS = [
   { day: "Tuesday", day_index: 2, hour: 10, display_time: "Tuesday, 10:00 AM", reasoning: "Tuesdays mid-morning have high engagement across most blogs" },
   { day: "Thursday", day_index: 4, hour: 14, display_time: "Thursday, 2:00 PM", reasoning: "Thursday afternoons are peak reading time for most audiences" },
   { day: "Wednesday", day_index: 3, hour: 9, display_time: "Wednesday, 9:00 AM", reasoning: "Mid-week mornings capture early readers checking content" }

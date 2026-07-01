@@ -3,13 +3,13 @@
  * Handles leads listing, filtering, pagination, view, mark read, delete
  */
 
-let currentFilter = 'all';
-let currentSearch = '';
-let currentPage = 1;
-const perPage = 10;
-let searchTimeout = null;
-let currentLeadId = null;
-let leadsCache = {};
+var currentFilter = 'all';
+var currentSearch = '';
+var currentPage = 1;
+var perPage = 10;
+var searchTimeout = null;
+var currentLeadId = null;
+var leadsCache = {};
 
 function initLeads() {
     setupFilterTabs();
@@ -24,8 +24,9 @@ function initLeads() {
     }
 }
 
+// Fires on full page load and on every Pjax navigation (page scripts are
+// re-executed on nav, and the DOMContentLoaded patch in app.js re-runs this).
 document.addEventListener('DOMContentLoaded', initLeads);
-document.addEventListener('pjax:complete', initLeads);
 
 // ==================== FILTER TABS ====================
 

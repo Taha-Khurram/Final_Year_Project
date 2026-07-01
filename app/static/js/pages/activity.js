@@ -3,17 +3,18 @@
  * Handles activity listing, filtering, pagination, and date range modal
  */
 
-let currentFilter = 'all';
-let currentUser = 'all';
-let currentSearch = '';
-let currentDateFrom = '';
-let currentDateTo = '';
-let currentPage = 1;
-const perPage = 10;
-let searchTimeout = null;
+var currentFilter = 'all';
+var currentUser = 'all';
+var currentSearch = '';
+var currentDateFrom = '';
+var currentDateTo = '';
+var currentPage = 1;
+var perPage = 10;
+var searchTimeout = null;
 
+// Fires on full page load and on every Pjax navigation (page scripts are
+// re-executed on nav, and the DOMContentLoaded patch in app.js re-runs this).
 document.addEventListener('DOMContentLoaded', initActivity);
-document.addEventListener('pjax:complete', initActivity);
 
 function initActivity() {
     setupFilterTabs();
