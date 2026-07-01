@@ -3,6 +3,10 @@ from firebase_admin import auth as admin_auth
 from datetime import datetime, timezone
 from app.firebase.firestore_service import FirestoreService
 from app.utils.cache import cache
+from app.utils.validators import is_valid_gmail, validate_password
+
+# Message shown when a non-Gmail address attempts to create an account.
+GMAIL_ONLY_ERROR = "Only Gmail addresses (@gmail.com) are allowed to sign up."
 
 auth_bp = Blueprint('auth_bp', __name__)
 db_service = FirestoreService()
@@ -58,6 +62,21 @@ def verify_token():
                 user_record = existing_user
                 ThreadPoolExecutor(max_workers=1).submit(db_service.update_last_login, uid)
             else:
+                # NEW ACCOUNT (signup) — enforce Gmail-only for every signup path
+                # (self-signup, Google Sign-In, and invited users). Use the
+                # cryptographically verified email from the decoded token, not
+                # the un-verified JWT payload. Existing users are exempt so we
+                # never lock out accounts that already exist.
+                verified_email = decoded_token.get('email', '') or email
+                if not is_valid_gmail(verified_email):
+                    # Roll back the Firebase Auth account the client just created
+                    # so no orphaned, unusable login is left behind.
+                    try:
+                        admin_auth.delete_user(uid)
+                    except Exception:
+                        pass
+                    return jsonify({"success": False, "error": GMAIL_ONLY_ERROR}), 403
+
                 user_info = {"uid": uid, "name": name, "email": email}
                 if invitation:
                     user_info['role'] = invitation['role']
@@ -91,11 +110,21 @@ def create_sub_user():
         return jsonify({"error": "Unauthorized"}), 403
 
     data = request.json
+    email = (data.get('email') or '').strip()
+    password = data.get('password') or ''
+
+    # Enforce the same Gmail-only + password rules server-side.
+    if not is_valid_gmail(email):
+        return jsonify({"error": GMAIL_ONLY_ERROR}), 400
+    pw_errors = validate_password(password)
+    if pw_errors:
+        return jsonify({"error": "Weak password: " + ", ".join(pw_errors)}), 400
+
     try:
         # 1. Create in Firebase Auth (Manual Email/Password)
         user_record = admin_auth.create_user(
-            email=data['email'],
-            password=data['password'],
+            email=email,
+            password=password,
             display_name=data['name']
         )
 
@@ -103,7 +132,7 @@ def create_sub_user():
         db_service.save_user({
             "uid": user_record.uid,
             "name": data['name'],
-            "email": data['email'],
+            "email": email,
             "role": "USER",
             "created_by": session.get('user_id')
         })

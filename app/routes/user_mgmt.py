@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, jsonify, session, redirec
 from firebase_admin import auth as admin_auth
 from app.firebase.firestore_service import FirestoreService
 from app.services.email_service import EmailService
+from app.utils.validators import is_valid_gmail
 from functools import wraps
 
 # We define the blueprint. The 'url_prefix' will be handled in the app factory.
@@ -76,6 +77,11 @@ def invite_user():
 
     if not email:
         return jsonify({"success": False, "error": "Email is required"}), 400
+
+    # Only Gmail accounts can sign up, so inviting any other domain would just
+    # produce a link the recipient can never complete.
+    if not is_valid_gmail(email):
+        return jsonify({"success": False, "error": "Only Gmail addresses (@gmail.com) can be invited."}), 400
 
     result = db_service.create_invitation(email, role, admin_id)
     if not result.get('success'):

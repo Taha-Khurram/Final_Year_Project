@@ -16,3 +16,4 @@ numpy
 APScheduler
 gspread
 google-auth
+pytest

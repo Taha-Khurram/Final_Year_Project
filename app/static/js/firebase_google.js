@@ -12,6 +12,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return emailRegex.test(email);
     }
 
+    // Only Gmail (and its googlemail.com alias) may sign up. Mirrors the
+    // server-side rule in app/utils/validators.py — the server is the real
+    // gate; this is just for immediate feedback.
+    function isValidGmail(email) {
+        if (!email || /\s/.test(email)) return false;
+        const parts = email.trim().split('@');
+        if (parts.length !== 2) return false;
+        const [local, domain] = parts;
+        if (!/^[A-Za-z0-9](?:[A-Za-z0-9.+_-]*[A-Za-z0-9])?$/.test(local)) return false;
+        if (local.includes('..')) return false;
+        return domain.toLowerCase() === 'gmail.com' || domain.toLowerCase() === 'googlemail.com';
+    }
+
     function validatePassword(password) {
         const errors = [];
         if (password.length < 8) errors.push('At least 8 characters');
@@ -80,6 +93,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (!validateEmail(email)) {
             showError('email', 'Please enter a valid email address');
             isValid = false;
+        } else if (!isValidGmail(email)) {
+            showError('email', 'Only Gmail addresses (@gmail.com) are allowed');
+            isValid = false;
         } else {
             clearError('email');
         }
@@ -136,6 +152,15 @@ document.addEventListener('DOMContentLoaded', () => {
         setButtonLoading(btn, true);
         try {
             const result = await auth.signInWithPopup(provider);
+            // On the signup page, block non-Gmail Google accounts up front so we
+            // don't leave an orphaned Firebase user for the server to clean up.
+            const isSignup = btn.id === 'googleSignUp';
+            if (isSignup && !isValidGmail(result.user.email || '')) {
+                await auth.signOut();
+                setButtonLoading(btn, false);
+                alert('Only Gmail addresses (@gmail.com) are allowed to sign up.');
+                return;
+            }
             await sendTokenToBackend(result.user);
         } catch (error) {
             setButtonLoading(btn, false);
@@ -201,6 +226,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         showError('email', 'Email is required');
                     } else if (!validateEmail(emailInput.value)) {
                         showError('email', 'Please enter a valid email address');
+                    } else if (!isValidGmail(emailInput.value)) {
+                        showError('email', 'Only Gmail addresses (@gmail.com) are allowed');
                     } else {
                         clearError('email');
                     }
