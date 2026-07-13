@@ -23,6 +23,9 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 - **Google Analytics Integration** - Real-time analytics dashboard with configurable date periods
 - **Activity Log** - Full audit trail of all admin actions (paginated)
 - **Category Management** - Organize content with categories and filtering
+- **Media Gallery** - Upload, browse, and delete images for use in blog content
+- **Leads Management** - View, filter, and manage contact-form submissions with unread stats
+- **SEO Optimization Suite** - URL metrics, keyword metrics (Ahrefs), and full site audits via RapidAPI
 - **Google Sheets Activity Agent** - Real-time tracking of every click, navigation, and action on the admin dashboard to a single Google Sheets "Blogs" tab with batched writes
 
 ### Security & Authentication
@@ -40,11 +43,11 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 | Backend | Flask 3.x, Python 3.11 |
 | Database | Firebase Firestore (NoSQL) |
 | Authentication | Firebase Auth (Email/Password, Google OAuth, Password Reset) |
-| AI / LLM | Google Gemini (gemini-2.0-flash) |
+| AI / LLM | Google Gemini (gemini-2.5-flash) |
 | Embeddings | Google gemini-embedding-001 (768 dimensions) |
-| Email | Resend API |
+| Email | Gmail SMTP (smtplib + App Password) |
 | Analytics | Google Analytics Data API |
-| SEO | RapidAPI Google Search |
+| SEO | RapidAPI (keyword research, Ahrefs URL metrics, site audit) |
 | Sheets | Google Sheets API (gspread) - Activity Tracking Agent |
 | Deployment | Gunicorn, Docker, Railway, Nixpacks |
 | Static Files | WhiteNoise, Flask-Compress (gzip) |
@@ -56,7 +59,7 @@ An AI-powered blog content generation platform built with Flask and Google Gemin
 
 ### Prerequisites
 
-- Python 3.9+
+- Python 3.11 (used by the Docker/Nixpacks build; 3.9+ works locally)
 - Firebase project with Firestore and Authentication enabled
 - Google Gemini API key
 
@@ -71,8 +74,8 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
 # Configure environment
-cp .env.example .env
-# Edit .env with your Firebase and Gemini credentials
+# Create a .env file in the project root and add the variables
+# listed in the "Environment Variables" section below.
 
 # Run
 python app.py
@@ -104,10 +107,13 @@ Create a `.env` file in the project root:
 | `FB_STORAGE_BUCKET` | Firebase storage bucket | Yes |
 | `FB_SENDER_ID` | Firebase messaging sender ID | Yes |
 | `FB_APP_ID` | Firebase app ID | Yes |
-| `RESEND_API_KEY` | Resend API key for newsletters | No |
-| `FROM_EMAIL` | Newsletter sender email | No |
-| `FROM_NAME` | Newsletter sender name | No |
+| `FB_MEASUREMENT_ID` | Firebase Analytics measurement ID | No |
+| `GMAIL_USER` | Gmail address used to send email (newsletters, invitations) | No |
+| `GMAIL_APP_PASSWORD` | Gmail App Password (not your account password) | No |
+| `FROM_NAME` | Email sender display name (defaults to "Scriptly") | No |
 | `RAPIDAPI_KEY` | RapidAPI key for SEO keyword research | No |
+| `AHREFS_RAPIDAPI_KEY` | RapidAPI key for Ahrefs URL/keyword metrics | No |
+| `SITE_AUDIT_RAPIDAPI_KEY` | RapidAPI key for site audit reports | No |
 | `GOOGLE_OAUTH_CLIENT_ID` | Google OAuth client ID (Analytics) | No |
 | `GOOGLE_OAUTH_CLIENT_SECRET` | Google OAuth client secret (Analytics) | No |
 | `GOOGLE_SHEETS_SPREADSHEET_ID` | Google Sheets spreadsheet ID | No |
@@ -232,8 +238,11 @@ Each user gets a public blog at `/site/<site_slug>` with:
 | **Newsletter** | Generate and send newsletters to subscribers |
 | **Analytics** | Google Analytics with Today/7 Days/30 Days filters |
 | **SEO Tools** | Keyword research and content analysis |
+| **Optimization** | URL/keyword metrics (Ahrefs) and site audit reports via RapidAPI |
 | **Formatting Tools** | Content formatting and structure tools |
 | **Schedule** | Blog scheduling with AI-recommended times |
+| **Gallery** | Upload and manage images for blog content |
+| **Leads** | Manage contact-form submissions with read/unread tracking |
 | **Categories** | Manage content categories |
 | **Activity Log** | Full audit trail of all actions |
 | **Site Settings** | Configure public site appearance, SEO, and Google Sheets activity tracking |
@@ -271,6 +280,9 @@ FYP-main/
 │   │   ├── site_routes.py         # Public blog site
 │   │   ├── newsletter_routes.py   # Newsletter management
 │   │   ├── analytics_routes.py    # Google Analytics
+│   │   ├── optimization_routes.py # SEO metrics & site audit (Ahrefs/RapidAPI)
+│   │   ├── gallery_routes.py      # Image gallery / media library
+│   │   ├── leads_routes.py        # Contact-form submissions
 │   │   ├── settings_routes.py     # App & site settings
 │   │   ├── activity_routes.py     # Activity log
 │   │   └── schedule_routes.py     # Blog scheduling
@@ -279,10 +291,10 @@ FYP-main/
 │   │   ├── embedding_service.py   # Gemini embeddings
 │   │   └── google_sheets_service.py # Google Sheets Activity Agent
 │   ├── static/                 # Frontend assets
-│   │   ├── css/                   # 26 stylesheets
-│   │   ├── js/                    # 26 scripts
+│   │   ├── css/                   # 30 stylesheets
+│   │   ├── js/                    # 30 scripts
 │   │   └── images/                # Image assets
-│   ├── templates/              # 35 Jinja2 templates
+│   ├── templates/              # 39 Jinja2 templates
 │   │   ├── site/                  # Public site templates
 │   │   ├── emails/                # Email templates
 │   │   ├── errors/                # Error pages
@@ -291,16 +303,23 @@ FYP-main/
 │   │   ├── cache.py               # In-memory caching
 │   │   ├── date_utils.py          # Timezone-aware formatting
 │   │   ├── slug_utils.py          # URL slug generation
-│   │   └── parallel.py            # Parallel execution
+│   │   ├── parallel.py            # Parallel execution
+│   │   ├── retry.py               # Retry / backoff helpers
+│   │   ├── task_manager.py        # Background task tracking
+│   │   └── validators.py          # Input validation
 │   ├── __init__.py             # App factory
 │   └── scheduler.py            # Background job scheduler
 ├── docs/
 │   └── DOCUMENTATION.md        # Comprehensive documentation
+├── scripts/
+│   └── backfill_embeddings.py  # One-off embedding backfill script
+├── tests/                      # Pytest suite
 ├── app.py                      # Entry point
 ├── main.py                     # WSGI application wrapper
 ├── wsgi.py                     # WSGI entry point
 ├── config.py                   # Flask configuration
 ├── requirements.txt            # Python dependencies (19 packages)
+├── firestore.indexes.json      # Firestore composite indexes
 ├── Dockerfile                  # Docker containerization
 ├── Procfile                    # Heroku/Railway deployment
 ├── railway.json                # Railway configuration
@@ -321,7 +340,9 @@ python app.py
 
 ### Production (Gunicorn - Linux/Mac)
 ```bash
-gunicorn main:app -w 4 -b 0.0.0.0:8080
+# Single worker + threads: the app keeps in-memory cache and a background
+# scheduler, so multiple workers would duplicate jobs and split the cache.
+gunicorn main:app --workers 1 --threads 8 --timeout 300 -b 0.0.0.0:8080
 ```
 
 ### Production (Waitress - Windows)
@@ -348,14 +369,20 @@ Firestore collections (created automatically):
 |-----------|-------------|
 | `blogs` | Blog posts with content, metadata, embeddings, scheduling |
 | `users` | User accounts with roles and team hierarchy |
+| `invitations` | Pending user invitations |
 | `categories` | Blog categories with post counts |
 | `activities` | Admin activity audit trail |
 | `comments` | Blog comments with moderation status |
 | `site_settings` | Per-user public site configuration |
-| `app_settings` | Global application settings |
+| `app_config` | Global application settings |
+| `analytics_config` | Google Analytics OAuth/config per user |
 | `newsletter_subscribers` | Email subscribers per site |
+| `newsletter_drafts` | Draft newsletters before sending |
 | `newsletter_history` | Sent newsletter records |
-| `contact_submissions` | Contact form entries |
+| `contact_submissions` | Contact form entries (Leads) |
+| `schedule_entries` | Scheduled blog publish jobs |
+| `gallery_images` | Uploaded image metadata for the media gallery |
+| `seo_reports` | Saved SEO optimization / site-audit reports |
 
 ---
 
