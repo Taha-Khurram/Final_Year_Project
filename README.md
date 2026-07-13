@@ -1,378 +1,258 @@
-# Scriptly
+<div align="center">
 
-An AI-powered blog content generation platform built with Flask and Google Gemini. Scriptly automates the full content creation lifecycle - from topic ideation to publication - with built-in humanization, SEO optimization, team collaboration, and public-facing blog sites.
+<img src="app/static/images/logo_text.png" alt="Scriptly" width="220" />
 
----
+# Scriptly — AI Blog Platform
 
-## Features
+**Generate. Humanize. Publish. On autopilot.**
 
-### Content Generation & AI
-- **AI Blog Generation** - Generate complete blog posts from topics using Google Gemini
-- **AI Humanizer** - Bypass AI detectors (GPTZero, Originality.ai, ZeroGPT) with multi-chunk rewriting and 5-pass post-processing
-- **SEO Optimization** - Keyword analysis, readability scoring, meta tag generation
-- **AI Comment Moderation** - Auto-approve, auto-edit, or auto-remove comments in real-time
-- **Semantic Search Agent** - Industry-standard agentic search with intent classification, query expansion, and vector similarity
-- **Newsletter Generation** - AI-generated newsletters from published blog content
-- **AI Publish Time Recommendations** - Optimal scheduling suggestions
+An AI-powered blog content platform built with Flask and Google Gemini — it runs the full
+content lifecycle, from topic ideation to a public-facing blog site, with humanization,
+SEO tooling, team collaboration, and a 13-agent AI pipeline.
 
-### Platform Features
-- **Public Blog Sites** - Each user gets a customizable public-facing blog with SEO-friendly URLs
-- **Team Collaboration** - Multi-user support with role-based access control and approval workflows
-- **User Management** - Invite users, assign roles (Admin/User), edit and delete users
-- **Blog Scheduling** - Schedule posts for future publishing with background auto-publish
-- **Google Analytics Integration** - Real-time analytics dashboard with configurable date periods
-- **Activity Log** - Full audit trail of all admin actions (paginated)
-- **Category Management** - Organize content with categories and filtering
-- **Media Gallery** - Upload, browse, and delete images for use in blog content
-- **Leads Management** - View, filter, and manage contact-form submissions with unread stats
-- **SEO Optimization Suite** - URL metrics, keyword metrics (Ahrefs), and full site audits via RapidAPI
-- **Google Sheets Activity Agent** - Real-time tracking of every click, navigation, and action on the admin dashboard to a single Google Sheets "Blogs" tab with batched writes
+![Flask](https://img.shields.io/badge/Flask-3.x-000000?style=flat-square&logo=flask&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)
+![Gemini](https://img.shields.io/badge/Google%20Gemini-2.5%20Flash-4285F4?style=flat-square&logo=googlegemini&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-Firestore-FFCA28?style=flat-square&logo=firebase&logoColor=black)
+![Auth](https://img.shields.io/badge/Auth-Firebase%20%2B%20Google%20OAuth-EA4335?style=flat-square&logo=googleauthenticator&logoColor=white)
+![Analytics](https://img.shields.io/badge/Analytics-Google%20Analytics-E37400?style=flat-square&logo=googleanalytics&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker&logoColor=white)
+![Railway](https://img.shields.io/badge/Deploy-Railway-0B0D0E?style=flat-square&logo=railway&logoColor=white)
+![License](https://img.shields.io/badge/License-FYP-6E56CF?style=flat-square)
 
-### Security & Authentication
-- **Firebase Authentication** - Email/Password, Google OAuth, Password Reset
-- **Role-Based Access Control** - Admin and User roles with route protection
-- **Session Management** - 15-minute inactivity timeout with HTTPOnly cookies
-- **Admin Route Protection** - Unauthorized access returns 404 (not 403)
+</div>
 
 ---
 
-## Tech Stack
+## 🌟 Highlights
 
-| Layer | Technology |
-|-------|------------|
-| Backend | Flask 3.x, Python 3.11 |
-| Database | Firebase Firestore (NoSQL) |
-| Authentication | Firebase Auth (Email/Password, Google OAuth, Password Reset) |
-| AI / LLM | Google Gemini (gemini-2.5-flash) |
-| Embeddings | Google gemini-embedding-001 (768 dimensions) |
-| Email | Gmail SMTP (smtplib + App Password) |
-| Analytics | Google Analytics Data API |
-| SEO | RapidAPI (keyword research, Ahrefs URL metrics, site audit) |
-| Sheets | Google Sheets API (gspread) - Activity Tracking Agent |
-| Deployment | Gunicorn, Docker, Railway, Nixpacks |
-| Static Files | WhiteNoise, Flask-Compress (gzip) |
-| Scheduling | APScheduler (background jobs) |
+- **📝 AI blog pipeline** — 13 specialized agents take a topic to a finished, SEO-scored article: outline → content → formatting → SEO → categorization, orchestrated end-to-end.
+- **🕵️ AI Humanizer** — beats detectors (GPTZero, Originality.ai, ZeroGPT) with 2-chunk rotating-prompt rewriting, E-E-A-T enforcement, and a **5-pass** zero-cost post-processor.
+- **🔎 Semantic Search Agent** — agentic search with intent classification, query expansion, and hybrid vector + keyword retrieval, with the agent's reasoning shown to users.
+- **🌐 Public blog sites** — every user gets a customizable, SEO-friendly public site (`/site/<slug>`) with RSS, sitemap, comments, newsletter forms, and social sharing.
+- **👥 Team collaboration** — multi-user with role-based access, invitations, approval workflows, and a full paginated activity audit trail.
+- **📊 Google integrations** — real-time Analytics dashboard (OAuth), plus a Google Sheets Activity Agent that batches every dashboard click into a single "Blogs" tab.
+- **⚡ SEO Optimization Suite** — URL/keyword metrics via Ahrefs and full site-audit reports, all through RapidAPI.
+- **🖼️ Media Gallery & Leads** — upload/manage blog images and triage contact-form submissions with read/unread stats.
+- **🚀 Production-ready** — gzip + WhiteNoise static caching, in-memory query cache, APScheduler auto-publish, and one-command Docker / Railway / Nixpacks deploys.
 
 ---
 
-## Quick Start
+## 🗺️ App map
 
-### Prerequisites
+| Area | Screens |
+|------|---------|
+| **Create & draft** | Create Blog (streaming) · Drafts · Approval Queue · All Blogs |
+| **Publish** | Schedule (AI-recommended times) · Categories · Newsletter |
+| **Engage** | Comment Moderation · Leads (contact submissions) · Gallery |
+| **Insights** | Analytics · SEO Tools · Optimization (Ahrefs) · Activity Log |
+| **Public site** | Home · Blog · Post · About · Contact · Legal · RSS/Sitemap |
+| **Settings** | Site Settings · App Settings · User Management |
+| **Auth** | Login · Sign up · Forgot Password · Google OAuth |
 
-- Python 3.11 (used by the Docker/Nixpacks build; 3.9+ works locally)
-- Firebase project with Firestore and Authentication enabled
-- Google Gemini API key
+---
 
-### Installation
+## 🧰 Tech stack
 
-```bash
-# Clone and setup
-git clone https://github.com/Taha-Khurram/Final_Year_Project.git
-cd Final_Year_Project
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+| Concern | Choice |
+|---------|--------|
+| **Framework** | Flask 3.x (app factory + blueprints) |
+| **Language** | Python 3.11 |
+| **Database** | Firebase Firestore (NoSQL) |
+| **Auth** | Firebase Auth — Email/Password, Google OAuth, Password Reset |
+| **AI / LLM** | Google Gemini (`gemini-2.5-flash`) |
+| **Embeddings** | Google `gemini-embedding-001` (768-dim) |
+| **Email** | Gmail SMTP (`smtplib` + App Password) |
+| **Analytics** | Google Analytics Data API |
+| **SEO data** | RapidAPI — keyword research, Ahrefs URL metrics, site audit |
+| **Sheets** | Google Sheets API (`gspread`) — Activity Agent |
+| **Scheduling** | APScheduler (background auto-publish) |
+| **Static / perf** | WhiteNoise + Flask-Compress (gzip), instant.page prefetch |
+| **Server** | Gunicorn (Linux/Mac) · Waitress (Windows) |
+| **Deploy** | Docker · Railway · Nixpacks |
 
-# Configure environment
-# Create a .env file in the project root and add the variables
-# listed in the "Environment Variables" section below.
+---
 
-# Run
-python app.py
+## 🏗️ Architecture
+
+Scriptly is a single Flask app assembled by an **app factory** (`app/__init__.py`) that
+registers feature blueprints under `app/routes/` and boots an **APScheduler** background
+worker for scheduled publishing.
+
+```
+Topic ──▶ Blog Agent (orchestrator)
+            ├─ Outline Agent      → structured outline
+            ├─ Content Agent      → full article
+            ├─ Formatting Agent   → TOC, reading time, headings
+            ├─ SEO Agent          → keywords, readability, meta
+            ├─ Category Agent      → auto-categorization
+            └─ Humanize Agent      → detector-bypass rewrite (on demand)
+                                       │
+Firestore ◀── embeddings (gemini-embedding-001) ◀── published blog
+     │
+     └──▶ Semantic Search Agent (vector + keyword hybrid) ──▶ Public site
 ```
 
-Access at `http://localhost:5000`
+- **13 AI agents** (`app/agents/`) — each wraps a single Gemini model with a focused role; the Blog Agent chains them into the generation pipeline.
+- **Firebase layer** (`app/firebase/`) — Admin SDK init + a `firestore_service` that centralizes all reads/writes across ~16 collections.
+- **Services** (`app/services/`) — Gmail email, Gemini embeddings, and the Google Sheets activity agent.
+- **Utils** (`app/utils/`) — in-memory cache, retry/backoff, parallel execution, background task manager, timezone-aware dates, slug generation, and validators.
+- **Public sites** are served from `site_routes.py` and rendered from `app/templates/site/`, fronted by gzip + a 7-day static cache and a 2-minute query cache.
 
-### First-Time Setup
-
-1. Navigate to `http://localhost:5000/signup`
-2. Create your admin account (first user becomes admin)
-3. Configure your public site in **Dashboard > Site Settings**
-4. Start creating content!
-
----
-
-## Environment Variables
-
-Create a `.env` file in the project root:
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `SECRET_KEY` | Flask secret key (32-byte hex) | Yes |
-| `FIREBASE_SERVICE_ACCOUNT` | Path to Firebase service account JSON | Yes |
-| `GEMINI_API_KEY` | Google Gemini API key | Yes |
-| `FB_API_KEY` | Firebase client API key | Yes |
-| `FB_AUTH_DOMAIN` | Firebase auth domain | Yes |
-| `FB_PROJECT_ID` | Firebase project ID | Yes |
-| `FB_STORAGE_BUCKET` | Firebase storage bucket | Yes |
-| `FB_SENDER_ID` | Firebase messaging sender ID | Yes |
-| `FB_APP_ID` | Firebase app ID | Yes |
-| `FB_MEASUREMENT_ID` | Firebase Analytics measurement ID | No |
-| `GMAIL_USER` | Gmail address used to send email (newsletters, invitations) | No |
-| `GMAIL_APP_PASSWORD` | Gmail App Password (not your account password) | No |
-| `FROM_NAME` | Email sender display name (defaults to "Scriptly") | No |
-| `RAPIDAPI_KEY` | RapidAPI key for SEO keyword research | No |
-| `AHREFS_RAPIDAPI_KEY` | RapidAPI key for Ahrefs URL/keyword metrics | No |
-| `SITE_AUDIT_RAPIDAPI_KEY` | RapidAPI key for site audit reports | No |
-| `GOOGLE_OAUTH_CLIENT_ID` | Google OAuth client ID (Analytics) | No |
-| `GOOGLE_OAUTH_CLIENT_SECRET` | Google OAuth client secret (Analytics) | No |
-| `GOOGLE_SHEETS_SPREADSHEET_ID` | Google Sheets spreadsheet ID | No |
-
----
-
-## AI Agents
-
-Scriptly uses a multi-agent architecture with 13 specialized AI agents:
+### AI agents
 
 | Agent | Purpose |
 |-------|---------|
-| **Blog Agent** | Orchestrates the full blog generation pipeline |
-| **Outline Agent** | Creates structured blog outlines from topics |
-| **Content Agent** | Expands outlines into complete articles |
-| **SEO Agent** | Keyword analysis, readability scoring, meta generation |
-| **Formatting Agent** | Adds TOC, reading time, heading structure |
-| **Humanize Agent** | Bypasses AI detectors with E-E-A-T rewriting |
-| **Comment Agent** | Real-time AI moderation for public comments |
-| **Newsletter Agent** | Generates newsletters from published blogs |
-| **Semantic Search Agent** | Agentic search with vector + keyword hybrid |
-| **Category Agent** | Auto-categorization of blog content |
-| **Approval Agent** | Content review workflow assistance |
-| **Drafts Agent** | Draft management and suggestions |
-| **Publish Time Agent** | AI-recommended optimal publish times |
+| **Blog** | Orchestrates the full generation pipeline |
+| **Outline** | Structured blog outlines from topics |
+| **Content** | Expands outlines into complete articles |
+| **SEO** | Keyword analysis, readability scoring, meta generation |
+| **Formatting** | TOC, reading time, heading structure |
+| **Humanize** | Detector-bypass rewriting with E-E-A-T |
+| **Comment** | Real-time moderation for public comments |
+| **Newsletter** | Newsletters from published blogs |
+| **Semantic Search** | Agentic vector + keyword hybrid search |
+| **Category** | Auto-categorization of content |
+| **Approval** | Content review workflow assistance |
+| **Drafts** | Draft management and suggestions |
+| **Publish Time** | AI-recommended optimal publish times |
 
-### Humanize Agent Architecture
-
-Rewrites AI-generated content to bypass detectors using a multi-layered approach:
-
-```
-Content → Split into 2 chunks at ## headings → Rewrite with rotating prompts → 5-pass post-processing → Validate
-```
-
-- **2-chunk rewriting** - Blog split at `##` headings, each half rewritten with a different prompt variant
-- **4 prompt variants** - Direct, Conversational, Punchy, Relaxed (rotated to break statistical fingerprints)
-- **E-E-A-T compliance** - Every prompt enforces Experience, Expertise, Authoritativeness, Trustworthiness
-- **5-pass post-processing** (zero API cost):
-  1. AI word replacement (35+ flagged words swapped to human alternatives)
-  2. Long sentence splitting (>20 words broken at conjunctions)
-  3. Contraction mixing (realistic inconsistency)
-  4. Paragraph length variation (merge short, split long)
-  5. Imperfection injection (fillers, parentheticals)
-
-### Semantic Search Agent
-
-Implements industry-standard agentic patterns:
+<details>
+<summary><strong>🧠 Humanize Agent internals</strong></summary>
 
 ```
-Query → Understand → Plan → Execute Tools → Evaluate → Refine → Explain
+Content → split into 2 chunks at ## headings → rewrite with rotating prompts → 5-pass post-process → validate
 ```
 
-- **Intent Classification** - Informational, Navigational, Exploratory (rule-based, no LLM cost)
-- **Query Expansion** - Synonym-based term expansion (no LLM cost)
-- **Multi-Tool Execution** - Keyword search, vector search, category search
-- **Self-Evaluation** - Quality scoring with automatic refinement loop
-- **Agent Insights** - Transparent reasoning displayed to users
+- **2-chunk rewriting** with **4 prompt variants** (Direct, Conversational, Punchy, Relaxed) to break statistical fingerprints
+- **E-E-A-T compliance** enforced in every prompt
+- **5-pass post-processing** (zero API cost): AI-word replacement · long-sentence splitting · contraction mixing · paragraph-length variation · imperfection injection
 
-### Comment Agent
+</details>
 
-Single Gemini API call per comment:
-- **Auto-approve** clean comments (published immediately)
-- **Auto-edit** comments with grammar/formatting issues
-- **Auto-remove** spam, toxic, or irrelevant comments (user never sees rejection)
-- **Fail-open design** - If AI fails, comment is approved as-is
-
-### Google Sheets Activity Agent
-
-Real-time user activity tracking to Google Sheets:
+<details>
+<summary><strong>📈 Google Sheets Activity Agent</strong></summary>
 
 ```
-User Action → Frontend Tracker (batched) → /api/track-activity → Queue → Flush Worker → Google Sheets "Blogs" Tab
+User action → frontend tracker (batched) → /api/track-activity → server queue → flush worker → Google Sheets "Blogs" tab
 ```
 
-- **Event Delegation** - Single `document` listener captures every click, navigation, and form submission
-- **Batched Writes** - Events queued client-side, flushed every 5 seconds or on page unload via `sendBeacon`
-- **Background Queue** - Server-side write queue with flush worker (batches up to 20 rows per write)
-- **Single Tab** - All activity data goes to one "Blogs" worksheet (timestamps, user, action type, page, element, details)
-- **Toggle Control** - Enable/disable tracking from Site Settings > Google Sheets tab
-- **Recent Activity Preview** - View last 10 tracked actions directly in site settings
+- Single delegated `document` listener captures every click, navigation, and form submit
+- Client-side batching, flushed every 5s or on unload via `sendBeacon`
+- Server-side write queue batches up to 20 rows per Sheets write
+- Toggle from **Site Settings → Google Sheets**
+
+</details>
 
 ---
 
-## Public Blog Site
+## 🚀 Quick start
 
-Each user gets a public blog at `/site/<site_slug>` with:
+### Prerequisites
+- Python 3.11 (Docker/Nixpacks build target; 3.9+ works locally)
+- Firebase project with Firestore + Authentication enabled
+- Google Gemini API key
+
+### Install & run
+```bash
+git clone https://github.com/Taha-Khurram/Final_Year_Project.git
+cd Final_Year_Project
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+# Create a .env file in the project root (see Environment Variables below)
+python app.py                    # http://localhost:5000
+```
+
+**First run:** sign up at `/signup` (first user becomes admin) → configure your public
+site in **Dashboard → Site Settings** → start creating content.
+
+---
+
+## 🔑 Environment variables
+
+Create a `.env` in the project root:
+
+| Variable | Description | Required |
+|----------|-------------|:--------:|
+| `SECRET_KEY` | Flask secret key (32-byte hex) | ✅ |
+| `FIREBASE_SERVICE_ACCOUNT` | Path to Firebase service account JSON | ✅ |
+| `GEMINI_API_KEY` | Google Gemini API key | ✅ |
+| `FB_API_KEY` | Firebase client API key | ✅ |
+| `FB_AUTH_DOMAIN` | Firebase auth domain | ✅ |
+| `FB_PROJECT_ID` | Firebase project ID | ✅ |
+| `FB_STORAGE_BUCKET` | Firebase storage bucket | ✅ |
+| `FB_SENDER_ID` | Firebase messaging sender ID | ✅ |
+| `FB_APP_ID` | Firebase app ID | ✅ |
+| `FB_MEASUREMENT_ID` | Firebase Analytics measurement ID | ⬜ |
+| `GMAIL_USER` | Gmail address used to send email | ⬜ |
+| `GMAIL_APP_PASSWORD` | Gmail App Password (not your account password) | ⬜ |
+| `FROM_NAME` | Email sender display name (default `Scriptly`) | ⬜ |
+| `RAPIDAPI_KEY` | RapidAPI key — SEO keyword research | ⬜ |
+| `AHREFS_RAPIDAPI_KEY` | RapidAPI key — Ahrefs URL/keyword metrics | ⬜ |
+| `SITE_AUDIT_RAPIDAPI_KEY` | RapidAPI key — site audit reports | ⬜ |
+| `GOOGLE_OAUTH_CLIENT_ID` | Google OAuth client ID (Analytics) | ⬜ |
+| `GOOGLE_OAUTH_CLIENT_SECRET` | Google OAuth client secret (Analytics) | ⬜ |
+| `GOOGLE_SHEETS_SPREADSHEET_ID` | Google Sheets spreadsheet ID | ⬜ |
+
+---
+
+## 🌍 Public blog site
+
+Each user gets a public blog at `/site/<site_slug>`:
 
 | Page | Description |
 |------|-------------|
 | Home | Landing page with featured posts |
-| Blog | Paginated post listing with category filters |
-| Post | Individual article with TOC, sharing, comments |
-| About | Customizable about the author page |
-| Contact | Contact form (stored in Firestore) |
-| Privacy Policy | Configurable legal page |
-| Terms of Service | Configurable legal page |
-| RSS Feed | XML feed at `/feed.xml` |
-| Sitemap | XML sitemap at `/sitemap.xml` |
+| Blog | Paginated listing with category filters |
+| Post | Article with TOC, sharing, comments |
+| About | Customizable author page |
+| Contact | Contact form (stored as Leads) |
+| Privacy / Terms | Configurable legal pages |
+| RSS / Sitemap | `/feed.xml` and `/sitemap.xml` |
 
-**Site Features:**
-- SEO-friendly custom slugs (backwards compatible with user IDs)
-- Responsive design with mobile navigation
-- Newsletter subscription forms
-- Semantic search with agent insights panel
-- Social sharing (Twitter, LinkedIn, Facebook)
-- Category filtering
-- Related post recommendations
-- Performance: gzip, 7-day static cache, 2-minute query cache, instant.page prefetching
+SEO-friendly slugs · responsive + mobile nav · newsletter forms · semantic search with
+agent insights · social sharing · related posts · gzip + 7-day static cache + 2-minute
+query cache + instant.page prefetch.
 
 ---
 
-## Admin Dashboard
+## 📦 Deployment
 
-| Feature | Description |
-|---------|-------------|
-| **Content Creation** | AI-powered blog generation with real-time streaming |
-| **Drafts** | Manage draft posts before publishing |
-| **Approval Queue** | Review and approve/reject submitted blogs |
-| **All Blogs** | Browse and filter all blogs across users |
-| **Comment Moderation** | View, edit, restore, delete comments |
-| **User Management** | Invite, edit roles, delete users |
-| **Newsletter** | Generate and send newsletters to subscribers |
-| **Analytics** | Google Analytics with Today/7 Days/30 Days filters |
-| **SEO Tools** | Keyword research and content analysis |
-| **Optimization** | URL/keyword metrics (Ahrefs) and site audit reports via RapidAPI |
-| **Formatting Tools** | Content formatting and structure tools |
-| **Schedule** | Blog scheduling with AI-recommended times |
-| **Gallery** | Upload and manage images for blog content |
-| **Leads** | Manage contact-form submissions with read/unread tracking |
-| **Categories** | Manage content categories |
-| **Activity Log** | Full audit trail of all actions |
-| **Site Settings** | Configure public site appearance, SEO, and Google Sheets activity tracking |
-| **App Settings** | Application-wide configuration |
-
----
-
-## Project Structure
-
-```
-FYP-main/
-├── app/
-│   ├── agents/                 # 13 AI agents
-│   │   ├── blog_agent.py          # Pipeline orchestrator
-│   │   ├── outline_agent.py       # Outline generation
-│   │   ├── content_agent.py       # Content expansion
-│   │   ├── seo_agent.py           # SEO optimization
-│   │   ├── formatting_agent.py    # Formatting & TOC
-│   │   ├── humanize_agent.py      # AI detector bypass
-│   │   ├── comment_agent.py       # Comment moderation
-│   │   ├── newsletter_agent.py    # Newsletter generation
-│   │   ├── semantic_search_agent.py # Agentic search
-│   │   ├── category_agent.py      # Auto-categorization
-│   │   ├── approval_agent.py      # Review workflows
-│   │   ├── drafts_agent.py        # Draft management
-│   │   └── publish_time_agent.py  # Optimal publish times
-│   ├── firebase/               # Firebase integration
-│   │   ├── firebase_admin.py      # Admin SDK initialization
-│   │   └── firestore_service.py   # Database operations
-│   ├── routes/                 # API routes & blueprints
-│   │   ├── auth.py                # Authentication
-│   │   ├── blog_routes.py         # Blog CRUD & generation
-│   │   ├── blogs_listing_routes.py # Blog filtering & listing
-│   │   ├── user_mgmt.py           # User management
-│   │   ├── site_routes.py         # Public blog site
-│   │   ├── newsletter_routes.py   # Newsletter management
-│   │   ├── analytics_routes.py    # Google Analytics
-│   │   ├── optimization_routes.py # SEO metrics & site audit (Ahrefs/RapidAPI)
-│   │   ├── gallery_routes.py      # Image gallery / media library
-│   │   ├── leads_routes.py        # Contact-form submissions
-│   │   ├── settings_routes.py     # App & site settings
-│   │   ├── activity_routes.py     # Activity log
-│   │   └── schedule_routes.py     # Blog scheduling
-│   ├── services/               # External service integrations
-│   │   ├── email_service.py       # Gmail SMTP
-│   │   ├── embedding_service.py   # Gemini embeddings
-│   │   └── google_sheets_service.py # Google Sheets Activity Agent
-│   ├── static/                 # Frontend assets
-│   │   ├── css/                   # 30 stylesheets
-│   │   ├── js/                    # 30 scripts
-│   │   └── images/                # Image assets
-│   ├── templates/              # 39 Jinja2 templates
-│   │   ├── site/                  # Public site templates
-│   │   ├── emails/                # Email templates
-│   │   ├── errors/                # Error pages
-│   │   └── partials/              # Reusable components
-│   ├── utils/                  # Utility modules
-│   │   ├── cache.py               # In-memory caching
-│   │   ├── date_utils.py          # Timezone-aware formatting
-│   │   ├── slug_utils.py          # URL slug generation
-│   │   ├── parallel.py            # Parallel execution
-│   │   ├── retry.py               # Retry / backoff helpers
-│   │   ├── task_manager.py        # Background task tracking
-│   │   └── validators.py          # Input validation
-│   ├── __init__.py             # App factory
-│   └── scheduler.py            # Background job scheduler
-├── docs/
-│   └── DOCUMENTATION.md        # Comprehensive documentation
-├── scripts/
-│   └── backfill_embeddings.py  # One-off embedding backfill script
-├── tests/                      # Pytest suite
-├── app.py                      # Entry point
-├── main.py                     # WSGI application wrapper
-├── wsgi.py                     # WSGI entry point
-├── config.py                   # Flask configuration
-├── requirements.txt            # Python dependencies (19 packages)
-├── firestore.indexes.json      # Firestore composite indexes
-├── Dockerfile                  # Docker containerization
-├── Procfile                    # Heroku/Railway deployment
-├── railway.json                # Railway configuration
-├── nixpacks.toml               # Nixpacks configuration
-├── firebase.json               # Firebase hosting config
-├── .firebaserc                 # Firebase project config
-└── .gitignore
-```
-
----
-
-## Deployment
-
-### Local Development
 ```bash
+# Local
 python app.py
-```
 
-### Production (Gunicorn - Linux/Mac)
-```bash
-# Single worker + threads: the app keeps in-memory cache and a background
-# scheduler, so multiple workers would duplicate jobs and split the cache.
+# Production — Gunicorn (Linux/Mac). Single worker + threads: the app keeps an
+# in-memory cache and a background scheduler, so multiple workers would duplicate
+# jobs and split the cache.
 gunicorn main:app --workers 1 --threads 8 --timeout 300 -b 0.0.0.0:8080
-```
 
-### Production (Waitress - Windows)
-```bash
+# Production — Waitress (Windows)
 waitress-serve --port=8080 main:app
-```
 
-### Docker
-```bash
+# Docker
 docker build -t scriptly .
 docker run -p 8080:8080 scriptly
 ```
 
-### Railway
-Configured via `railway.json` and `Procfile`. Push to deploy.
+**Railway** — configured via `railway.json` + `Procfile`; push to deploy.
 
 ---
 
-## Database Schema
+## 🗄️ Database schema
 
 Firestore collections (created automatically):
 
 | Collection | Description |
 |-----------|-------------|
-| `blogs` | Blog posts with content, metadata, embeddings, scheduling |
-| `users` | User accounts with roles and team hierarchy |
+| `blogs` | Posts with content, metadata, embeddings, scheduling |
+| `users` | Accounts with roles and team hierarchy |
 | `invitations` | Pending user invitations |
-| `categories` | Blog categories with post counts |
+| `categories` | Categories with post counts |
 | `activities` | Admin activity audit trail |
-| `comments` | Blog comments with moderation status |
+| `comments` | Comments with moderation status |
 | `site_settings` | Per-user public site configuration |
 | `app_config` | Global application settings |
 | `analytics_config` | Google Analytics OAuth/config per user |
@@ -381,28 +261,45 @@ Firestore collections (created automatically):
 | `newsletter_history` | Sent newsletter records |
 | `contact_submissions` | Contact form entries (Leads) |
 | `schedule_entries` | Scheduled blog publish jobs |
-| `gallery_images` | Uploaded image metadata for the media gallery |
-| `seo_reports` | Saved SEO optimization / site-audit reports |
+| `gallery_images` | Uploaded image metadata |
+| `seo_reports` | Saved SEO / site-audit reports |
 
 ---
 
-## Documentation
+## 📁 Project structure
 
-See [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md) for complete documentation including:
-- Detailed setup instructions
-- Full API reference with all endpoints
-- Configuration options
-- AI agent architecture details
-- Public site customization
-- Troubleshooting guide
-- Production deployment guide
+```
+FYP-main/
+├── app/
+│   ├── agents/          # 13 AI agents (blog, outline, content, seo, humanize, …)
+│   ├── firebase/        # Admin SDK init + firestore_service
+│   ├── routes/          # 13 feature blueprints (auth, blog, site, optimization, …)
+│   ├── services/        # Gmail email, Gemini embeddings, Google Sheets agent
+│   ├── static/          # 30 CSS · 30 JS · images
+│   ├── templates/       # 39 Jinja2 templates (dashboard, site, emails, errors)
+│   ├── utils/           # cache, retry, parallel, task_manager, dates, slugs, validators
+│   ├── __init__.py      # App factory
+│   └── scheduler.py     # Background job scheduler
+├── docs/                # DOCUMENTATION.md — full reference
+├── scripts/             # backfill_embeddings.py
+├── tests/               # Pytest suite
+├── app.py · main.py · wsgi.py   # Entry points
+├── config.py · requirements.txt · firestore.indexes.json
+├── Dockerfile · Procfile · railway.json · nixpacks.toml
+└── firebase.json · .firebaserc · .gitignore
+```
 
 ---
 
-## License
+## 📚 Documentation
 
-This project is part of a Final Year Project (FYP) at the University.
+See [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md) for setup details, the full API
+reference, AI agent internals, public-site customization, and the production guide.
 
-## Author
+---
 
-**Taha Khurram** - [GitHub](https://github.com/Taha-Khurram)
+## 📄 License & author
+
+Part of a Final Year Project (FYP) at the University.
+
+**Taha Khurram** · [GitHub](https://github.com/Taha-Khurram)
