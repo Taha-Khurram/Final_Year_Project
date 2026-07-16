@@ -7,7 +7,7 @@
     gap: 3rem;
     padding: 3rem 2rem;
     margin: -2rem -2rem 2rem -2rem;
-    background: linear-gradient(135deg, rgba(67, 24, 255, 0.03) 0%, rgba(99, 102, 241, 0.06) 100%);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--primary-color) 3%, transparent) 0%, color-mix(in srgb, var(--secondary-color) 6%, transparent) 100%);
     position: relative;
     overflow: hidden;
 }
@@ -33,17 +33,18 @@
 .contact-hero-icon {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    background: var(--accent-gradient);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-accent);
 }
 
 .contact-hero-icon i {
     font-size: 2rem;
-    color: white;
+    color: var(--accent-contrast);
 }
 
 .contact-hero h1 {
@@ -51,6 +52,7 @@
     font-weight: 800;
     color: var(--text-primary);
     margin-bottom: 0.75rem;
+    letter-spacing: -0.03em;
 }
 
 .contact-hero p {
@@ -73,6 +75,7 @@
     background: var(--bg-card);
     border-radius: var(--radius-lg);
     padding: 2.5rem;
+    border: 1px solid var(--line);
     box-shadow: var(--shadow-card);
 }
 
@@ -81,6 +84,7 @@
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
 }
 
 .contact-form-card .subtitle {
@@ -113,19 +117,19 @@
 .form-control {
     width: 100%;
     padding: 0.875rem 1rem;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--line);
     border-radius: var(--radius-md);
     font-size: 0.95rem;
     color: var(--text-primary);
     background: var(--bg-body);
-    transition: var(--transition-base);
+    transition: border-color var(--t-base) var(--ease), box-shadow var(--t-base) var(--ease);
 }
 
 .form-control:focus {
     outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.1);
-    background: white;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-ring);
+    background: var(--bg-card);
 }
 
 .form-control::placeholder {
@@ -144,20 +148,20 @@ textarea.form-control {
     gap: 0.5rem;
     width: 100%;
     padding: 1rem 2rem;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    color: white;
+    background: var(--accent-gradient);
+    color: var(--accent-contrast);
     border: none;
     border-radius: var(--radius-xl);
     font-weight: 700;
     font-size: 1rem;
     cursor: pointer;
-    transition: var(--transition-base);
-    box-shadow: 0 4px 15px rgba(67, 24, 255, 0.3);
+    transition: transform var(--t-fast) var(--ease-spring), box-shadow var(--t-fast) var(--ease);
+    box-shadow: 0 4px 15px color-mix(in srgb, var(--primary-color) 30%, transparent);
 }
 
 .btn-submit:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(67, 24, 255, 0.4);
+    box-shadow: 0 6px 20px color-mix(in srgb, var(--primary-color) 40%, transparent);
 }
 
 .btn-submit:disabled {
@@ -203,6 +207,7 @@ textarea.form-control {
     background: var(--bg-card);
     border-radius: var(--radius-lg);
     padding: 1.75rem;
+    border: 1px solid var(--line);
     box-shadow: var(--shadow-card);
 }
 
@@ -217,7 +222,7 @@ textarea.form-control {
 }
 
 .sidebar-card h3 i {
-    color: var(--primary-color);
+    color: var(--accent);
 }
 
 /* Contact Info */
@@ -226,7 +231,7 @@ textarea.form-control {
     align-items: flex-start;
     gap: 1rem;
     padding: 0.75rem 0;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid var(--line);
 }
 
 .contact-info-item:last-child {
@@ -250,7 +255,7 @@ textarea.form-control {
 }
 
 .contact-info-icon i {
-    color: var(--primary-color);
+    color: var(--accent);
     font-size: 1rem;
 }
 
@@ -267,26 +272,29 @@ textarea.form-control {
 }
 
 .contact-info-content a {
-    color: var(--primary-color);
+    color: var(--accent);
     text-decoration: none;
+    transition: color var(--t-fast) var(--ease);
 }
 
 .contact-info-content a:hover {
+    color: var(--accent-strong);
     text-decoration: underline;
 }
 
 /* Social Card */
 .social-card {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    color: white;
+    background: var(--accent-gradient);
+    color: var(--accent-contrast);
+    box-shadow: var(--shadow-accent);
 }
 
 .social-card h3 {
-    color: white;
+    color: var(--accent-contrast);
 }
 
 .social-card h3 i {
-    color: white;
+    color: var(--accent-contrast);
 }
 
 .social-card p {
@@ -308,15 +316,15 @@ textarea.form-control {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: var(--accent-contrast);
     text-decoration: none;
     font-size: 1.1rem;
-    transition: var(--transition-base);
+    transition: background var(--t-base) var(--ease), color var(--t-base) var(--ease), transform var(--t-base) var(--ease-spring);
 }
 
 .social-link:hover {
-    background: white;
-    color: var(--primary-color);
+    background: var(--accent-contrast);
+    color: var(--accent);
     transform: translateY(-3px);
 }
 
@@ -331,6 +339,7 @@ textarea.form-control {
     color: var(--text-primary);
     margin-bottom: 1.5rem;
     text-align: center;
+    letter-spacing: -0.02em;
 }
 
 .faq-grid {
@@ -343,13 +352,15 @@ textarea.form-control {
     background: var(--bg-card);
     border-radius: var(--radius-lg);
     padding: 1.5rem;
+    border: 1px solid var(--line);
     box-shadow: var(--shadow-card);
-    transition: var(--transition-base);
+    transition: transform var(--t-base) var(--ease-spring), box-shadow var(--t-base) var(--ease), border-color var(--t-base) var(--ease);
 }
 
 .faq-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent-line);
 }
 
 .faq-card h4 {
@@ -363,7 +374,7 @@ textarea.form-control {
 }
 
 .faq-card h4 i {
-    color: var(--primary-color);
+    color: var(--accent);
     font-size: 1.1rem;
 }
 

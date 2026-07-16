@@ -2,7 +2,7 @@
 .legal-hero {
     padding: 3rem 2rem;
     margin: -2rem -2rem 3rem -2rem;
-    background: linear-gradient(135deg, rgba(67, 24, 255, 0.03) 0%, rgba(99, 102, 241, 0.08) 50%, rgba(139, 92, 246, 0.05) 100%);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--primary-color) 3%, transparent) 0%, color-mix(in srgb, var(--secondary-color) 8%, transparent) 50%, color-mix(in srgb, var(--secondary-color) 5%, transparent) 100%);
     position: relative;
     text-align: center;
 }
@@ -14,25 +14,25 @@
     right: -20%;
     width: 500px;
     height: 500px;
-    background: radial-gradient(circle, rgba(67, 24, 255, 0.06) 0%, transparent 70%);
+    background: radial-gradient(circle, color-mix(in srgb, var(--primary-color) 6%, transparent) 0%, transparent 70%);
     border-radius: 50%;
 }
 
 .legal-hero-icon {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    background: var(--accent-gradient);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 1.5rem;
-    box-shadow: 0 10px 40px rgba(67, 24, 255, 0.3);
+    box-shadow: var(--shadow-accent);
 }
 
 .legal-hero-icon i {
     font-size: 2rem;
-    color: white;
+    color: var(--accent-contrast);
 }
 
 .legal-hero h1 {
@@ -40,12 +40,13 @@
     font-weight: 800;
     color: var(--text-primary);
     margin-bottom: 0.75rem;
+    letter-spacing: -0.03em;
     position: relative;
     z-index: 1;
 }
 
 .legal-hero h1 span {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    background: var(--accent-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -68,6 +69,7 @@
     background: var(--bg-card);
     border-radius: var(--radius-lg);
     padding: 3rem;
+    border: 1px solid var(--line);
     box-shadow: var(--shadow-card);
 }
 
@@ -83,7 +85,8 @@
     color: var(--text-primary);
     margin: 2.5rem 0 1rem 0;
     padding-bottom: 0.5rem;
-    border-bottom: 2px solid var(--primary-light);
+    letter-spacing: -0.02em;
+    border-bottom: 2px solid var(--accent-line);
 }
 
 .legal-content h2:first-child {
@@ -116,12 +119,13 @@
 }
 
 .legal-content a {
-    color: var(--primary-color);
+    color: var(--accent);
     text-decoration: none;
-    transition: var(--transition-base);
+    transition: color var(--t-fast) var(--ease);
 }
 
 .legal-content a:hover {
+    color: var(--accent-strong);
     text-decoration: underline;
 }
 
@@ -138,11 +142,12 @@
     color: var(--text-secondary);
     text-decoration: none;
     font-size: 0.95rem;
-    transition: var(--transition-base);
+    transition: color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease-spring);
 }
 
 .legal-back a:hover {
-    color: var(--primary-color);
+    color: var(--accent);
+    transform: translateX(-3px);
 }
 
 /* ==================== RESPONSIVE ==================== */

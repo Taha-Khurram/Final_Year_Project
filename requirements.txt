@@ -31,5 +31,8 @@ googleapis-common-protos==1.72.0
 proto-plus==1.27.1
 protobuf==5.29.6
 grpcio==1.78.0
+# grpcio-status must stay on the 1.71.x line: 1.75+ requires protobuf>=6.31.1,
+# which conflicts with the protobuf 5.x that the pinned google-* libs need.
+grpcio-status==1.71.2
 httpx==0.28.1
 urllib3==2.6.3

@@ -11,7 +11,7 @@
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
     padding: 5rem 2rem;
-    background: linear-gradient(145deg, rgba(67, 24, 255, 0.05) 0%, rgba(99, 102, 241, 0.1) 50%, rgba(139, 92, 246, 0.04) 100%);
+    background: linear-gradient(145deg, color-mix(in srgb, var(--primary-color) 5%, transparent) 0%, color-mix(in srgb, var(--secondary-color) 10%, transparent) 50%, color-mix(in srgb, var(--secondary-color) 4%, transparent) 100%);
     overflow: hidden;
     margin-bottom: 4rem;
 }
@@ -23,7 +23,7 @@
     right: -80px;
     width: 400px;
     height: 400px;
-    background: radial-gradient(circle, rgba(67, 24, 255, 0.08) 0%, transparent 70%);
+    background: radial-gradient(circle, color-mix(in srgb, var(--primary-color) 8%, transparent) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
 }
@@ -35,13 +35,13 @@
     left: -60px;
     width: 300px;
     height: 300px;
-    background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+    background: radial-gradient(circle, color-mix(in srgb, var(--secondary-color) 8%, transparent) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
 }
 
 .about-hero-inner {
-    max-width: 1200px;
+    max-width: var(--container);
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -62,15 +62,16 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    color: #fff;
+    background: var(--accent-gradient);
+    color: var(--accent-contrast);
     padding: 0.4rem 1rem;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     width: fit-content;
+    box-shadow: var(--shadow-accent);
 }
 
 .about-hero h1 {
@@ -78,12 +79,12 @@
     font-weight: 800;
     color: var(--text-primary);
     line-height: 1.15;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
     margin: 0;
 }
 
 .about-hero h1 span {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    background: var(--accent-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -114,6 +115,7 @@
     font-weight: 800;
     color: var(--text-primary);
     line-height: 1.2;
+    letter-spacing: -0.02em;
 }
 
 .about-hero-stat span {
@@ -129,7 +131,7 @@
 .section-divider {
     border: none;
     height: 1px;
-    background: linear-gradient(90deg, transparent 0%, rgba(15, 23, 42, 0.1) 20%, rgba(15, 23, 42, 0.1) 80%, transparent 100%);
+    background: linear-gradient(90deg, transparent 0%, var(--line-strong) 20%, var(--line-strong) 80%, transparent 100%);
     margin: 0 0 4rem;
 }
 
@@ -149,10 +151,10 @@
 }
 
 .story-section .section-title i {
-    color: var(--primary-color);
+    color: var(--accent);
     padding: 0.5rem;
-    background: rgba(67, 24, 255, 0.08);
-    border-radius: 10px;
+    background: var(--accent-soft);
+    border-radius: var(--radius-sm);
     font-size: 1.1rem;
 }
 
@@ -184,7 +186,7 @@
     font-weight: 800;
     color: var(--text-primary);
     margin-bottom: 0.5rem;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
     justify-content: center;
 }
 
@@ -208,43 +210,45 @@
 
 .value-card {
     background: var(--bg-card);
-    border-radius: 14px;
+    border-radius: var(--radius-md);
     padding: 2rem 1.75rem;
     text-align: center;
-    border: 1px solid rgba(15, 23, 42, 0.06);
-    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-card);
+    transition: transform var(--t-base) var(--ease-spring), box-shadow var(--t-base) var(--ease), border-color var(--t-base) var(--ease);
 }
 
 .value-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.1);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent-line);
 }
 
 .value-icon {
     width: 64px;
     height: 64px;
-    background: rgba(67, 24, 255, 0.08);
-    border-radius: 16px;
+    background: var(--accent-soft);
+    border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 1.25rem;
-    transition: all 0.25s ease;
+    transition: background var(--t-base) var(--ease), transform var(--t-base) var(--ease-spring);
 }
 
 .value-card:hover .value-icon {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    background: var(--accent-gradient);
+    transform: scale(1.05);
 }
 
 .value-icon i {
     font-size: 1.5rem;
-    color: var(--primary-color);
-    transition: color 0.25s ease;
+    color: var(--accent);
+    transition: color var(--t-base) var(--ease);
 }
 
 .value-card:hover .value-icon i {
-    color: white;
+    color: var(--accent-contrast);
 }
 
 .value-card h3 {
@@ -263,12 +267,13 @@
 
 /* ==================== STATS SECTION ==================== */
 .stats-section {
-    background: linear-gradient(145deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    border-radius: 16px;
+    background: var(--accent-gradient);
+    border-radius: var(--radius-lg);
     padding: 3.5rem 2.5rem;
     margin-bottom: 4rem;
     position: relative;
     overflow: hidden;
+    box-shadow: var(--shadow-accent);
 }
 
 .stats-section::before {
@@ -304,8 +309,9 @@
     text-align: center;
     font-size: 1.4rem;
     font-weight: 800;
-    color: white;
+    color: var(--accent-contrast);
     margin-bottom: 2.5rem;
+    letter-spacing: -0.02em;
 }
 
 .stats-grid {
@@ -321,9 +327,10 @@
 .stat-number {
     font-size: 2.5rem;
     font-weight: 800;
-    color: white;
+    color: var(--accent-contrast);
     margin-bottom: 0.4rem;
     line-height: 1;
+    letter-spacing: -0.03em;
 }
 
 .stat-label {
@@ -335,11 +342,11 @@
 /* ==================== CTA SECTION ==================== */
 .cta-section {
     background: var(--bg-card);
-    border-radius: 16px;
+    border-radius: var(--radius-lg);
     padding: 3.5rem 2.5rem;
     text-align: center;
-    border: 1px solid rgba(15, 23, 42, 0.06);
-    box-shadow: 0 4px 24px rgba(15, 23, 42, 0.05);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-card);
     margin-bottom: 2rem;
 }
 
@@ -348,6 +355,7 @@
     font-weight: 800;
     color: var(--text-primary);
     margin-bottom: 0.6rem;
+    letter-spacing: -0.02em;
 }
 
 .cta-section p {
@@ -369,20 +377,20 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    color: white;
+    background: var(--accent-gradient);
+    color: var(--accent-contrast);
     padding: 0.9rem 1.8rem;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     text-decoration: none;
     font-weight: 700;
     font-size: 0.92rem;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 4px 14px rgba(67, 24, 255, 0.25);
+    transition: transform var(--t-fast) var(--ease-spring), box-shadow var(--t-fast) var(--ease);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--primary-color) 25%, transparent);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 22px rgba(67, 24, 255, 0.35);
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--primary-color) 35%, transparent);
 }
 
 .btn-outline {
@@ -392,17 +400,17 @@
     background: transparent;
     color: var(--text-primary);
     padding: 0.9rem 1.8rem;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     text-decoration: none;
     font-weight: 700;
     font-size: 0.92rem;
-    border: 1.5px solid rgba(15, 23, 42, 0.15);
-    transition: all 0.2s ease;
+    border: 1.5px solid var(--line-strong);
+    transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease-spring);
 }
 
 .btn-outline:hover {
-    border-color: var(--primary-color);
-    color: var(--primary-color);
+    border-color: var(--accent);
+    color: var(--accent);
     transform: translateY(-2px);
 }
 

@@ -115,6 +115,19 @@
     <script src="{{ url_for('static', filename='js/site/animations.js') }}" defer></script>
     <script src="{{ url_for('static', filename='js/site/search-agent.js') }}" defer></script>
 
+    <!-- Reveal fail-safe: guarantees content is visible even if animations.js
+         fails to load, so scroll-reveal styling can never hide page content. -->
+    <script>
+        (function () {
+            function revealAll() {
+                document.querySelectorAll('[data-animate], [data-animate-stagger]')
+                    .forEach(function (el) { el.classList.add('animated'); });
+            }
+            setTimeout(revealAll, 2500);
+            window.addEventListener('error', revealAll, { once: true });
+        })();
+    </script>
+
     {% block extra_js %}{% endblock %}
 
     <!-- Cookie Consent Banner -->

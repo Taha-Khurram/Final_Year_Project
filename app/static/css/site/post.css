@@ -21,7 +21,7 @@
     background: var(--primary-color);
     color: white;
     padding: 0.4rem 1rem;
-    border-radius: 100px;
+    border-radius: var(--radius-pill);
     font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -45,7 +45,7 @@
     font-weight: 800;
     color: var(--text-primary);
     line-height: 1.2;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
     margin-bottom: 1.5rem;
 }
 
@@ -110,19 +110,20 @@
     width: 40px;
     height: 40px;
     border-radius: var(--radius-md);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    background: white;
+    border: 1px solid var(--line-strong);
+    background: var(--bg-card);
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--text-secondary);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--t-fast) var(--ease);
 }
 
 .post-action-btn:hover {
-    border-color: var(--primary-color);
+    border-color: var(--accent-line);
     color: var(--primary-color);
+    background: var(--accent-softer);
 }
 
 /* ==================== POST LAYOUT ==================== */
@@ -180,7 +181,7 @@
     color: var(--text-secondary);
     text-decoration: none;
     border-radius: var(--radius-sm);
-    transition: all 0.2s ease;
+    transition: all var(--t-fast) var(--ease);
     border-left: 2px solid transparent;
 }
 
@@ -198,7 +199,7 @@
 
 /* Newsletter Promo Card */
 .sidebar-promo {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    background: var(--accent-gradient);
     border-radius: var(--radius-lg);
     padding: 1.5rem;
     color: white;
@@ -225,16 +226,16 @@
     background: white;
     color: var(--primary-color);
     border: none;
-    border-radius: 100px;
+    border-radius: var(--radius-pill);
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--t-fast) var(--ease);
 }
 
 .sidebar-promo-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-md);
 }
 
 /* ==================== POST CONTENT ==================== */
@@ -339,16 +340,16 @@
 }
 
 .post-body code {
-    background: #f1f5f9;
+    background: var(--surface-2);
     padding: 0.2rem 0.5rem;
-    border-radius: 4px;
+    border-radius: var(--radius-xs);
     font-size: 0.9em;
     color: #e11d48;
-    font-family: 'Fira Code', 'Monaco', monospace;
+    font-family: var(--font-mono);
 }
 
 .post-body pre {
-    background: #1e293b;
+    background: var(--bg-dark);
     color: #e2e8f0;
     padding: 1.5rem;
     border-radius: var(--radius-lg);
@@ -356,6 +357,7 @@
     margin: 2rem 0;
     font-size: 0.9rem;
     line-height: 1.6;
+    font-family: var(--font-mono);
 }
 
 .post-body pre code {
@@ -390,7 +392,7 @@
 
 .post-body th,
 .post-body td {
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--line);
     padding: 0.875rem 1rem;
     text-align: left;
 }
@@ -432,7 +434,7 @@
 .post-footer {
     margin-top: 3rem;
     padding-top: 2rem;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    border-top: 1px solid var(--line);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -468,14 +470,15 @@
     justify-content: center;
     text-decoration: none;
     font-size: 1rem;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    background: white;
+    border: 1px solid var(--line-strong);
+    background: var(--bg-card);
     color: var(--text-secondary);
-    transition: all 0.2s ease;
+    transition: all var(--t-fast) var(--ease);
 }
 
 .share-btn:hover {
     transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
 }
 
 .share-btn.twitter:hover {
@@ -511,11 +514,11 @@
     font-weight: 500;
     border-radius: var(--radius-md);
     text-decoration: none;
-    transition: all 0.2s ease;
+    transition: all var(--t-fast) var(--ease);
 }
 
 .post-tag:hover {
-    background: var(--primary-light);
+    background: var(--accent-soft);
     color: var(--primary-color);
 }
 
@@ -523,7 +526,7 @@
 .related-section {
     padding: 4rem 0;
     margin-top: 3rem;
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    border-top: 1px solid var(--line);
 }
 
 .related-header {
@@ -548,7 +551,7 @@
     font-weight: 600;
     color: var(--primary-color);
     text-decoration: none;
-    transition: gap 0.2s ease;
+    transition: gap var(--t-fast) var(--ease);
 }
 
 .related-view-all:hover {
@@ -562,21 +565,23 @@
 }
 
 .related-card {
-    background: white;
+    background: var(--bg-card);
     border-radius: var(--radius-lg);
     overflow: hidden;
-    box-shadow: var(--shadow-sm);
-    transition: all 0.3s ease;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-card);
+    transition: transform var(--t-base) var(--ease), box-shadow var(--t-base) var(--ease), border-color var(--t-base) var(--ease);
 }
 
 .related-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-card);
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent-line);
 }
 
 .related-card-image {
     height: 180px;
-    background: linear-gradient(135deg, var(--bg-body) 0%, rgba(67, 24, 255, 0.05) 100%);
+    background: linear-gradient(135deg, var(--bg-body) 0%, color-mix(in srgb, var(--primary-color) 5%, transparent) 100%);
     overflow: hidden;
 }
 
@@ -584,11 +589,11 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease;
+    transition: transform 0.6s var(--ease-out);
 }
 
 .related-card:hover .related-card-image img {
-    transform: scale(1.05);
+    transform: scale(1.06);
 }
 
 .related-card-placeholder {
@@ -622,13 +627,14 @@
     font-weight: 700;
     color: var(--text-primary);
     line-height: 1.4;
+    letter-spacing: -0.02em;
     margin-bottom: 0.5rem;
 }
 
 .related-card-title a {
     color: inherit;
     text-decoration: none;
-    transition: color 0.2s ease;
+    transition: color var(--t-fast) var(--ease);
 }
 
 .related-card-title a:hover {

@@ -8,21 +8,41 @@ document.addEventListener('DOMContentLoaded', function() {
     const header = document.querySelector('.site-header');
 
     if (header) {
-        let lastScroll = 0;
+        let lastScroll = window.pageYOffset;
+        let ticking = false;
 
         function handleScroll() {
             const currentScroll = window.pageYOffset;
 
-            if (currentScroll > 50) {
+            // Glass/hairline state once scrolled past the top
+            if (currentScroll > 40) {
                 header.classList.add('scrolled');
             } else {
                 header.classList.remove('scrolled');
             }
 
+            // Auto-hide on scroll down, reveal on scroll up (skip near the top
+            // and while any modal is open)
+            const modalOpen = document.querySelector(
+                '.subscribe-modal-overlay.active, .result-modal-overlay.active, .newsletter-modal-overlay.active'
+            );
+            if (!modalOpen && currentScroll > 140) {
+                if (currentScroll > lastScroll + 6) {
+                    header.classList.add('header-hidden');
+                } else if (currentScroll < lastScroll - 6) {
+                    header.classList.remove('header-hidden');
+                }
+            } else {
+                header.classList.remove('header-hidden');
+            }
+
             lastScroll = currentScroll;
+            ticking = false;
         }
 
-        window.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('scroll', function () {
+            if (!ticking) { window.requestAnimationFrame(handleScroll); ticking = true; }
+        }, { passive: true });
         handleScroll(); // Check initial state
     }
 

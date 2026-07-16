@@ -8,7 +8,7 @@
 .blog-page-header {
     padding: 2.5rem 0 2rem;
     margin-bottom: 2.5rem;
-    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    border-bottom: 1px solid var(--line);
 }
 
 .blog-page-header h1 {
@@ -16,7 +16,7 @@
     font-weight: 800;
     color: var(--text-primary);
     margin: 0 0 0.5rem;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
 }
 
 .blog-page-header p {
@@ -69,23 +69,24 @@
 
 .blog-card {
     background: var(--bg-card);
-    border-radius: 14px;
+    border-radius: var(--radius-md);
     overflow: hidden;
-    border: 1px solid rgba(15, 23, 42, 0.06);
-    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-card);
+    transition: transform var(--t-base) var(--ease), box-shadow var(--t-base) var(--ease), border-color var(--t-base) var(--ease);
     display: flex;
     flex-direction: column;
 }
 
 .blog-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.1);
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent-line);
 }
 
 .blog-card-image {
     height: 175px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    background: var(--accent-gradient);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -94,18 +95,18 @@
 }
 
 .blog-card-image.has-cover {
-    background: #f1f5f9;
+    background: var(--surface-2);
 }
 
 .blog-card-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.35s ease;
+    transition: transform 0.6s var(--ease-out);
 }
 
 .blog-card:hover .blog-card-image img {
-    transform: scale(1.04);
+    transform: scale(1.06);
 }
 
 .blog-card-image i {
@@ -120,7 +121,7 @@
     background: rgba(255, 255, 255, 0.95);
     color: var(--primary-color);
     padding: 0.3rem 0.9rem;
-    border-radius: 30px;
+    border-radius: var(--radius-pill);
     font-size: 0.68rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -141,6 +142,7 @@
     color: var(--text-primary);
     margin-bottom: 0.6rem;
     line-height: 1.45;
+    letter-spacing: -0.02em;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -150,7 +152,7 @@
 .blog-card-title a {
     color: inherit;
     text-decoration: none;
-    transition: color 0.2s ease;
+    transition: color var(--t-fast) var(--ease);
 }
 
 .blog-card-title a:hover {
@@ -174,7 +176,7 @@
     align-items: center;
     margin-top: 1.1rem;
     padding-top: 0.9rem;
-    border-top: 1px solid rgba(15, 23, 42, 0.06);
+    border-top: 1px solid var(--line);
 }
 
 .blog-card-meta {
@@ -197,7 +199,7 @@
     display: flex;
     align-items: center;
     gap: 0.3rem;
-    transition: gap 0.2s ease;
+    transition: gap var(--t-fast) var(--ease);
 }
 
 .blog-card-link:hover {
@@ -212,7 +214,7 @@
     gap: 0.5rem;
     margin-top: 3rem;
     padding-top: 2rem;
-    border-top: 1px solid rgba(15, 23, 42, 0.06);
+    border-top: 1px solid var(--line);
 }
 
 .pagination-btn {
@@ -222,20 +224,20 @@
     min-width: 40px;
     height: 40px;
     padding: 0 0.7rem;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     background: var(--bg-card);
     color: var(--text-secondary);
     text-decoration: none;
     font-weight: 600;
     font-size: 0.88rem;
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    transition: all 0.2s ease;
+    border: 1px solid var(--line);
+    transition: all var(--t-fast) var(--ease);
 }
 
 .pagination-btn:hover:not(.disabled):not(.active) {
-    border-color: var(--primary-color);
+    border-color: var(--accent-line);
     color: var(--primary-color);
-    background: rgba(67, 24, 255, 0.04);
+    background: color-mix(in srgb, var(--primary-color) 4%, transparent);
 }
 
 .pagination-btn.active {
@@ -262,10 +264,10 @@
 
 .sidebar-card {
     background: var(--bg-card);
-    border-radius: 14px;
+    border-radius: var(--radius-md);
     padding: 1.5rem;
-    border: 1px solid rgba(15, 23, 42, 0.06);
-    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-card);
     margin-bottom: 1.5rem;
 }
 
@@ -275,7 +277,7 @@
     color: var(--text-primary);
     margin-bottom: 1.1rem;
     padding-bottom: 0.75rem;
-    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+    border-bottom: 1px solid var(--line);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -306,25 +308,25 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.6rem 0.8rem;
-    border-radius: 8px;
+    border-radius: var(--radius-xs);
     color: var(--text-secondary);
     text-decoration: none;
     font-size: 0.88rem;
     font-weight: 500;
-    transition: all 0.2s ease;
+    transition: all var(--t-fast) var(--ease);
 }
 
 .category-list a:hover,
 .category-list a.active {
-    background: rgba(67, 24, 255, 0.06);
+    background: color-mix(in srgb, var(--primary-color) 6%, transparent);
     color: var(--primary-color);
 }
 
 .category-list .count {
-    background: rgba(15, 23, 42, 0.05);
+    background: var(--surface-2);
     color: var(--text-secondary);
     padding: 0.2rem 0.6rem;
-    border-radius: 20px;
+    border-radius: var(--radius-pill);
     font-size: 0.72rem;
     font-weight: 700;
 }
@@ -337,7 +339,7 @@
 
 /* Newsletter Sidebar */
 .sidebar-newsletter {
-    background: linear-gradient(145deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    background: var(--accent-gradient);
     color: white;
     border: none;
 }
@@ -362,15 +364,21 @@
     width: 100%;
     padding: 0.8rem 1rem;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radius-xs);
     font-size: 0.88rem;
     margin-bottom: 0.6rem;
     background: rgba(255, 255, 255, 0.95);
     color: #1e293b;
+    transition: box-shadow var(--t-fast) var(--ease);
 }
 
 .sidebar-newsletter input::placeholder {
     color: #94a3b8;
+}
+
+.sidebar-newsletter input:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.35);
 }
 
 .sidebar-newsletter button {
@@ -379,11 +387,11 @@
     background: rgba(15, 23, 42, 0.85);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radius-xs);
     font-weight: 700;
     font-size: 0.88rem;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: background var(--t-fast) var(--ease);
 }
 
 .sidebar-newsletter button:hover {
@@ -395,9 +403,9 @@
     text-align: center;
     padding: 4.5rem 2rem;
     background: var(--bg-card);
-    border-radius: 14px;
-    border: 1px solid rgba(15, 23, 42, 0.06);
-    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-card);
 }
 
 .empty-state i {
@@ -424,13 +432,20 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    background: var(--accent-gradient);
     color: white;
     padding: 0.85rem 1.75rem;
-    border-radius: 30px;
+    border-radius: var(--radius-pill);
     text-decoration: none;
     font-weight: 700;
     font-size: 0.9rem;
+    box-shadow: var(--shadow-accent);
+    transition: transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+
+.empty-state .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
 /* ==================== RESPONSIVE ==================== */

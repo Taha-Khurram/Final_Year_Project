@@ -8,35 +8,37 @@
     max-width: 800px;
     padding: 3rem 0;
     margin-top: 1rem;
-    border-top: 1px solid var(--border-color, #e5e7eb);
+    border-top: 1px solid var(--line);
 }
 
 .comments-title {
     font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-primary, #1a1a2e);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
     margin-bottom: 2rem;
 }
 
 .comments-count {
     font-weight: 400;
-    color: var(--text-secondary, #6b7280);
+    color: var(--text-secondary);
     font-size: 1.1rem;
 }
 
 /* ==================== COMMENT FORM ==================== */
 .comment-form-card {
-    background: var(--bg-surface, #ffffff);
-    border: 1px solid var(--border-color, #e5e7eb);
-    border-radius: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
     padding: 1.75rem;
     margin-bottom: 2.5rem;
+    box-shadow: var(--shadow-card);
 }
 
 .comment-form-heading {
     font-size: 1.05rem;
     font-weight: 600;
-    color: var(--text-primary, #1a1a2e);
+    color: var(--text-primary);
     margin-bottom: 1.25rem;
 }
 
@@ -55,7 +57,7 @@
     display: block;
     font-size: 0.85rem;
     font-weight: 600;
-    color: var(--text-primary, #1a1a2e);
+    color: var(--text-primary);
     margin-bottom: 0.4rem;
 }
 
@@ -67,20 +69,20 @@
 .comment-form-field textarea {
     width: 100%;
     padding: 0.65rem 0.9rem;
-    border: 1px solid var(--border-color, #e5e7eb);
-    border-radius: 8px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-xs);
     font-size: 0.9rem;
-    color: var(--text-primary, #1a1a2e);
-    background: var(--bg-body, #fafafa);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    color: var(--text-primary);
+    background: var(--bg-body);
+    transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
     font-family: inherit;
 }
 
 .comment-form-field input:focus,
 .comment-form-field textarea:focus {
     outline: none;
-    border-color: var(--primary-color, #4318FF);
-    box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.1);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-ring);
 }
 
 .comment-form-field textarea {
@@ -91,7 +93,7 @@
 .form-hint {
     display: block;
     font-size: 0.75rem;
-    color: var(--text-secondary, #6b7280);
+    color: var(--text-secondary);
     margin-top: 0.3rem;
 }
 
@@ -105,19 +107,20 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.65rem 1.5rem;
-    background: var(--primary-color, #4318FF);
-    color: white;
+    background: var(--accent);
+    color: var(--accent-contrast);
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radius-xs);
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background var(--t-base) var(--ease), transform var(--t-base) var(--ease-spring), box-shadow var(--t-base) var(--ease);
 }
 
 .comment-submit-btn:hover:not(:disabled) {
-    opacity: 0.9;
-    transform: translateY(-1px);
+    background: var(--accent-strong);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-accent);
 }
 
 .comment-submit-btn:disabled {
@@ -129,7 +132,7 @@
 .comment-form-message {
     margin-top: 0.75rem;
     padding: 0.6rem 1rem;
-    border-radius: 8px;
+    border-radius: var(--radius-xs);
     font-size: 0.85rem;
     font-weight: 500;
 }
@@ -158,14 +161,14 @@
     align-items: center;
     gap: 0.75rem;
     padding: 2rem 0;
-    color: var(--text-secondary, #6b7280);
+    color: var(--text-secondary);
     font-size: 0.9rem;
 }
 
 .comments-empty {
     text-align: center;
     padding: 3rem 1rem;
-    color: var(--text-secondary, #6b7280);
+    color: var(--text-secondary);
 }
 
 .comments-empty i {
@@ -182,12 +185,18 @@
 
 /* ==================== COMMENT CARD ==================== */
 .comment-card {
-    background: var(--bg-surface, #ffffff);
-    border: 1px solid var(--border-color, #e5e7eb);
-    border-left: 3px solid var(--primary-color, #4318FF);
-    border-radius: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-xs);
     padding: 1.25rem;
-    transition: all 0.3s ease;
+    transition: transform var(--t-base) var(--ease), box-shadow var(--t-base) var(--ease), border-color var(--t-base) var(--ease);
+}
+
+.comment-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card);
+    border-color: var(--accent-line);
 }
 
 .comment-card.comment-new {
@@ -196,11 +205,11 @@
 
 @keyframes commentHighlight {
     0% {
-        background: rgba(67, 24, 255, 0.08);
-        border-left-color: var(--primary-color, #4318FF);
+        background: color-mix(in srgb, var(--primary-color) 8%, transparent);
+        border-left-color: var(--accent);
     }
     100% {
-        background: var(--bg-surface, #ffffff);
+        background: var(--bg-card);
     }
 }
 
@@ -215,8 +224,8 @@
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: var(--primary-color, #4318FF);
-    color: white;
+    background: var(--accent-gradient);
+    color: var(--accent-contrast);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -234,19 +243,19 @@
 .comment-author {
     font-weight: 600;
     font-size: 0.9rem;
-    color: var(--text-primary, #1a1a2e);
+    color: var(--text-primary);
 }
 
 .comment-date {
     font-size: 0.75rem;
-    color: var(--text-secondary, #6b7280);
+    color: var(--text-secondary);
 }
 
 .comment-card-body p {
     margin: 0;
     font-size: 0.9rem;
     line-height: 1.6;
-    color: var(--text-primary, #1a1a2e);
+    color: var(--text-primary);
     white-space: pre-wrap;
     word-break: break-word;
 }
@@ -255,15 +264,15 @@
 .comment-thankyou-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(4px);
+    background: color-mix(in srgb, var(--ink-950) 55%, transparent);
+    backdrop-filter: blur(6px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 9999;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+    transition: opacity var(--t-base) var(--ease), visibility var(--t-base) var(--ease);
 }
 
 .comment-thankyou-overlay.active {
@@ -272,15 +281,15 @@
 }
 
 .comment-thankyou-card {
-    background: white;
-    border-radius: 16px;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
     padding: 2.5rem 2rem;
     max-width: 400px;
     width: 90%;
     text-align: center;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-lg);
     transform: scale(0.9) translateY(10px);
-    transition: transform 0.3s ease;
+    transition: transform var(--t-base) var(--ease-spring);
 }
 
 .comment-thankyou-overlay.active .comment-thankyou-card {
@@ -293,14 +302,15 @@
 
 .comment-thankyou-title {
     font-size: 1.35rem;
-    font-weight: 700;
-    color: #1a1a2e;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
     margin-bottom: 0.5rem;
 }
 
 .comment-thankyou-text {
     font-size: 0.9rem;
-    color: #6b7280;
+    color: var(--text-secondary);
     line-height: 1.6;
     margin-bottom: 1.5rem;
 }
@@ -310,19 +320,20 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.7rem 2rem;
-    background: var(--primary-color, #4318FF);
-    color: white;
+    background: var(--accent);
+    color: var(--accent-contrast);
     border: none;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background var(--t-base) var(--ease), transform var(--t-base) var(--ease-spring), box-shadow var(--t-base) var(--ease);
 }
 
 .comment-thankyou-btn:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
+    background: var(--accent-strong);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-accent);
 }
 
 /* ==================== RESPONSIVE ==================== */
