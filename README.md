@@ -1,7 +1,8 @@
 <div align="center">
 
-<img src="app/static/images/logo_text.png" alt="Scriptly" width="220" />
-
+<a href="https://github.com/Taha-Khurram/Final_Year_Project">
+  <img src="app/static/images/git.png" alt="View on GitHub" width="220" />
+</a>
 # Scriptly — AI Blog Platform
 
 **Generate. Humanize. Publish. On autopilot.**
@@ -19,9 +20,7 @@ SEO tooling, team collaboration, and a 13-agent AI pipeline.
 ![Render](https://img.shields.io/badge/Deploy-Render-46E3B7?style=flat-square&logo=render&logoColor=white)
 ![License](https://img.shields.io/badge/License-Proprietary%20(All%20Rights%20Reserved)-6E56CF?style=flat-square)
 
-<a href="https://github.com/Taha-Khurram/Final_Year_Project">
-  <img src="app/static/images/git.png" alt="View on GitHub" width="48" />
-</a>
+
 
 </div>
 
