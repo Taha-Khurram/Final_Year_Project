@@ -846,20 +846,62 @@ class SEOAgent:
                     updated = updated.replace(first_para, new_para, 1)
 
         # 2. Append an FAQ section (skip if the content already has one).
+        #
+        # The FAQ must be emitted in the SAME markup as the body. Many stored
+        # blogs keep rendered HTML in the body; appending a *markdown* FAQ onto
+        # HTML produced broken output: FormattingAgent then saw markdown headings
+        # for the TOC but never converted them to real <h> tags with anchor ids,
+        # so the TOC listed only the FAQ and none of its links resolved. Match
+        # the body's format so headings become real anchors either way.
         if faq_section and 'frequently asked questions' not in updated.lower():
-            faq_parts = ['## Frequently Asked Questions', '']
-            for item in faq_section:
-                question = (item.get('question') or '').strip()
-                answer = (item.get('answer') or '').strip()
-                if question and answer:
-                    faq_parts.append(f"### {question}")
-                    faq_parts.append('')
-                    faq_parts.append(answer)
-                    faq_parts.append('')
-            if len(faq_parts) > 2:
-                updated = updated.rstrip() + '\n\n' + '\n'.join(faq_parts).rstrip()
+            if self._looks_like_html(updated):
+                updated = self._append_html_faq(updated, faq_section)
+            else:
+                updated = self._append_markdown_faq(updated, faq_section)
 
         return updated
+
+    def _looks_like_html(self, content: str) -> bool:
+        """Heuristic: does this content contain rendered HTML block markup?"""
+        if not content:
+            return False
+        return bool(re.search(
+            r'<(article|section|div|p|h[1-6]|ul|ol|table)\b', content, re.IGNORECASE
+        ))
+
+    def _append_markdown_faq(self, content: str, faq_section: list) -> str:
+        faq_parts = ['## Frequently Asked Questions', '']
+        for item in faq_section:
+            question = (item.get('question') or '').strip()
+            answer = (item.get('answer') or '').strip()
+            if question and answer:
+                faq_parts.append(f"### {question}")
+                faq_parts.append('')
+                faq_parts.append(answer)
+                faq_parts.append('')
+        if len(faq_parts) <= 2:
+            return content
+        return content.rstrip() + '\n\n' + '\n'.join(faq_parts).rstrip()
+
+    def _append_html_faq(self, content: str, faq_section: list) -> str:
+        """Append the FAQ as HTML so headings become real, anchorable tags.
+
+        No `id`s are added here on purpose — FormattingAgent's
+        `_add_ids_to_html_headings` injects anchor ids that match the slugs it
+        generates for the TOC, keeping the two in sync.
+        """
+        from html import escape
+
+        faq_parts = ['<h2>Frequently Asked Questions</h2>']
+        for item in faq_section:
+            question = (item.get('question') or '').strip()
+            answer = (item.get('answer') or '').strip()
+            if question and answer:
+                faq_parts.append(f'<h3>{escape(question)}</h3>')
+                faq_parts.append(f'<p>{escape(answer)}</p>')
+        if len(faq_parts) <= 1:
+            return content
+        return content.rstrip() + '\n' + '\n'.join(faq_parts)
 
     def auto_implement_seo(self, title: str, content: str, keyword_data: Dict) -> Dict:
         """Automatically optimize the blog content for SEO"""
