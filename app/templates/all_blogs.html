@@ -3,7 +3,8 @@
 {% block title %}All Blogs | ScriptlyAI{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/all_blogs.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/drafts.css') }}?v=2">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/all_blogs.css') }}?v=2">
 {% endblock %}
 
 {% block content %}
@@ -55,11 +56,12 @@
           <div class="col-blog-category">Category</div>
           <div class="col-blog-status">Status</div>
           <div class="col-blog-date">Updated</div>
+          <div class="col-blog-actions"></div>
         </div>
         <div id="blogsList">
           {% if initial_data and initial_data.blogs %}
             {% for blog in initial_data.blogs %}
-            <div class="blog-row">
+            <div class="blog-row" id="row-{{ blog.id }}">
               <div class="col-blog-title">
                 <span class="blog-title-cell" title="{{ blog.title or 'Untitled' }}">{{ (blog.title or 'Untitled')[:45] }}</span>
               </div>
@@ -86,6 +88,26 @@
               </div>
               <div class="col-blog-date">
                 <span class="blog-date-cell">{{ blog.updated_at[:10] if blog.updated_at else '' }}</span>
+              </div>
+              <div class="col-blog-actions">
+                <div class="dropdown">
+                  <button class="btn-dropdown-trigger" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button class="dropdown-item" onclick="openEditModal('{{ blog.id }}')">
+                        <i class="bi bi-pencil-square" style="color: var(--primary-color);"></i> Edit Blog
+                      </button>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                      <button class="dropdown-item text-danger" onclick="deleteBlog('{{ blog.id }}')">
+                        <i class="bi bi-x-circle"></i> Delete
+                      </button>
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
             {% endfor %}
@@ -147,7 +169,111 @@
   </div>
 </div>
 
-<script src="{{ url_for('static', filename='js/pages/all_blogs.js') }}"></script>
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="custom-modal-header">
+        <h5 class="custom-modal-title">
+          <i class="bi bi-pencil-square"></i>
+          Edit Blog
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="custom-modal-body">
+        <input type="text" id="modal-title" class="edit-title-input" placeholder="Enter blog title...">
+
+        <!-- Slug Field -->
+        <div class="slug-field">
+          <label class="slug-label">URL Slug</label>
+          <div class="slug-input-group">
+            <span class="slug-prefix">/post/</span>
+            <input type="text" class="slug-input" id="modal-slug" placeholder="auto-generated-from-title">
+            <button type="button" class="slug-regenerate-btn" id="regenerate-slug" title="Regenerate from title">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+          </div>
+          <small class="slug-hint">Leave blank to auto-generate from title. Changing slug will create a 301 redirect.</small>
+        </div>
+
+        <!-- Feature Image -->
+        <div class="cover-image-section">
+          <label class="slug-label">Feature Image</label>
+          <div class="cover-image-preview" id="coverImagePreview" style="display:none;">
+            <img id="coverImageImg" src="" alt="Cover">
+            <div class="cover-image-actions">
+              <button type="button" class="cover-img-action-btn" onclick="openImagePicker()" title="Change image">
+                <i class="bi bi-arrow-repeat"></i>
+              </button>
+              <button type="button" class="cover-img-action-btn danger" onclick="removeCoverImage()" title="Remove image">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+          <div class="cover-image-placeholder" id="coverImagePlaceholder" onclick="openImagePicker()">
+            <div class="cover-placeholder-icon"><i class="bi bi-image"></i></div>
+            <div class="cover-placeholder-text">Click to select a feature image</div>
+            <div class="cover-placeholder-hint">Choose from your gallery</div>
+          </div>
+        </div>
+
+        <!-- SEO Settings -->
+        <div class="seo-settings-section">
+          <button type="button" class="seo-toggle-btn" id="seo-toggle-btn">
+            <i class="bi bi-search"></i> SEO Settings
+            <i class="bi bi-chevron-down seo-chevron"></i>
+          </button>
+          <div class="seo-fields" id="seo-fields" style="display: none;">
+            <div class="seo-field">
+              <label class="seo-label">Meta Title</label>
+              <input type="text" class="seo-input" id="modal-seo-title" placeholder="Custom title for search engines (default: blog title)" maxlength="60">
+              <small class="seo-hint">Recommended: 50-60 characters. <span id="seo-title-count">0</span>/60</small>
+            </div>
+            <div class="seo-field">
+              <label class="seo-label">Meta Description</label>
+              <textarea class="seo-textarea" id="modal-seo-description" placeholder="Brief description for search results and social sharing" maxlength="160" rows="2"></textarea>
+              <small class="seo-hint">Recommended: 150-160 characters. <span id="seo-desc-count">0</span>/160</small>
+            </div>
+          </div>
+        </div>
+
+        <textarea id="editor-canvas"></textarea>
+      </div>
+      <div class="custom-modal-footer">
+        <button type="button" class="btn-modal btn-secondary" onclick="copyBlogContent()">
+          <i class="bi bi-clipboard"></i> Copy
+        </button>
+        <button type="button" class="btn-modal btn-primary-custom" id="save-changes-btn" onclick="saveModalChanges()">
+          <i class="bi bi-check-lg"></i> Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Image Picker Modal -->
+<div class="image-picker-overlay" id="imagePickerOverlay" onclick="closeImagePicker(event)">
+  <div class="image-picker-modal" onclick="event.stopPropagation()">
+    <div class="image-picker-header">
+      <h4 class="image-picker-title"><i class="bi bi-images"></i> Choose from Gallery</h4>
+      <button class="image-picker-close" onclick="closeImagePicker()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="image-picker-body">
+      <div class="image-picker-grid" id="imagePickerGrid">
+        <div class="text-center py-4" style="grid-column:1/-1;">
+          <div class="spinner-border spinner-border-sm text-primary opacity-50"></div>
+          <p class="text-secondary mt-2 mb-0" style="font-size:0.82rem;">Loading gallery...</p>
+        </div>
+      </div>
+    </div>
+    <div class="image-picker-footer">
+      <a href="/gallery" class="image-picker-upload-link"><i class="bi bi-cloud-arrow-up"></i> Upload new images in Gallery</a>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" referrerpolicy="origin"></script>
+<script src="{{ url_for('static', filename='js/pages/all_blogs.js') }}?v=3"></script>
   </main>
 </div>
 

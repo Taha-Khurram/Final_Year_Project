@@ -840,11 +840,7 @@
         document.body.removeChild(a);
         URL.revokeObjectURL(dlUrl);
     }
-
-    // ========== CUSTOM SELECT ENHANCEMENT ==========
-    // Replaces the browser-native option list (which can't be styled) with a
-    // branded dropdown, while keeping the real <select> as the hidden source of
-    // truth so all existing .value reads and async option loading keep working.
+    
     function enhanceSelect(select) {
         if (select.dataset.csEnhanced) return;
         select.dataset.csEnhanced = '1';

@@ -44,8 +44,21 @@ def create_app(config_class=Config):
 
     # Middleware setup
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
-    cache_max_age = 0 if os.environ.get('FLASK_DEBUG') == '1' else 604800
-    app.wsgi_app = WhiteNoise(app.wsgi_app, root='app/static/', prefix='static/', max_age=cache_max_age)
+    debug_mode = os.environ.get('FLASK_DEBUG') == '1'
+    cache_max_age = 0 if debug_mode else 604800
+    # WhiteNoise scans the static folder once at startup and serves files from an
+    # in-memory registry. In production that's what we want. In debug, however,
+    # Flask's reloader only restarts on .py changes, so an edited (or half-saved)
+    # JS/CSS file would keep being served from the stale in-memory copy until a
+    # manual restart. autorefresh makes WhiteNoise re-read changed files from disk
+    # on each request so static edits are always served fresh during development.
+    app.wsgi_app = WhiteNoise(
+        app.wsgi_app,
+        root='app/static/',
+        prefix='static/',
+        max_age=cache_max_age,
+        autorefresh=debug_mode,
+    )
 
     # Initialize Firebase
     FirebaseLoader.get_instance(app.config['FIREBASE_SERVICE_ACCOUNT'])

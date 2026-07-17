@@ -15,8 +15,12 @@ const toastContainer = document.getElementById("toast-container");
 // Toast Notification System
 // --------------------------------------------------------------------------
 
-const showToast = (options) => {
-    const { type = 'success', title, message, duration = 4000 } = options;
+// Defined as a function declaration (not `const`) so that if a page script ever
+// declares a top-level name that collides with a global helper, it overwrites it
+// gracefully instead of throwing "Identifier already declared" — which would
+// abort the entire page script and leave the page dead. See the PJAX notes below.
+function showToast(options) {
+    const { type = 'success', title, message, duration = 4000 } = options || {};
 
     const icons = {
         success: 'bi-check-circle-fill',
@@ -64,19 +68,19 @@ window.showToast = showToast;
 // Page Loader Functions
 // --------------------------------------------------------------------------
 
-const showLoader = () => {
+function showLoader() {
     if (pageLoader) pageLoader.classList.remove("hidden");
     if (navProgress) navProgress.classList.add("loading");
-};
+}
 
-const hideLoader = () => {
+function hideLoader() {
     if (pageLoader) pageLoader.classList.add("hidden");
     if (navProgress) {
         navProgress.classList.remove("loading");
         navProgress.style.width = "100%";
         setTimeout(() => { navProgress.style.width = "0%"; }, 300);
     }
-};
+}
 
 window.showLoader = showLoader;
 window.hideLoader = hideLoader;
@@ -92,7 +96,7 @@ window.hideLoader = hideLoader;
 // --------------------------------------------------------------------------
 
 // Close any open Bootstrap dropdown menu on the page.
-const closeAllDropdowns = () => {
+function closeAllDropdowns() {
     document.querySelectorAll('.dropdown-menu.show').forEach((menu) => {
         const trigger = menu.parentElement
             ? menu.parentElement.querySelector('[data-bs-toggle="dropdown"]')
@@ -105,12 +109,12 @@ const closeAllDropdowns = () => {
         }
         menu.classList.remove('show');
     });
-};
+}
 
 window.closeAllDropdowns = closeAllDropdowns;
 
 // Lazily create (once) and return the shared action-loader overlay element.
-const getActionLoader = () => {
+function getActionLoader() {
     let overlay = document.getElementById('action-loader');
     if (!overlay) {
         overlay = document.createElement('div');
@@ -126,31 +130,31 @@ const getActionLoader = () => {
         document.body.appendChild(overlay);
     }
     return overlay;
-};
+}
 
 // Show the shared full-screen action loader with an optional message.
-const showActionLoader = (message) => {
+function showActionLoader(message) {
     const overlay = getActionLoader();
     const text = overlay.querySelector('.action-loader-text');
     if (text) text.textContent = message || 'Working...';
     // Force reflow so the CSS transition runs even right after creation.
     void overlay.offsetWidth;
     overlay.classList.remove('hidden');
-};
+}
 
 // Update the message shown on the action loader without toggling visibility.
-const updateActionLoader = (message) => {
+function updateActionLoader(message) {
     const overlay = document.getElementById('action-loader');
     if (!overlay) return;
     const text = overlay.querySelector('.action-loader-text');
     if (text && message) text.textContent = message;
-};
+}
 
 // Hide the shared full-screen action loader.
-const hideActionLoader = () => {
+function hideActionLoader() {
     const overlay = document.getElementById('action-loader');
     if (overlay) overlay.classList.add('hidden');
-};
+}
 
 window.showActionLoader = showActionLoader;
 window.updateActionLoader = updateActionLoader;
@@ -773,52 +777,77 @@ const Pjax = (() => {
     }
 
     function executeScripts(scripts, inlineScripts) {
+        let inlineHasRun = false;
+
+        // Runs the page's inline init scripts, then fires the "page ready" events.
+        // Guarded so it can never run twice and never throws out of executeScripts:
+        // one bad inline block must not stop the others or wedge the page.
         function runInlineScripts() {
-            inlineScripts.forEach(code => {
+            if (inlineHasRun) return;
+            inlineHasRun = true;
+
+            (inlineScripts || []).forEach(code => {
                 try {
                     const script = document.createElement('script');
                     script.setAttribute('data-pjax', 'true');
                     script.textContent = code;
                     document.body.appendChild(script);
                 } catch (e) {
+                    // A failing init block is logged but never blocks the rest.
                     console.warn('Pjax: inline script error', e);
                 }
             });
 
-            // Dispatch DOMContentLoaded-like event for scripts expecting it
-            document.dispatchEvent(new Event('pjax:complete'));
-            window.dispatchEvent(new Event('load'));
+            // Dispatch DOMContentLoaded-like events for scripts expecting them.
+            try {
+                document.dispatchEvent(new Event('pjax:complete'));
+                window.dispatchEvent(new Event('load'));
+            } catch (e) {
+                console.warn('Pjax: post-init event error', e);
+            }
         }
 
-        if (scripts.length === 0) {
+        if (!scripts || scripts.length === 0) {
             runInlineScripts();
             return;
         }
 
-        // Load external scripts sequentially
+        // Load external scripts sequentially. Each resolves on load OR error so a
+        // single missing/broken/truncated file can never stall the whole chain and
+        // leave the page half-initialized.
         const loadScript = (src) => {
             return new Promise((resolve) => {
-                // Remove old version if exists
-                const old = document.querySelector(`script[data-pjax][src="${src}"]`);
-                if (old) old.remove();
+                try {
+                    // Remove the previously injected copy so a fresh <script> runs.
+                    const old = document.querySelector(`script[data-pjax][src="${src}"]`);
+                    if (old) old.remove();
 
-                const script = document.createElement('script');
-                script.src = src;
-                script.setAttribute('data-pjax', 'true');
-                script.onload = resolve;
-                script.onerror = resolve;
-                document.body.appendChild(script);
+                    const script = document.createElement('script');
+                    script.src = src;
+                    script.setAttribute('data-pjax', 'true');
+                    script.onload = () => resolve();
+                    script.onerror = () => {
+                        console.warn('Pjax: failed to load page script', src);
+                        resolve();
+                    };
+                    document.body.appendChild(script);
+                } catch (e) {
+                    console.warn('Pjax: error injecting page script', src, e);
+                    resolve();
+                }
             });
         };
 
-        // Chain script loading
+        // Chain script loading, then always run inline init — even if the chain
+        // somehow rejects — so a page is never left without its initialization.
         let chain = Promise.resolve();
         scripts.forEach(src => {
             chain = chain.then(() => loadScript(src));
         });
-
-        // Execute inline scripts after external ones load
-        chain.then(() => runInlineScripts());
+        chain.then(runInlineScripts).catch((e) => {
+            console.warn('Pjax: script chain error', e);
+            runInlineScripts();
+        });
     }
 
     function cleanupOldScripts() {
@@ -904,8 +933,14 @@ const Pjax = (() => {
 
             hideProgress();
 
-            // Execute new page scripts
-            executeScripts(assets.scripts, assets.bodyScripts);
+            // Execute new page scripts. Wrapped defensively: executeScripts is
+            // already fault-tolerant, but a synchronous throw must never skip the
+            // entering-class cleanup below or wedge the navigation state.
+            try {
+                executeScripts(assets.scripts, assets.bodyScripts);
+            } catch (e) {
+                console.warn('Pjax: executeScripts error', e);
+            }
 
             setTimeout(() => {
                 mainContent.classList.remove('pjax-entering');
@@ -997,6 +1032,35 @@ const Pjax = (() => {
 
     return { init, navigate, getSkeletonForUrl, skeletons };
 })();
+
+// --------------------------------------------------------------------------
+// Global UI safety net
+//
+// A page script that throws during initialization must never leave the app in a
+// stuck state (main content dimmed/unclickable, or the nav progress bar spinning
+// forever). If any uncaught error or rejected promise slips through, restore the
+// content to an interactive state. This is a backstop, not a substitute for the
+// per-script guards above — it just guarantees the UI always stays usable.
+// --------------------------------------------------------------------------
+function __restoreInteractiveUI() {
+    try {
+        const main = document.querySelector('.dashboard-main');
+        if (main) {
+            if (main.style.opacity && main.style.opacity !== '1') main.style.opacity = '1';
+            if (main.style.pointerEvents === 'none') main.style.pointerEvents = '';
+        }
+        const progress = document.getElementById('nav-progress');
+        if (progress && progress.classList.contains('loading')) {
+            progress.classList.remove('loading');
+            progress.style.width = '0%';
+        }
+    } catch (e) {
+        /* never let the safety net itself throw */
+    }
+}
+
+window.addEventListener('error', __restoreInteractiveUI);
+window.addEventListener('unhandledrejection', __restoreInteractiveUI);
 
 // --------------------------------------------------------------------------
 // Global Skeleton Utility (for page scripts to use during AJAX loading)

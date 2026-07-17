@@ -213,16 +213,18 @@ function goToPage(page) {
 
 function toggleDropdown(event, id) {
     event.stopPropagation();
-    closeAllDropdowns();
+    closeAllLeadDropdowns();
     const menu = document.getElementById('dropdown-' + id);
     if (menu) menu.classList.toggle('show');
 }
 
-function closeAllDropdowns() {
+// Page-specific: closes the custom lead-row dropdowns. Named distinctly to avoid
+// colliding with the global closeAllDropdowns() (a const) declared in app.js.
+function closeAllLeadDropdowns() {
     document.querySelectorAll('.lead-dropdown-menu.show').forEach(m => m.classList.remove('show'));
 }
 
-document.addEventListener('click', closeAllDropdowns);
+document.addEventListener('click', closeAllLeadDropdowns);
 
 // ==================== VIEW LEAD ====================
 
@@ -346,7 +348,7 @@ function formatDate(dateStr) {
         if (diffDays < 7) return `${diffDays}d ago`;
 
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    } catch {
+    } catch (err) {
         return dateStr;
     }
 }
