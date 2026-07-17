@@ -3118,6 +3118,8 @@
             return;
         }
 
+        if (window.showActionLoader) showActionLoader('Unpublishing blog...');
+
         try {
             const response = await fetch(`/api/unpublish/${blogId}`, {
                 method: 'POST',
@@ -3125,6 +3127,8 @@
             });
 
             const data = await response.json();
+
+            if (window.hideActionLoader) hideActionLoader();
 
             if (data.success) {
                 const item = document.getElementById(`published-${blogId}`);
@@ -3172,6 +3176,7 @@
                 });
             }
         } catch (err) {
+            if (window.hideActionLoader) hideActionLoader();
             console.error(err);
             showToast({
                 type: 'error',

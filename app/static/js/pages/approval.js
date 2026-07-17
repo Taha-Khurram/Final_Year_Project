@@ -76,6 +76,7 @@ function checkEmptyState() {
 
 function openScheduleModal(blogId) {
   currentBlogId = blogId;
+  closeAllDropdowns();
 
   // Set min to now
   const now = new Date();
@@ -95,6 +96,7 @@ function openScheduleModal(blogId) {
 
 async function openViewModal(id) {
   currentBlogId = id;
+  closeAllDropdowns();
 
   const modalEl = document.getElementById('viewModal');
   if (!modalEl) {
@@ -102,15 +104,18 @@ async function openViewModal(id) {
     return;
   }
 
+  showActionLoader('Loading blog...');
   try {
     const res = await fetch(`/api/get_blog/${id}`);
     const data = await res.json();
 
     if (!data.success) {
+      hideActionLoader();
       showToast({ type: 'error', title: 'Error', message: data.message || 'Failed to load blog.', duration: 5000 });
       return;
     }
 
+    hideActionLoader();
     const blog = data.blog;
     const content = blog.content;
 
@@ -206,6 +211,7 @@ async function openViewModal(id) {
     const viewModal = new bootstrap.Modal(modalEl);
     viewModal.show();
   } catch (err) {
+    hideActionLoader();
     console.error('openViewModal error:', err);
     showToast({
       type: 'error',
@@ -218,6 +224,7 @@ async function openViewModal(id) {
 
 async function openReviewModal(id) {
   currentBlogId = id;
+  closeAllDropdowns();
 
   const modalEl = document.getElementById('reviewModal');
   if (!modalEl) {
@@ -225,15 +232,18 @@ async function openReviewModal(id) {
     return;
   }
 
+  showActionLoader('Loading blog...');
   try {
     const res = await fetch(`/api/get_blog/${id}`);
     const data = await res.json();
 
     if (!data.success) {
+      hideActionLoader();
       showToast({ type: 'error', title: 'Error', message: data.message || 'Failed to load blog.', duration: 5000 });
       return;
     }
 
+    hideActionLoader();
     const blog = data.blog;
     const content = blog.content;
     const el = (elId) => document.getElementById(elId);
@@ -311,6 +321,7 @@ async function openReviewModal(id) {
     const reviewModal = new bootstrap.Modal(modalEl);
     reviewModal.show();
   } catch (err) {
+    hideActionLoader();
     console.error('openReviewModal error:', err);
     showToast({
       type: 'error',
@@ -322,6 +333,10 @@ async function openReviewModal(id) {
 }
 
 async function approveBlog(id) {
+  // Close the dropdown and show the shared loader (consistent async UX).
+  closeAllDropdowns();
+  showActionLoader('Publishing blog...');
+
   // Find and disable the dropdown button for this row
   const row = document.getElementById(`row-${id}`);
   const dropdownBtn = row ? row.querySelector('.btn-dropdown-trigger') : null;
@@ -338,6 +353,7 @@ async function approveBlog(id) {
     });
     const data = await res.json();
     if (data.success) {
+      hideActionLoader();
       showToast({
         type: 'success',
         title: 'Blog Published!',
@@ -354,6 +370,7 @@ async function approveBlog(id) {
         }, 300);
       }
     } else {
+      hideActionLoader();
       if (dropdownBtn) {
         dropdownBtn.disabled = false;
         dropdownBtn.innerHTML = '<i class="bi bi-three-dots-vertical"></i>';
@@ -366,6 +383,7 @@ async function approveBlog(id) {
       });
     }
   } catch (err) {
+    hideActionLoader();
     if (dropdownBtn) {
       dropdownBtn.disabled = false;
       dropdownBtn.innerHTML = '<i class="bi bi-three-dots-vertical"></i>';
@@ -380,6 +398,10 @@ async function approveBlog(id) {
 }
 
 async function rejectToDraft(id) {
+  // Close the dropdown and show the shared loader (consistent async UX).
+  closeAllDropdowns();
+  showActionLoader('Moving to drafts...');
+
   // Find and disable the dropdown button for this row
   const row = document.getElementById(`row-${id}`);
   const dropdownBtn = row ? row.querySelector('.btn-dropdown-trigger') : null;
@@ -396,6 +418,7 @@ async function rejectToDraft(id) {
     });
     const data = await res.json();
     if (data.success) {
+      hideActionLoader();
       showToast({
         type: 'warning',
         title: 'Moved to Drafts',
@@ -412,6 +435,7 @@ async function rejectToDraft(id) {
         }, 300);
       }
     } else {
+      hideActionLoader();
       if (dropdownBtn) {
         dropdownBtn.disabled = false;
         dropdownBtn.innerHTML = '<i class="bi bi-three-dots-vertical"></i>';
@@ -424,6 +448,7 @@ async function rejectToDraft(id) {
       });
     }
   } catch (err) {
+    hideActionLoader();
     if (dropdownBtn) {
       dropdownBtn.disabled = false;
       dropdownBtn.innerHTML = '<i class="bi bi-three-dots-vertical"></i>';

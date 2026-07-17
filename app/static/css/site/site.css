@@ -89,6 +89,7 @@
     --header-h: 68px;
 
     --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-display: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
     --font-mono: ui-monospace, 'SFMono-Regular', 'Cascadia Code', 'Fira Code', monospace;
 }
 
@@ -571,12 +572,14 @@ a {
 }
 
 .article-title {
-    font-size: clamp(2rem, 4vw, 2.9rem);
-    font-weight: 800;
-    letter-spacing: -0.035em;
+    font-family: var(--font-display);
+    font-size: clamp(2.1rem, 4.4vw, 3.15rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
     color: var(--text-primary);
-    line-height: 1.12;
+    line-height: 1.08;
     margin-bottom: 1.25rem;
+    text-wrap: balance;
 }
 
 .article-meta {
@@ -827,11 +830,13 @@ a {
 .about-hero { text-align: center; padding: 3rem 0 2rem; }
 
 .about-hero h1 {
-    font-size: clamp(2rem, 5vw, 2.9rem);
-    font-weight: 800;
-    letter-spacing: -0.035em;
+    font-family: var(--font-display);
+    font-size: clamp(2.1rem, 5vw, 3.1rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
     color: var(--text-primary);
     margin-bottom: 1rem;
+    text-wrap: balance;
 }
 
 .about-hero-icon {
@@ -935,6 +940,260 @@ a {
 }
 
 .cta-section p { color: var(--text-secondary); margin-bottom: 1.5rem; }
+
+/* ==========================================================================
+   EDITORIAL PRIMITIVES (shared across all public pages)
+   Kicker/eyebrow labels, read-link, section head, numbered index rows,
+   stat ledger, and a shared page masthead. Pages reference these classes;
+   page CSS never redefines them.
+   ========================================================================== */
+
+.ed-kicker {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin: 0;
+}
+
+.ed-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--text-secondary);
+    margin-bottom: 1.4rem;
+}
+
+.ed-eyebrow-mark { color: var(--accent); font-weight: 700; }
+.ed-dot { color: var(--ink-300); }
+
+.ed-read-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: -0.01em;
+}
+
+.ed-read-link .ed-rule {
+    width: 34px;
+    height: 1.5px;
+    background: var(--accent);
+    transition: width var(--t-base) var(--ease-spring);
+}
+
+.ed-read-link i,
+.ed-read-link svg { transition: transform var(--t-base) var(--ease-spring); }
+.ed-read-link:hover { color: var(--accent); }
+.ed-read-link:hover .ed-rule { width: 54px; }
+.ed-read-link:hover i,
+.ed-read-link:hover svg { transform: translateX(4px); }
+
+.ed-section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.ed-viewall {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: gap var(--t-base) var(--ease);
+}
+
+.ed-viewall:hover { gap: 0.7rem; }
+
+/* Shared page masthead — blog, about, contact, legal ---------------------- */
+.ed-page-header {
+    padding: 1rem 0 clamp(1.75rem, 4vw, 2.75rem);
+    margin-bottom: clamp(2rem, 4vw, 3rem);
+    border-bottom: 2px solid var(--text-primary);
+}
+
+.ed-page-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2.4rem, 5.4vw, 3.8rem);
+    line-height: 1.04;
+    letter-spacing: -0.025em;
+    color: var(--text-primary);
+    margin: 0.7rem 0 0;
+    text-wrap: balance;
+}
+
+.ed-page-title span {
+    color: var(--accent);
+    font-style: italic;
+}
+
+.ed-page-lead {
+    font-size: 1.12rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    max-width: 58ch;
+    margin: 1.15rem 0 0;
+}
+
+.ed-page-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.75rem;
+    margin-top: 1.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-secondary);
+}
+
+.ed-page-meta strong { color: var(--accent); font-weight: 700; }
+
+/* Numbered index list — home + blog --------------------------------------- */
+.ed-index-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 2px solid var(--text-primary);
+}
+
+.ed-row { border-bottom: 1px solid var(--line); }
+
+.ed-row-link {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: clamp(1rem, 3vw, 2.75rem);
+    align-items: start;
+    padding: clamp(1.15rem, 2.5vw, 1.75rem) 0.75rem;
+    text-decoration: none;
+    position: relative;
+    border-radius: var(--radius-sm);
+    transition: background var(--t-base) var(--ease);
+}
+
+.ed-row-link:hover { background: var(--accent-softer); }
+
+.ed-row-num {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-400);
+    padding-top: 0.55rem;
+    transition: color var(--t-base) var(--ease);
+}
+
+.ed-row-link:hover .ed-row-num { color: var(--accent); }
+
+.ed-row-title {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(1.3rem, 2.5vw, 2rem);
+    line-height: 1.18;
+    letter-spacing: -0.015em;
+    color: var(--text-primary);
+    transition: color var(--t-base) var(--ease);
+    text-wrap: balance;
+}
+
+.ed-row-link:hover .ed-row-title { color: var(--accent-strong); }
+
+.ed-row-excerpt {
+    margin: 0.45rem 0 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    max-width: 62ch;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.ed-row-meta {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    padding-top: 0.6rem;
+    white-space: nowrap;
+}
+
+.ed-row-cat {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+}
+
+.ed-row-date {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    font-variant-numeric: tabular-nums;
+}
+
+.ed-row-arrow {
+    color: var(--ink-300);
+    font-size: 1.1rem;
+    transition: transform var(--t-base) var(--ease-spring), color var(--t-base) var(--ease);
+}
+
+.ed-row-link:hover .ed-row-arrow { color: var(--accent); transform: translateX(4px); }
+
+/* Stat ledger — home + about ---------------------------------------------- */
+.ed-stat {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.05rem 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.ed-stat:first-child { border-top: 1px solid var(--line); }
+
+.ed-stat-num {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 2.1rem;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+}
+
+.ed-stat-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-secondary);
+    text-align: right;
+}
+
+@media (max-width: 640px) {
+    .ed-row-link { grid-template-columns: auto 1fr; gap: 1rem 1.1rem; }
+    .ed-row-meta { grid-column: 2 / -1; padding-top: 0.9rem; flex-wrap: wrap; }
+    .ed-row-arrow { display: none; }
+}
 
 /* ==========================================================================
    RESPONSIVE

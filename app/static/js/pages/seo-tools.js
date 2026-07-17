@@ -46,6 +46,7 @@ async function researchKeywordsForDraft() {
     }
 
     showLoading('Researching keywords for your draft...');
+    showActionLoader('Researching keywords...');
 
     try {
         // First get the draft content
@@ -54,6 +55,7 @@ async function researchKeywordsForDraft() {
 
         if (!draftData.success) {
             hideLoading();
+            hideActionLoader();
             alert('Error loading draft');
             return;
         }
@@ -69,6 +71,7 @@ async function researchKeywordsForDraft() {
 
         const data = await response.json();
         hideLoading();
+        hideActionLoader();
 
         if (data.success) {
             currentDraftId = draftId;
@@ -79,6 +82,7 @@ async function researchKeywordsForDraft() {
         }
     } catch (error) {
         hideLoading();
+        hideActionLoader();
         alert('Network error. Please try again.');
         console.error(error);
     }
@@ -95,6 +99,7 @@ async function analyzeDraft() {
 
     currentDraftId = draftId;
     showLoading('Analyzing SEO performance...');
+    showActionLoader('Analyzing...');
 
     try {
         const response = await fetch(`/api/seo/analyze-draft/${draftId}`, {
@@ -105,6 +110,7 @@ async function analyzeDraft() {
 
         const data = await response.json();
         hideLoading();
+        hideActionLoader();
 
         if (data.success) {
             currentDraftTitle = data.blog_title;
@@ -115,6 +121,7 @@ async function analyzeDraft() {
         }
     } catch (error) {
         hideLoading();
+        hideActionLoader();
         alert('Network error. Please try again.');
         console.error(error);
     }
@@ -184,6 +191,7 @@ async function applyOptimizationToDraft() {
     currentDraftId = draftId;
     const region = document.getElementById('draft-region').value;
     showLoading('Applying SEO optimization to your draft...');
+    showActionLoader('Optimizing...');
 
     try {
         const response = await fetch(`/api/seo/optimize-blog/${draftId}`, {
@@ -194,6 +202,7 @@ async function applyOptimizationToDraft() {
 
         const data = await response.json();
         hideLoading();
+        hideActionLoader();
 
         if (data.success) {
             currentDraftTitle = data.new_title || currentDraftTitle;
@@ -204,6 +213,7 @@ async function applyOptimizationToDraft() {
         }
     } catch (error) {
         hideLoading();
+        hideActionLoader();
         alert('Network error. Please try again.');
         console.error(error);
     }
@@ -597,6 +607,7 @@ async function analyzeUrlSeo() {
     }
 
     showLoading('Analyzing URL SEO... This may take 10-20 seconds.');
+    showActionLoader('Analyzing URL...');
 
     try {
         const response = await fetch('/api/seo/analyze-url', {
@@ -607,6 +618,7 @@ async function analyzeUrlSeo() {
 
         const data = await response.json();
         hideLoading();
+        hideActionLoader();
 
         if (data.success) {
             displayUrlResults(data);
@@ -615,6 +627,7 @@ async function analyzeUrlSeo() {
         }
     } catch (error) {
         hideLoading();
+        hideActionLoader();
         alert('Network error. Please try again.');
         console.error(error);
     }

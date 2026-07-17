@@ -205,6 +205,7 @@ function goToPage(page) {
 // ==================== VIEW/EDIT MODAL ====================
 
 async function openCommentModal(commentId) {
+    closeAllDropdowns();
     currentCommentId = commentId;
 
     // Reset to details tab
@@ -213,6 +214,7 @@ async function openCommentModal(commentId) {
     document.querySelector('.tab-item[data-tab="details"]').classList.add('active');
     document.getElementById('tab-details').classList.add('active');
 
+    showActionLoader('Loading...');
     try {
         const res = await fetch(`/api/comments/${commentId}`);
         const data = await res.json();
@@ -225,10 +227,13 @@ async function openCommentModal(commentId) {
 
             const modal = new bootstrap.Modal(document.getElementById('commentModal'));
             modal.show();
+            hideActionLoader();
         } else {
+            hideActionLoader();
             showToast({ type: 'error', title: 'Error', message: 'Failed to load comment details.', duration: 4000 });
         }
     } catch (err) {
+        hideActionLoader();
         console.error('Error loading comment:', err);
         showToast({ type: 'error', title: 'Error', message: 'Failed to load comment details.', duration: 4000 });
     }
@@ -322,6 +327,7 @@ async function saveCommentEdit() {
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
 
+    showActionLoader('Saving...');
     try {
         const res = await fetch(`/api/comments/${currentCommentId}/edit`, {
             method: 'POST',
@@ -342,6 +348,7 @@ async function saveCommentEdit() {
         console.error('Save edit error:', err);
         showToast({ type: 'error', title: 'Error', message: 'Something went wrong.', duration: 4000 });
     } finally {
+        hideActionLoader();
         btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-check-lg"></i> Save Changes';
     }
@@ -350,35 +357,45 @@ async function saveCommentEdit() {
 // ==================== REMOVE / RESTORE ====================
 
 async function removeComment(commentId) {
+    closeAllDropdowns();
+    showActionLoader('Removing...');
     try {
         const res = await fetch(`/api/comments/${commentId}/remove`, { method: 'POST' });
         const data = await res.json();
 
         if (data.success) {
+            hideActionLoader();
             showToast({ type: 'warning', title: 'Removed', message: 'Comment removed from public site.', duration: 3000 });
             animateRowOut(commentId);
             refreshStats();
         } else {
+            hideActionLoader();
             showToast({ type: 'error', title: 'Error', message: data.error || 'Failed to remove.', duration: 4000 });
         }
     } catch (err) {
+        hideActionLoader();
         showToast({ type: 'error', title: 'Error', message: 'Something went wrong.', duration: 4000 });
     }
 }
 
 async function restoreComment(commentId) {
+    closeAllDropdowns();
+    showActionLoader('Restoring...');
     try {
         const res = await fetch(`/api/comments/${commentId}/restore`, { method: 'POST' });
         const data = await res.json();
 
         if (data.success) {
+            hideActionLoader();
             showToast({ type: 'success', title: 'Restored', message: 'Comment restored to public site.', duration: 3000 });
             animateRowOut(commentId);
             refreshStats();
         } else {
+            hideActionLoader();
             showToast({ type: 'error', title: 'Error', message: data.error || 'Failed to restore.', duration: 4000 });
         }
     } catch (err) {
+        hideActionLoader();
         showToast({ type: 'error', title: 'Error', message: 'Something went wrong.', duration: 4000 });
     }
 }
@@ -396,6 +413,7 @@ async function confirmDelete() {
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Deleting...';
 
+    showActionLoader('Deleting...');
     try {
         const res = await fetch(`/api/comments/${currentCommentId}/delete`, { method: 'DELETE' });
         const data = await res.json();
@@ -411,6 +429,7 @@ async function confirmDelete() {
     } catch (err) {
         showToast({ type: 'error', title: 'Error', message: 'Something went wrong.', duration: 4000 });
     } finally {
+        hideActionLoader();
         btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-trash"></i> Delete';
     }

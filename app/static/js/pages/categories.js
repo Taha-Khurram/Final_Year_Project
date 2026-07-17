@@ -13,6 +13,7 @@ document.getElementById('addCategoryForm').addEventListener('submit', async (e) 
   const formData = new FormData(e.target);
   const name = formData.get('name').trim();
 
+  showActionLoader('Creating category...');
   try {
     const res = await fetch('/api/categories', {
       method: 'POST',
@@ -21,6 +22,7 @@ document.getElementById('addCategoryForm').addEventListener('submit', async (e) 
     });
     const data = await res.json();
     if (data.success) {
+      // Keep the loader visible through the reload below.
       showToast({
         type: 'success',
         title: 'Category Created',
@@ -29,6 +31,7 @@ document.getElementById('addCategoryForm').addEventListener('submit', async (e) 
       });
       setTimeout(() => location.reload(), 1000);
     } else {
+      hideActionLoader();
       showToast({
         type: 'error',
         title: 'Error',
@@ -37,6 +40,7 @@ document.getElementById('addCategoryForm').addEventListener('submit', async (e) 
       });
     }
   } catch (err) {
+    hideActionLoader();
     console.error(err);
     showToast({
       type: 'error',
@@ -49,6 +53,7 @@ document.getElementById('addCategoryForm').addEventListener('submit', async (e) 
 
 // Edit Category Modal Opener
 function openEditModal(id, name) {
+  closeAllDropdowns();
   document.getElementById('editCategoryId').value = id;
   document.getElementById('editCategoryName').value = name;
   const editModal = new bootstrap.Modal(document.getElementById('editCategoryModal'));
@@ -61,6 +66,7 @@ document.getElementById('editCategoryForm').addEventListener('submit', async (e)
   const id = document.getElementById('editCategoryId').value;
   const name = document.getElementById('editCategoryName').value.trim();
 
+  showActionLoader('Updating category...');
   try {
     const res = await fetch(`/api/edit_category/${id}`, {
       method: 'POST',
@@ -69,6 +75,7 @@ document.getElementById('editCategoryForm').addEventListener('submit', async (e)
     });
     const data = await res.json();
     if (data.success) {
+      // Keep the loader visible through the reload below.
       showToast({
         type: 'success',
         title: 'Category Updated',
@@ -77,6 +84,7 @@ document.getElementById('editCategoryForm').addEventListener('submit', async (e)
       });
       setTimeout(() => location.reload(), 1000);
     } else {
+      hideActionLoader();
       showToast({
         type: 'error',
         title: 'Update Failed',
@@ -85,6 +93,7 @@ document.getElementById('editCategoryForm').addEventListener('submit', async (e)
       });
     }
   } catch (err) {
+    hideActionLoader();
     console.error(err);
     showToast({
       type: 'error',
@@ -97,12 +106,16 @@ document.getElementById('editCategoryForm').addEventListener('submit', async (e)
 
 // Delete Category
 async function deleteCategory(id) {
+  // Close the dropdown and show the shared loader (consistent async UX).
+  closeAllDropdowns();
+  showActionLoader('Deleting category...');
   try {
     const res = await fetch(`/api/delete_category/${id}`, {
       method: 'DELETE'
     });
     const data = await res.json();
     if (data.success) {
+      // Keep the loader visible through the reload below.
       showToast({
         type: 'warning',
         title: 'Category Deleted',
@@ -111,6 +124,7 @@ async function deleteCategory(id) {
       });
       setTimeout(() => location.reload(), 1000);
     } else {
+      hideActionLoader();
       showToast({
         type: 'error',
         title: 'Delete Failed',
@@ -119,6 +133,7 @@ async function deleteCategory(id) {
       });
     }
   } catch (err) {
+    hideActionLoader();
     console.error(err);
     showToast({
       type: 'error',
@@ -140,6 +155,7 @@ document.getElementById('searchInput').addEventListener('keyup', function () {
 
 // View Blogs in Category
 async function viewCategoryBlogs(categoryId, categoryName) {
+  closeAllDropdowns();
   const modal = new bootstrap.Modal(document.getElementById('viewBlogsModal'));
   document.getElementById('viewBlogsCategoryName').textContent = categoryName;
   document.getElementById('blogsListLoading').classList.remove('d-none');

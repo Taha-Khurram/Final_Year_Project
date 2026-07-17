@@ -229,21 +229,25 @@ async function deleteImage(id) {
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Deleting...';
 
+    showActionLoader('Deleting...');
     try {
         var res = await fetch('/api/gallery/images/' + id, { method: 'DELETE' });
         var data = await res.json();
 
         if (data.success) {
+            hideActionLoader();
             closeDeleteModal();
             deleteImageId = null;
             loadImages();
             showGalleryToast('Image deleted');
         } else {
+            hideActionLoader();
             btn.disabled = false;
             btn.innerHTML = '<i class="bi bi-trash"></i> Delete';
             showGalleryToast(data.error || 'Delete failed');
         }
     } catch (err) {
+        hideActionLoader();
         console.error('Delete error:', err);
         btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-trash"></i> Delete';

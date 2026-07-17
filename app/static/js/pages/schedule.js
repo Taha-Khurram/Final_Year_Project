@@ -239,6 +239,7 @@ function setupRescheduleModal() {
     btn.disabled = true;
     btn.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div> Rescheduling...';
 
+    showActionLoader('Rescheduling...');
     var isoDate = new Date(dateTime).toISOString();
     fetch('/api/schedule/' + rescheduleBlogId + '/reschedule', {
       method: 'POST',
@@ -259,6 +260,7 @@ function setupRescheduleModal() {
       showToast({ type: 'error', title: 'Error', message: 'Connection error.', duration: 4000 });
     })
     .finally(function() {
+      hideActionLoader();
       btn.disabled = false;
       btn.innerHTML = '<i class="bi bi-calendar-check"></i> Reschedule';
     });
@@ -266,6 +268,7 @@ function setupRescheduleModal() {
 }
 
 function openReschedule(blogId, title) {
+  closeAllDropdowns();
   rescheduleBlogId = blogId;
   document.getElementById('reschedule-blog-title').textContent = title;
 
@@ -282,14 +285,17 @@ function openReschedule(blogId, title) {
 // ==================== PUBLISH / CANCEL ====================
 
 function publishNow(blogId) {
+  closeAllDropdowns();
   if (!confirm('Publish this blog immediately?')) return;
 
+  showActionLoader('Publishing...');
   fetch('/api/schedule/' + blogId + '/publish-now', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' }
   })
   .then(function(res) { return res.json(); })
   .then(function(data) {
+    hideActionLoader();
     if (data.success) {
       showToast({ type: 'success', title: 'Published!', message: 'Blog is now live on the site.', duration: 3000 });
       loadScheduleData();
@@ -298,19 +304,23 @@ function publishNow(blogId) {
     }
   })
   .catch(function() {
+    hideActionLoader();
     showToast({ type: 'error', title: 'Error', message: 'Connection error.', duration: 4000 });
   });
 }
 
 function cancelSchedule(blogId) {
+  closeAllDropdowns();
   if (!confirm('Cancel this scheduled blog? It will be moved back to drafts.')) return;
 
+  showActionLoader('Cancelling...');
   fetch('/api/schedule/' + blogId + '/cancel', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' }
   })
   .then(function(res) { return res.json(); })
   .then(function(data) {
+    hideActionLoader();
     if (data.success) {
       showToast({ type: 'warning', title: 'Cancelled', message: 'Schedule cancelled, blog moved to drafts.', duration: 3000 });
       loadScheduleData();
@@ -319,6 +329,7 @@ function cancelSchedule(blogId) {
     }
   })
   .catch(function() {
+    hideActionLoader();
     showToast({ type: 'error', title: 'Error', message: 'Connection error.', duration: 4000 });
   });
 }
@@ -433,6 +444,7 @@ function confirmScheduleBlog() {
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div> Scheduling...';
 
+  showActionLoader('Scheduling...');
   var isoDate = new Date(dateTime).toISOString();
   fetch('/api/schedule/' + selectedBlogId, {
     method: 'POST',
@@ -453,6 +465,7 @@ function confirmScheduleBlog() {
     showToast({ type: 'error', title: 'Error', message: 'Connection error.', duration: 4000 });
   })
   .finally(function() {
+    hideActionLoader();
     btn.disabled = false;
     btn.innerHTML = '<i class="bi bi-calendar-check"></i> Schedule';
   });

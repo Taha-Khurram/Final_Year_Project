@@ -5,10 +5,13 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     // ==================== FAQ ACCORDION ====================
+    // Note: FAQ now uses native <details>/<summary>; this legacy accordion
+    // only runs for the old .faq-question markup if present.
     const faqItems = document.querySelectorAll('.faq-item');
 
     faqItems.forEach(item => {
         const question = item.querySelector('.faq-question');
+        if (!question) return;
 
         question.addEventListener('click', () => {
             // Close other items

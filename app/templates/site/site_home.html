@@ -4,312 +4,118 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/site/home.css') }}">
-<style>
-    .newsletter-section::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        width: 64%;
-        background:
-            linear-gradient(90deg, rgba(18, 35, 67, 0.68) 0%, rgba(18, 35, 67, 0.1) 44%, rgba(18, 35, 67, 0.32) 100%),
-            url("{{ settings.hero_home.newsletter_image if settings.hero_home and settings.hero_home.newsletter_image else 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1400&q=80' }}") center center/cover no-repeat;
-        z-index: 0;
-    }
-</style>
 {% endblock %}
 
+{% macro excerpt(blog, n) %}{% if blog.content is mapping %}{{ (blog.content.body or blog.content.markdown or blog.content.text or '')|striptags|truncate(n) }}{% else %}{{ blog.content|striptags|truncate(n) }}{% endif %}{% endmacro %}
+
 {% block content %}
+{% set cover = (featured_post if featured_post is defined and featured_post else (blogs[0] if blogs and blogs|length > 0 else None)) %}
+
 {% if blogs and blogs|length > 0 %}
-<!-- Hero Section -->
-<section class="site-hero">
-    <div class="hero-container">
-        <div class="hero-slider" id="blog-hero-slider" data-animate="fade-up">
-            {% set hero_blogs = slider_blogs if slider_blogs is defined and slider_blogs else blogs %}
-            {% if hero_blogs and hero_blogs|length > 0 %}
-                {% for hero_blog in hero_blogs %}
-                <article class="hero-slide{% if loop.first %} is-active{% endif %}" data-slide-index="{{ loop.index0 }}">
-                    <div class="hero-slide-media">
-                        {% if hero_blog.cover_image %}
-                        <img src="{{ hero_blog.cover_image }}" alt="{{ hero_blog.title }}" loading="{% if loop.first %}eager{% else %}lazy{% endif %}">
-                        {% else %}
-                        <div class="hero-slide-fallback"><i class="bi bi-image"></i></div>
-                        {% endif %}
-                    </div>
-                    <div class="hero-slide-overlay"></div>
-                    <div class="hero-slide-content">
-                        <div class="hero-badge">
-                            <i class="bi bi-images"></i>
-                            {% set badge_text = settings.hero_home.badge | default('{site_name} Stories') %}
-                            {{ badge_text | replace('{site_name}', settings.site_name | default('')) | replace('{niche}', settings.niche | default('')) }}
-                        </div>
-                        {% if hero_blog.category %}
-                        <span class="hero-slide-category">{{ hero_blog.category }}</span>
-                        {% endif %}
-                        <h2 class="hero-slide-title">
-                            <a href="{{ url_for('site_bp.site_post', site_identifier=settings.site_slug|default(user_id, true), slug_or_id=hero_blog.slug or hero_blog.id) }}">
-                                {{ hero_blog.title }}
-                            </a>
-                        </h2>
-                        <p class="hero-slide-excerpt">
-                            {% if hero_blog.content is mapping %}
-                                {{ (hero_blog.content.body or hero_blog.content.markdown or hero_blog.content.text or '')|striptags|truncate(180) }}
-                            {% else %}
-                                {{ hero_blog.content|striptags|truncate(180) }}
-                            {% endif %}
-                        </p>
-                        <div class="hero-slide-meta">
-                            <i class="bi bi-calendar3"></i>
-                            {{ hero_blog.updated_at.strftime('%B %d, %Y') if hero_blog.updated_at else 'Recently Published' }}
-                        </div>
-                    </div>
-                </article>
-                {% endfor %}
-
-                {% if hero_blogs|length > 1 %}
-                <div class="hero-slider-controls" aria-label="Hero slider controls">
-                    <button class="hero-control-btn" type="button" data-slide-control="prev" aria-label="Previous slide">
-                        <i class="bi bi-chevron-left"></i>
-                    </button>
-                    <button class="hero-control-btn" type="button" data-slide-control="next" aria-label="Next slide">
-                        <i class="bi bi-chevron-right"></i>
-                    </button>
-                </div>
-                <div class="hero-slider-dots" role="tablist" aria-label="Slide dots">
-                    {% for hero_blog in hero_blogs %}
-                    <button type="button" class="hero-dot{% if loop.first %} is-active{% endif %}" data-slide-dot="{{ loop.index0 }}" aria-label="Show slide {{ loop.index }}"></button>
-                    {% endfor %}
-                </div>
-                {% endif %}
-            {% else %}
-                <article class="hero-slide is-active">
-                    <div class="hero-slide-media">
-                        <div class="hero-slide-fallback"><i class="bi bi-journal-richtext"></i></div>
-                    </div>
-                    <div class="hero-slide-overlay"></div>
-                    <div class="hero-slide-content">
-                        <h2 class="hero-slide-title">Fresh stories are coming soon</h2>
-                        <p class="hero-slide-excerpt">This highlight slider will automatically showcase featured images from your newest blog posts.</p>
-                    </div>
-                </article>
-            {% endif %}
+<!-- ==================== COVER STORY / MASTHEAD ==================== -->
+<section class="ed-cover" data-animate="fade-up">
+    <div class="ed-cover-text">
+        <div class="ed-eyebrow">
+            <span class="ed-eyebrow-mark">{% if current_category %}{{ current_category }}{% else %}Featured{% endif %}</span>
+            {% if cover.category and not current_category %}<span class="ed-dot">·</span><span>{{ cover.category }}</span>{% endif %}
+            {% if cover.updated_at %}<span class="ed-dot">·</span><span>{{ cover.updated_at.strftime('%B %d, %Y') }}</span>{% endif %}
         </div>
-    </div>
-</section>
-
-<hr class="section-divider section-divider--thick">
-
-<section class="latest-inline-section" data-animate="fade-up">
-    <div class="latest-inline-header">
-        <div class="latest-inline-title">
-            <h2>{{ settings.hero_home.latest_title if settings.hero_home else 'Latest Posts' }}</h2>
-            <p>{{ settings.hero_home.latest_subtitle if settings.hero_home else 'Curated insights from our latest published articles.' }}</p>
-        </div>
-        <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}" class="view-all">
-            {{ settings.hero_home.view_all_text if settings.hero_home else 'View All Posts' }} <i class="bi bi-arrow-up-right"></i>
+        <h1 class="ed-cover-title">
+            <a href="{{ url_for('site_bp.site_post', site_identifier=settings.site_slug|default(user_id, true), slug_or_id=cover.slug or cover.id) }}">{{ cover.title }}</a>
+        </h1>
+        <p class="ed-cover-lead">{{ excerpt(cover, 220) }}</p>
+        <a class="ed-read-link" href="{{ url_for('site_bp.site_post', site_identifier=settings.site_slug|default(user_id, true), slug_or_id=cover.slug or cover.id) }}">
+            <span class="ed-rule"></span> Read the story <i class="bi bi-arrow-right"></i>
         </a>
     </div>
+    <a class="ed-cover-media" href="{{ url_for('site_bp.site_post', site_identifier=settings.site_slug|default(user_id, true), slug_or_id=cover.slug or cover.id) }}">
+        {% if cover.cover_image %}
+        <img src="{{ cover.cover_image }}" alt="{{ cover.title }}" loading="eager">
+        {% else %}
+        <span class="ed-cover-fallback"><i class="bi bi-journal-richtext"></i></span>
+        {% endif %}
+    </a>
+</section>
 
-    <div class="latest-inline-grid">
-        {% for blog in blogs[:3] %}
-        <article class="latest-inline-card">
-            <div class="latest-inline-image{% if blog.cover_image %} has-cover{% endif %}">
-                {% if blog.cover_image %}
-                <img src="{{ blog.cover_image }}" alt="{{ blog.title }}" loading="lazy">
-                {% else %}
-                <i class="bi bi-journal-richtext"></i>
-                {% endif %}
-            </div>
-            <div class="latest-inline-body">
-                <div class="latest-inline-top">
-                    <span class="latest-inline-category">{{ blog.category if blog.category else 'General' }}</span>
-                    <span class="latest-inline-date">{{ blog.updated_at.strftime('%b %d, %Y') if blog.updated_at else 'Recently' }}</span>
-                </div>
-                <h3 class="latest-inline-heading">
-                    <a href="{{ url_for('site_bp.site_post', site_identifier=settings.site_slug|default(user_id, true), slug_or_id=blog.slug or blog.id) }}">
-                        {{ blog.title }}
-                    </a>
-                </h3>
-                <p class="latest-inline-excerpt">
-                    {% if blog.content is mapping %}
-                        {{ (blog.content.body or blog.content.markdown or blog.content.text or '')|striptags|truncate(115) }}
-                    {% else %}
-                        {{ blog.content|striptags|truncate(115) }}
-                    {% endif %}
-                </p>
-                <span class="latest-inline-read"><i class="bi bi-clock"></i> {{ 4 + (loop.index % 7) }} min read</span>
-            </div>
-        </article>
-        {% endfor %}
+<!-- ==================== THE INDEX ==================== -->
+<section class="ed-index" data-animate="fade-up">
+    <div class="ed-section-head">
+        <h2 class="ed-kicker">{% if current_category %}More in {{ current_category }}{% else %}The Index{% endif %}</h2>
+        <a class="ed-viewall" href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}">All articles <i class="bi bi-arrow-up-right"></i></a>
     </div>
+    <ol class="ed-index-list" data-animate-stagger>
+        {% for blog in blogs if not cover or blog.id != cover.id %}
+        <li class="ed-row">
+            <a class="ed-row-link" href="{{ url_for('site_bp.site_post', site_identifier=settings.site_slug|default(user_id, true), slug_or_id=blog.slug or blog.id) }}">
+                <span class="ed-row-num">{{ '%02d'|format(loop.index) }}</span>
+                <span class="ed-row-main">
+                    <span class="ed-row-title">{{ blog.title }}</span>
+                    <span class="ed-row-excerpt">{{ excerpt(blog, 150) }}</span>
+                </span>
+                <span class="ed-row-meta">
+                    <span class="ed-row-cat">{{ blog.category if blog.category else 'General' }}</span>
+                    <span class="ed-row-date">{{ blog.updated_at.strftime('%b %d, %Y') if blog.updated_at else 'Recently' }}</span>
+                    <span class="ed-row-arrow"><i class="bi bi-arrow-right"></i></span>
+                </span>
+            </a>
+        </li>
+        {% endfor %}
+    </ol>
 </section>
 
 {% else %}
-<!-- Empty State -->
-<div class="empty-state">
-    <svg viewBox="0 0 200 160" width="150" height="120" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom: 1.5rem;">
-        <!-- Background circle -->
-        <circle cx="100" cy="80" r="60" fill="rgba(99, 102, 241, 0.1)"/>
-
-        <!-- Notebook/journal -->
-        <rect x="60" y="40" width="80" height="100" rx="6" fill="#E2E8F0"/>
-        <rect x="65" y="45" width="70" height="90" rx="4" fill="white"/>
-
-        <!-- Lines on paper -->
-        <rect x="75" y="60" width="40" height="5" rx="2" fill="#CBD5E0"/>
-        <rect x="75" y="72" width="50" height="4" rx="2" fill="#E2E8F0"/>
-        <rect x="75" y="82" width="45" height="4" rx="2" fill="#E2E8F0"/>
-        <rect x="75" y="92" width="48" height="4" rx="2" fill="#E2E8F0"/>
-
-        <!-- Pencil -->
-        <g transform="rotate(-30, 150, 60)">
-            <rect x="130" y="55" width="35" height="7" rx="2" fill="#F6AD55"/>
-            <polygon points="130,58.5 122,58.5 130,62   " fill="#2D3748"/>
-            <rect x="157" y="55" width="8" height="7" rx="1" fill="#FC8181"/>
-        </g>
-
-        <!-- Question marks -->
-        <text x="100" y="115" text-anchor="middle" fill="#A0AEC0" font-size="24" font-weight="bold">?</text>
-        <text x="155" y="95" text-anchor="middle" fill="#CBD5E0" font-size="16">?</text>
-        <text x="45" y="75" text-anchor="middle" fill="#CBD5E0" font-size="14">?</text>
-    </svg>
+<!-- ==================== EMPTY STATE ==================== -->
+<div class="empty-state" data-animate="fade-up">
+    <i class="bi bi-journal-richtext"></i>
     <h3>No posts yet</h3>
-    <p>Check back soon for new content!</p>
+    <p>Fresh writing is on the way — check back soon.</p>
 </div>
 {% endif %}
 
-<!-- About the Platform Section -->
-<hr class="section-divider">
-
-<section class="about-platform-section" data-animate="fade-up">
-    <div class="about-platform-media">
-        <img
-            src="{{ settings.about_image_url if settings.about_image_url else 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=900&q=80' }}"
-            alt="{{ settings.site_name }} platform overview"
-            loading="lazy"
-        >
+<!-- ==================== ABOUT (editorial) ==================== -->
+<section class="ed-about" data-animate="fade-up">
+    <div class="ed-about-head">
+        <p class="ed-kicker">{{ settings.hero_home.about_kicker if settings.hero_home else 'About the Platform' }}</p>
+        {% set about_title_text = settings.hero_home.about_title | default('%s blends practical expertise with a clear publishing vision.'|format(settings.site_name | default('This site'))) %}
+        <h2 class="ed-about-title">{{ about_title_text | replace('{site_name}', settings.site_name | default('')) }}</h2>
     </div>
-    <div class="about-platform-content">
-        <p class="about-platform-kicker">{{ settings.hero_home.about_kicker if settings.hero_home else 'About the Platform' }}</p>
-        {% set about_title_text = settings.hero_home.about_title | default('{site_name} blends practical expertise with clear publishing vision.') %}
-        <h2 class="about-platform-title">{{ about_title_text | replace('{site_name}', settings.site_name | default('')) }}</h2>
-        <p class="about-platform-description">
-            {{ settings.site_description | default('Our public site shares actionable insights, thoughtful writing, and useful guidance built for readers who want clarity and consistency.') }}
-        </p>
-        <div class="about-platform-stats">
-            <div class="about-platform-stat">
-                <strong>{{ blogs|length if blogs else 0 }}+</strong>
-                <span>{{ settings.hero_home.stats_label_1 if settings.hero_home else 'Published Articles' }}</span>
+    <div class="ed-about-body">
+        <p>{{ settings.site_description | default('We share actionable insights, thoughtful writing, and useful guidance built for readers who want clarity and consistency — not noise.') }}</p>
+        <div class="ed-about-stats">
+            <div class="ed-stat">
+                <span class="ed-stat-num" data-count>{{ blogs|length if blogs else 0 }}+</span>
+                <span class="ed-stat-label">{{ settings.hero_home.stats_label_1 if settings.hero_home else 'Published Articles' }}</span>
             </div>
-            <div class="about-platform-stat">
-                <strong>{{ categories|length if categories else 0 }}</strong>
-                <span>{{ settings.hero_home.stats_label_2 if settings.hero_home else 'Active Categories' }}</span>
+            <div class="ed-stat">
+                <span class="ed-stat-num" data-count>{{ categories|length if categories else 0 }}</span>
+                <span class="ed-stat-label">{{ settings.hero_home.stats_label_2 if settings.hero_home else 'Active Categories' }}</span>
             </div>
         </div>
-        <a href="{{ url_for('site_bp.site_about', site_identifier=settings.site_slug|default(user_id, true)) }}" class="about-platform-link">
-            {{ settings.hero_home.cta_secondary if settings.hero_home else 'Learn More' }} <i class="bi bi-arrow-right"></i>
+        <a href="{{ url_for('site_bp.site_about', site_identifier=settings.site_slug|default(user_id, true)) }}" class="ed-read-link">
+            <span class="ed-rule"></span> {{ settings.hero_home.cta_secondary if settings.hero_home else 'Learn more about us' }} <i class="bi bi-arrow-right"></i>
         </a>
     </div>
 </section>
 
-<!-- Newsletter Section -->
-<hr class="section-divider">
-
-<section class="newsletter-section" data-animate="fade-up">
-    <div class="newsletter-content">
-        <div class="newsletter-icon">
-            <svg viewBox="0 0 50 50" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="5" y="15" width="40" height="28" rx="4" fill="rgba(255,255,255,0.2)"/>
-                <path d="M5 19 L25 32 L45 19" stroke="white" stroke-width="2.5" fill="none"/>
-                <path d="M5 43 L18 30 M45 43 L32 30" stroke="rgba(255,255,255,0.5)" stroke-width="2" fill="none"/>
-                <circle cx="38" cy="12" r="8" fill="#FC8181"/>
-                <text x="38" y="15" text-anchor="middle" fill="white" font-size="9" font-weight="bold">1</text>
-            </svg>
-        </div>
-        <h2>{{ settings.footer.newsletter_title if settings.footer else 'Stay Updated' }}</h2>
-        <p>{{ settings.footer.newsletter_description if settings.footer else 'Subscribe to our newsletter and never miss a new article. Get the latest posts delivered right to your inbox.' }}</p>
-        <form class="newsletter-form-lg" id="home-newsletter-form">
-            <input type="email" name="email" placeholder="Enter your email address" required>
-            <button type="submit">
-                Subscribe <i class="bi bi-arrow-right"></i>
-            </button>
-        </form>
-        <p class="newsletter-disclaimer">{{ settings.hero_home.newsletter_disclaimer if settings.hero_home else 'No spam, unsubscribe anytime.' }}</p>
-    </div>
+<!-- ==================== NEWSLETTER (editorial band) ==================== -->
+<section class="ed-news" data-animate="fade-up">
+    <p class="ed-kicker">Newsletter</p>
+    <h2>{{ settings.footer.newsletter_title if settings.footer else 'Never miss a story' }}</h2>
+    <p>{{ settings.footer.newsletter_description if settings.footer else 'Subscribe and get new articles delivered straight to your inbox — thoughtful, occasional, and never spammy.' }}</p>
+    <form class="ed-news-form" id="home-newsletter-form">
+        <input type="email" name="email" placeholder="you@example.com" required>
+        <button type="submit">Subscribe <i class="bi bi-arrow-right"></i></button>
+    </form>
+    <p class="ed-news-note">{{ settings.hero_home.newsletter_disclaimer if settings.hero_home else 'No spam · Unsubscribe anytime' }}</p>
 </section>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Hero blog image slider
-    (function initHeroSlider() {
-        const slider = document.getElementById('blog-hero-slider');
-        if (!slider) return;
-
-        const slides = Array.from(slider.querySelectorAll('.hero-slide'));
-        const dots = Array.from(slider.querySelectorAll('.hero-dot'));
-        const prevBtn = slider.querySelector('[data-slide-control="prev"]');
-        const nextBtn = slider.querySelector('[data-slide-control="next"]');
-
-        if (slides.length <= 1) return;
-
-        let index = 0;
-        let timer = null;
-
-        const showSlide = (nextIndex) => {
-            index = (nextIndex + slides.length) % slides.length;
-            slides.forEach((slide, i) => {
-                slide.classList.toggle('is-active', i === index);
-            });
-            dots.forEach((dot, i) => {
-                dot.classList.toggle('is-active', i === index);
-            });
-        };
-
-        const startAutoplay = () => {
-            stopAutoplay();
-            timer = setInterval(() => showSlide(index + 1), 15000);
-        };
-
-        const stopAutoplay = () => {
-            if (timer) {
-                clearInterval(timer);
-                timer = null;
-            }
-        };
-
-        if (prevBtn) {
-            prevBtn.addEventListener('click', () => {
-                showSlide(index - 1);
-                startAutoplay();
-            });
-        }
-
-        if (nextBtn) {
-            nextBtn.addEventListener('click', () => {
-                showSlide(index + 1);
-                startAutoplay();
-            });
-        }
-
-        dots.forEach((dot, dotIndex) => {
-            dot.addEventListener('click', () => {
-                showSlide(dotIndex);
-                startAutoplay();
-            });
-        });
-
-        slider.addEventListener('mouseenter', stopAutoplay);
-        slider.addEventListener('mouseleave', startAutoplay);
-
-        startAutoplay();
-    })();
-
-    // Newsletter Form
+    // Newsletter subscribe (inline, editorial home)
     const homeNewsletterForm = document.getElementById('home-newsletter-form');
     if (homeNewsletterForm) {
-        homeNewsletterForm.addEventListener('submit', async function(e) {
+        homeNewsletterForm.addEventListener('submit', async function (e) {
             e.preventDefault();
             const email = this.querySelector('input[name="email"]').value;
             const button = this.querySelector('button');

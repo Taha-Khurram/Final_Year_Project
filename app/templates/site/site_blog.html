@@ -8,18 +8,13 @@
 
 {% block content %}
 <!-- Page Header -->
-<header class="blog-page-header" data-animate="fade-up">
-    <h1>{{ settings.hero_blog.title if settings.hero_blog else 'Blogs' }}</h1>
-    <p>{{ settings.hero_blog.subtitle if settings.hero_blog else 'Explore our collection of articles, tutorials, and insights.' }}</p>
-    <div class="blog-page-meta">
-        <span class="blog-page-meta-item">
-            <i class="bi bi-journal-text"></i>
-            <strong>{{ total_posts }}</strong> Articles
-        </span>
-        <span class="blog-page-meta-item">
-            <i class="bi bi-folder"></i>
-            <strong>{{ categories|length }}</strong> Categories
-        </span>
+<header class="ed-page-header" data-animate="fade-up">
+    <p class="ed-kicker">{% if current_category %}Category · {{ current_category }}{% else %}The Journal{% endif %}</p>
+    <h1 class="ed-page-title">{{ settings.hero_blog.title if settings.hero_blog else 'The' }} <span>Blog</span></h1>
+    <p class="ed-page-lead">{{ settings.hero_blog.subtitle if settings.hero_blog else 'Explore our collection of articles, tutorials, and insights.' }}</p>
+    <div class="ed-page-meta">
+        <span><strong>{{ total_posts }}</strong> Articles</span>
+        <span><strong>{{ categories|length }}</strong> Categories</span>
     </div>
 </header>
 

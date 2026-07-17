@@ -7,113 +7,22 @@
 {% endblock %}
 
 {% block content %}
-<!-- Contact Hero -->
-<section class="contact-hero">
-    <div class="contact-hero-content" data-animate="fade-up">
-        <div class="contact-hero-icon">
-            <i class="bi bi-envelope-paper"></i>
-        </div>
-        <h1>{{ settings.hero_contact.title | default('Get in Touch') }}</h1>
+<!-- ==================== MASTHEAD ==================== -->
+<header class="ed-page-header" data-animate="fade-up">
+    <p class="ed-kicker">Contact</p>
+    <h1 class="ed-page-title">{{ settings.hero_contact.title | default('Get in') }} <span>Touch</span></h1>
+    <p class="ed-page-lead">
         {% set subtitle_text = settings.hero_contact.subtitle | default("Have questions or feedback? We'd love to hear from you. Send us a message and we'll respond as soon as possible.") %}
-        <p>{{ subtitle_text | replace('{site_description}', settings.site_description | default('')) | replace('{site_name}', settings.site_name | default('')) }}</p>
-    </div>
+        {{ subtitle_text | replace('{site_description}', settings.site_description | default('')) | replace('{site_name}', settings.site_name | default('')) }}
+    </p>
+</header>
 
-    <div class="contact-hero-illustration">
-        <svg viewBox="0 0 400 320" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Background elements -->
-            <ellipse cx="200" cy="160" rx="150" ry="130" fill="url(#contactGrad1)" opacity="0.1"/>
-            <circle cx="320" cy="60" r="35" fill="url(#contactGrad2)" opacity="0.08"/>
-            <circle cx="60" cy="260" r="30" fill="url(#contactGrad2)" opacity="0.06"/>
-
-            <!-- Main envelope -->
-            <g transform="translate(100, 80)">
-                <!-- Envelope body -->
-                <rect x="0" y="40" width="200" height="130" rx="8" fill="#E2E8F0"/>
-                <rect x="5" y="45" width="190" height="120" rx="5" fill="white"/>
-
-                <!-- Envelope flap -->
-                <path d="M0 48 L100 110 L200 48 L200 40 L0 40 Z" fill="#CBD5E0"/>
-                <path d="M5 50 L100 105 L195 50" stroke="white" stroke-width="2" fill="none"/>
-
-                <!-- Letter inside -->
-                <rect x="25" y="75" width="150" height="80" rx="3" fill="#F7FAFC"/>
-                <rect x="35" y="85" width="80" height="6" rx="3" fill="var(--secondary-color, #6366F1)"/>
-                <rect x="35" y="97" width="110" height="4" rx="2" fill="#CBD5E0"/>
-                <rect x="35" y="107" width="95" height="4" rx="2" fill="#CBD5E0"/>
-                <rect x="35" y="117" width="105" height="4" rx="2" fill="#CBD5E0"/>
-                <rect x="35" y="130" width="50" height="15" rx="4" fill="var(--secondary-color, #6366F1)" opacity="0.8"/>
-            </g>
-
-            <!-- Flying paper planes -->
-            <g transform="translate(280, 50) rotate(-15)">
-                <path d="M0 20 L50 10 L50 15 L15 20 L50 25 L50 30 L0 20" fill="#8B5CF6" opacity="0.8"/>
-                <path d="M15 20 L50 15 L50 25 L15 20" fill="var(--secondary-color, #6366F1)"/>
-            </g>
-
-            <g transform="translate(60, 100) rotate(25) scale(0.6)">
-                <path d="M0 20 L50 10 L50 15 L15 20 L50 25 L50 30 L0 20" fill="#A78BFA" opacity="0.6"/>
-                <path d="M15 20 L50 15 L50 25 L15 20" fill="#8B5CF6"/>
-            </g>
-
-            <!-- Chat bubbles -->
-            <g transform="translate(290, 130)">
-                <rect x="0" y="0" width="70" height="40" rx="10" fill="white" filter="url(#contactShadow)"/>
-                <circle cx="20" cy="20" r="4" fill="var(--secondary-color, #6366F1)"/>
-                <circle cx="35" cy="20" r="4" fill="var(--secondary-color, #6366F1)"/>
-                <circle cx="50" cy="20" r="4" fill="var(--secondary-color, #6366F1)"/>
-                <polygon points="15,40 25,40 20,50" fill="white"/>
-            </g>
-
-            <g transform="translate(30, 170)">
-                <rect x="0" y="0" width="55" height="35" rx="8" fill="var(--secondary-color, #6366F1)"/>
-                <rect x="10" y="10" width="25" height="4" rx="2" fill="white" opacity="0.9"/>
-                <rect x="10" y="18" width="35" height="4" rx="2" fill="white" opacity="0.6"/>
-                <polygon points="40,35 50,35 45,45" fill="var(--secondary-color, #6366F1)"/>
-            </g>
-
-            <!-- Notification bell -->
-            <g transform="translate(320, 200)">
-                <circle cx="20" cy="20" r="25" fill="#FEF3C7"/>
-                <path d="M20 8 L20 12 M12 28 L28 28 M15 20 C15 14 17 10 20 10 C23 10 25 14 25 20 L25 25 L15 25 L15 20" stroke="#F59E0B" stroke-width="2.5" fill="none"/>
-                <circle cx="20" cy="30" r="3" fill="#F59E0B"/>
-            </g>
-
-            <!-- Stars/sparkles -->
-            <g style="fill:var(--secondary-color)" opacity="0.7">
-                <path d="M350 100 L352 105 L358 105 L353 109 L355 115 L350 111 L345 115 L347 109 L342 105 L348 105 Z"/>
-                <path d="M75 60 L76.5 64 L81 64 L77.5 67 L79 72 L75 69 L71 72 L72.5 67 L69 64 L73.5 64 Z" transform="scale(0.7)"/>
-            </g>
-
-            <!-- Hearts -->
-            <path d="M45 140 C45 132 58 132 58 140 C58 152 45 160 45 160 C45 160 32 152 32 140 C32 132 45 132 45 140" fill="#FC8181" opacity="0.7" transform="scale(0.6) translate(30, 50)"/>
-
-            <!-- Decorative circles -->
-            <circle cx="340" cy="250" r="8" fill="#A78BFA" opacity="0.5"/>
-            <circle cx="50" cy="50" r="6" fill="var(--secondary-color, #6366F1)" opacity="0.4"/>
-
-            <defs>
-                <linearGradient id="contactGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:var(--secondary-color)"/>
-                    <stop offset="100%" style="stop-color:#8B5CF6"/>
-                </linearGradient>
-                <linearGradient id="contactGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#4318FF"/>
-                    <stop offset="100%" style="stop-color:var(--secondary-color)"/>
-                </linearGradient>
-                <filter id="contactShadow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.1"/>
-                </filter>
-            </defs>
-        </svg>
-    </div>
-</section>
-
-<!-- Contact Layout -->
+<!-- ==================== CONTACT LAYOUT ==================== -->
 <div class="contact-layout">
     <!-- Contact Form -->
     <div class="contact-form-card" data-animate="fade-up">
-        <h2>{{ settings.hero_contact.form_title if settings.hero_contact else 'Send a Message' }}</h2>
-        <p class="subtitle">{{ settings.hero_contact.form_subtitle if settings.hero_contact else "Fill out the form below and we'll get back to you shortly." }}</p>
+        <p class="ed-kicker">{{ settings.hero_contact.form_title if settings.hero_contact else 'Send a Message' }}</p>
+        <p class="contact-form-lead">{{ settings.hero_contact.form_subtitle if settings.hero_contact else "Fill out the form below and we'll get back to you shortly." }}</p>
 
         {% if request.args.get('success') %}
         <div class="alert alert-success">
@@ -151,7 +60,7 @@
                 <textarea id="message" name="message" class="form-control" placeholder="Your message..." rows="5" required></textarea>
             </div>
 
-            <button type="submit" class="btn-submit" id="submit-btn">
+            <button type="submit" class="btn-primary btn-submit" id="submit-btn">
                 <i class="bi bi-send"></i> Send Message
             </button>
         </form>
@@ -223,26 +132,28 @@
     </aside>
 </div>
 
-<!-- FAQ Section -->
+<!-- ==================== FAQ ==================== -->
 <section class="faq-section">
-    <h2>Frequently Asked Questions</h2>
-    <div class="faq-grid" data-animate-stagger>
-        <div class="faq-card">
-            <h4><i class="bi bi-question-circle"></i> {{ settings.hero_contact.faq_1_q if settings.hero_contact else 'How quickly will I get a response?' }}</h4>
+    <div class="ed-section-head">
+        <h2 class="ed-kicker">Frequently Asked Questions</h2>
+    </div>
+    <div class="faq-list" data-animate-stagger>
+        <details class="faq-item">
+            <summary>{{ settings.hero_contact.faq_1_q if settings.hero_contact else 'How quickly will I get a response?' }}<i class="bi bi-plus"></i></summary>
             <p>{{ settings.hero_contact.faq_1_a if settings.hero_contact else 'We aim to respond to all inquiries within 24-48 hours during business days.' }}</p>
-        </div>
-        <div class="faq-card">
-            <h4><i class="bi bi-question-circle"></i> {{ settings.hero_contact.faq_2_q if settings.hero_contact else 'Can I contribute to the blog?' }}</h4>
+        </details>
+        <details class="faq-item">
+            <summary>{{ settings.hero_contact.faq_2_q if settings.hero_contact else 'Can I contribute to the blog?' }}<i class="bi bi-plus"></i></summary>
             <p>{{ settings.hero_contact.faq_2_a if settings.hero_contact else "We welcome guest contributions! Reach out with your ideas and we'll discuss collaboration opportunities." }}</p>
-        </div>
-        <div class="faq-card">
-            <h4><i class="bi bi-question-circle"></i> {{ settings.hero_contact.faq_3_q if settings.hero_contact else 'How can I stay updated?' }}</h4>
+        </details>
+        <details class="faq-item">
+            <summary>{{ settings.hero_contact.faq_3_q if settings.hero_contact else 'How can I stay updated?' }}<i class="bi bi-plus"></i></summary>
             <p>{{ settings.hero_contact.faq_3_a if settings.hero_contact else 'Subscribe to our newsletter or follow us on social media to never miss new content.' }}</p>
-        </div>
-        <div class="faq-card">
-            <h4><i class="bi bi-question-circle"></i> {{ settings.hero_contact.faq_4_q if settings.hero_contact else 'Do you offer partnerships?' }}</h4>
+        </details>
+        <details class="faq-item">
+            <summary>{{ settings.hero_contact.faq_4_q if settings.hero_contact else 'Do you offer partnerships?' }}<i class="bi bi-plus"></i></summary>
             <p>{{ settings.hero_contact.faq_4_a if settings.hero_contact else "Yes! We're open to collaborations and partnerships. Let us know what you have in mind." }}</p>
-        </div>
+        </details>
     </div>
 </section>
 {% endblock %}

@@ -142,6 +142,7 @@ function openEditRole(uid, username, currentRole) {
 }
 
 async function resendInvitation(email) {
+    showActionLoader('Sending...');
     try {
         const res = await fetch('/users/resend-invite', {
             method: 'POST',
@@ -150,11 +151,14 @@ async function resendInvitation(email) {
         });
         const data = await res.json();
         if (data.success) {
+            hideActionLoader();
             showToast('Invitation resent to ' + email, 'success');
         } else {
+            hideActionLoader();
             showToast(data.error || 'Failed to resend', 'error');
         }
     } catch (err) {
+        hideActionLoader();
         showToast('Connection failed', 'error');
     }
 }
@@ -185,6 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Sending...';
 
+            showActionLoader('Sending...');
             try {
                 const formData = Object.fromEntries(new FormData(inviteForm).entries());
                 const res = await fetch('/users/invite', {
@@ -207,6 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (err) {
                 showToast('Connection failed', 'error');
             } finally {
+                hideActionLoader();
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="bi bi-send-fill"></i> Send Invitation';
             }
@@ -219,6 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const userId = document.getElementById('editUserId').value;
             const role = document.getElementById('editRole').value;
 
+            showActionLoader('Updating...');
             try {
                 const res = await fetch('/users/update-role', {
                     method: 'POST',
@@ -227,15 +234,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 const data = await res.json();
                 if (data.success) {
+                    hideActionLoader();
                     const modalEl = document.getElementById('editRoleModal');
                     const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
                     modal.hide();
                     loadUsers();
                     showToast('Role updated', 'success');
                 } else {
+                    hideActionLoader();
                     showToast(data.error || 'Failed to update', 'error');
                 }
             } catch (err) {
+                hideActionLoader();
                 showToast('Connection failed', 'error');
             }
         });

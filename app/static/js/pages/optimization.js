@@ -50,6 +50,7 @@
         analyzeUrlBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Analyzing...';
         urlEmptyState.style.display = 'none';
         urlResultsSection.classList.remove('show');
+        showActionLoader('Analyzing URL...');
 
         try {
             var response = await fetch('/api/optimization/url-metrics?url=' + encodeURIComponent(url));
@@ -67,6 +68,7 @@
             showToast({ type: 'error', title: 'Connection Error', message: 'Failed to connect. Please try again.' });
             urlEmptyState.style.display = 'block';
         } finally {
+            hideActionLoader();
             analyzeUrlBtn.disabled = false;
             analyzeUrlBtn.innerHTML = '<i class="bi bi-search"></i> Analyze';
         }
@@ -202,6 +204,7 @@
         analyzeKeywordBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Analyzing...';
         kwEmptyState.style.display = 'none';
         kwResultsSection.classList.remove('show');
+        showActionLoader('Researching keywords...');
 
         try {
             var response = await fetch('/api/optimization/draft-keywords', {
@@ -223,6 +226,7 @@
             showToast({ type: 'error', title: 'Connection Error', message: 'Failed to connect. Please try again.' });
             kwEmptyState.style.display = 'block';
         } finally {
+            hideActionLoader();
             analyzeKeywordBtn.disabled = false;
             analyzeKeywordBtn.innerHTML = '<i class="bi bi-search"></i> Research';
         }
@@ -296,6 +300,7 @@
         auditBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Auditing...';
         auditEmptyState.style.display = 'none';
         auditResultsSection.classList.remove('show');
+        showActionLoader('Auditing...');
 
         try {
             var response = await fetch('/api/optimization/site-audit?domain=' + encodeURIComponent(domain));
@@ -313,6 +318,7 @@
             showToast({ type: 'error', title: 'Connection Error', message: 'Failed to connect. Please try again.' });
             auditEmptyState.style.display = 'block';
         } finally {
+            hideActionLoader();
             auditBtn.disabled = false;
             auditBtn.innerHTML = '<i class="bi bi-shield-check"></i> Audit';
         }
@@ -462,6 +468,7 @@
         optimizeEmptyState.style.display = 'none';
         optimizeResultsSection.classList.remove('show');
         optimizeLoading.style.display = 'flex';
+        showActionLoader('Optimizing...');
 
         try {
             var response = await fetch('/api/seo/optimize-blog/' + blogId, {
@@ -483,6 +490,7 @@
             showToast({ type: 'error', title: 'Connection Error', message: 'Failed to connect. Please try again.' });
             optimizeEmptyState.style.display = 'block';
         } finally {
+            hideActionLoader();
             optimizeBtn.disabled = false;
             optimizeBtn.innerHTML = '<i class="bi bi-magic"></i> Optimize';
             optimizeLoading.style.display = 'none';
@@ -692,10 +700,13 @@
     });
 
     window.deleteReport = async function(reportId, idx) {
+        closeAllDropdowns();
         if (!confirm('Delete this optimization report?')) return;
+        showActionLoader('Deleting...');
         try {
             var response = await fetch('/api/optimization/reports/' + reportId, { method: 'DELETE' });
             var result = await response.json();
+            hideActionLoader();
             if (result.success) {
                 reportsCache.splice(idx, 1);
                 renderReportsList();
@@ -704,6 +715,7 @@
                 showToast({ type: 'error', title: 'Error', message: result.error || 'Could not delete report.' });
             }
         } catch (err) {
+            hideActionLoader();
             showToast({ type: 'error', title: 'Error', message: 'Failed to delete report.' });
         }
     };

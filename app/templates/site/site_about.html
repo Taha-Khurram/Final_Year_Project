@@ -7,42 +7,27 @@
 {% endblock %}
 
 {% block content %}
-<!-- Full-Width Hero -->
-<section class="about-hero">
-    <div class="about-hero-inner" data-animate="fade-up">
-        <div class="about-hero-content">
-            <span class="about-hero-badge">
-                <i class="bi bi-info-circle"></i> {{ settings.hero_about.badge_text if settings.hero_about else 'About Us' }}
-            </span>
-            <h1>About <span>{{ settings.site_name }}</span></h1>
-            <p class="about-hero-description">
-                {% set subtitle_text = settings.hero_about.subtitle | default(settings.site_description) | default('Discover insightful articles, tips, and stories that inspire and inform. Join our community of readers today.') %}
-                {{ subtitle_text | replace('{site_description}', settings.site_description | default('')) | replace('{site_name}', settings.site_name | default('')) }}
-            </p>
-            <div class="about-hero-stats">
-                <div class="about-hero-stat">
-                    <strong>{{ published_count }}+</strong>
-                    <span>{{ settings.hero_home.stats_label_1 if settings.hero_home else 'Articles' }}</span>
-                </div>
-                <div class="about-hero-stat">
-                    <strong>{{ categories_count }}</strong>
-                    <span>{{ settings.hero_home.stats_label_2 if settings.hero_home else 'Categories' }}</span>
-                </div>
-                <div class="about-hero-stat">
-                    <strong>{{ (published_count * 50) }}+</strong>
-                    <span>{{ settings.hero_home.stats_label_3 if settings.hero_home else 'Readers' }}</span>
-                </div>
-            </div>
-        </div>
+<!-- ==================== MASTHEAD ==================== -->
+<header class="ed-page-header" data-animate="fade-up">
+    <p class="ed-kicker">{{ settings.hero_about.badge_text if settings.hero_about else 'About Us' }}</p>
+    <h1 class="ed-page-title">About <span>{{ settings.site_name }}</span></h1>
+    <p class="ed-page-lead">
+        {% set subtitle_text = settings.hero_about.subtitle | default(settings.site_description) | default('Discover insightful articles, tips, and stories that inspire and inform. Join our community of readers today.') %}
+        {{ subtitle_text | replace('{site_description}', settings.site_description | default('')) | replace('{site_name}', settings.site_name | default('')) }}
+    </p>
+    <div class="ed-page-meta">
+        <span><strong>{{ published_count }}+</strong> {{ settings.hero_home.stats_label_1 if settings.hero_home else 'Articles' }}</span>
+        <span><strong>{{ categories_count }}</strong> {{ settings.hero_home.stats_label_2 if settings.hero_home else 'Categories' }}</span>
+        <span><strong>{{ (published_count * 50) }}+</strong> {{ settings.hero_home.stats_label_3 if settings.hero_home else 'Readers' }}</span>
     </div>
-</section>
+</header>
 
-<hr class="section-divider">
-
-<!-- Our Story Section -->
-<section class="story-section" data-animate="fade-up">
-    <h2 class="section-title"><i class="bi bi-book"></i> {{ settings.hero_about.story_title if settings.hero_about else 'Our Story' }}</h2>
-    <div class="story-content">
+<!-- ==================== OUR STORY ==================== -->
+<section class="ed-about-story" data-animate="fade-up">
+    <div class="ed-about-story-head">
+        <p class="ed-kicker">{{ settings.hero_about.story_title if settings.hero_about else 'Our Story' }}</p>
+    </div>
+    <div class="ed-about-story-body">
         {% if settings.about_content %}
         {{ settings.about_content|safe }}
         {% else %}
@@ -52,71 +37,66 @@
     </div>
 </section>
 
-<hr class="section-divider">
+<!-- ==================== VALUES ==================== -->
+<section class="ed-values" data-animate="fade-up">
+    <div class="ed-section-head">
+        <h2 class="ed-kicker">{{ settings.hero_about.values_title if settings.hero_about else 'What We Stand For' }}</h2>
+    </div>
+    <ol class="ed-values-list" data-animate-stagger>
+        <li class="ed-value">
+            <span class="ed-value-num">01</span>
+            <div class="ed-value-main">
+                <h3>{{ settings.hero_about.value_1_title if settings.hero_about else 'Quality Content' }}</h3>
+                <p>{{ settings.hero_about.value_1_desc if settings.hero_about else "We're committed to delivering well-researched, thoughtful articles that provide real value to our readers." }}</p>
+            </div>
+        </li>
+        <li class="ed-value">
+            <span class="ed-value-num">02</span>
+            <div class="ed-value-main">
+                <h3>{{ settings.hero_about.value_2_title if settings.hero_about else 'Community First' }}</h3>
+                <p>{{ settings.hero_about.value_2_desc if settings.hero_about else 'Our readers are at the heart of everything we do. We listen, engage, and grow together as a community.' }}</p>
+            </div>
+        </li>
+        <li class="ed-value">
+            <span class="ed-value-num">03</span>
+            <div class="ed-value-main">
+                <h3>{{ settings.hero_about.value_3_title if settings.hero_about else 'Authenticity' }}</h3>
+                <p>{{ settings.hero_about.value_3_desc if settings.hero_about else 'We believe in honest, transparent content. What you read is our genuine perspective and experience.' }}</p>
+            </div>
+        </li>
+    </ol>
+</section>
 
-<!-- Values Section -->
-<section class="values-section">
-    <h2 class="section-title">{{ settings.hero_about.values_title if settings.hero_about else 'What We Stand For' }}</h2>
-    <p class="section-subtitle">{{ settings.hero_about.values_subtitle if settings.hero_about else 'The principles that guide everything we create and share.' }}</p>
-    <div class="values-grid" data-animate-stagger>
-        <div class="value-card">
-            <div class="value-icon">
-                <i class="bi bi-trophy"></i>
-            </div>
-            <h3>{{ settings.hero_about.value_1_title if settings.hero_about else 'Quality Content' }}</h3>
-            <p>{{ settings.hero_about.value_1_desc if settings.hero_about else "We're committed to delivering well-researched, thoughtful articles that provide real value to our readers." }}</p>
+<!-- ==================== BY THE NUMBERS ==================== -->
+<section class="ed-about-figures" data-animate="fade-up">
+    <div class="ed-about-figures-head">
+        <p class="ed-kicker">{{ settings.hero_about.stats_title if settings.hero_about else 'By the Numbers' }}</p>
+    </div>
+    <div class="ed-about-figures-ledger">
+        <div class="ed-stat">
+            <span class="ed-stat-num" data-count>{{ published_count }}</span>
+            <span class="ed-stat-label">{{ settings.hero_about.stat_1_label if settings.hero_about else 'Articles Published' }}</span>
         </div>
-        <div class="value-card">
-            <div class="value-icon">
-                <i class="bi bi-people"></i>
-            </div>
-            <h3>{{ settings.hero_about.value_2_title if settings.hero_about else 'Community First' }}</h3>
-            <p>{{ settings.hero_about.value_2_desc if settings.hero_about else 'Our readers are at the heart of everything we do. We listen, engage, and grow together as a community.' }}</p>
+        <div class="ed-stat">
+            <span class="ed-stat-num" data-count>{{ categories_count }}</span>
+            <span class="ed-stat-label">{{ settings.hero_about.stat_2_label if settings.hero_about else 'Categories' }}</span>
         </div>
-        <div class="value-card">
-            <div class="value-icon">
-                <i class="bi bi-shield-check"></i>
-            </div>
-            <h3>{{ settings.hero_about.value_3_title if settings.hero_about else 'Authenticity' }}</h3>
-            <p>{{ settings.hero_about.value_3_desc if settings.hero_about else 'We believe in honest, transparent content. What you read is our genuine perspective and experience.' }}</p>
+        <div class="ed-stat">
+            <span class="ed-stat-num" data-count>{{ (published_count * 50) }}+</span>
+            <span class="ed-stat-label">{{ settings.hero_about.stat_3_label if settings.hero_about else 'Happy Readers' }}</span>
+        </div>
+        <div class="ed-stat">
+            <span class="ed-stat-num">{{ settings.hero_about.stat_4_value if settings.hero_about else '24/7' }}</span>
+            <span class="ed-stat-label">{{ settings.hero_about.stat_4_label if settings.hero_about else 'Always Available' }}</span>
         </div>
     </div>
 </section>
 
-<hr class="section-divider">
-
-<!-- Stats Section -->
-<section class="stats-section" data-animate="fade-up">
-    <div class="stats-content">
-        <h2 class="stats-title">{{ settings.hero_about.stats_title if settings.hero_about else 'By the Numbers' }}</h2>
-        <div class="stats-grid">
-            <div class="stat-item">
-                <div class="stat-number">{{ published_count }}</div>
-                <div class="stat-label">{{ settings.hero_about.stat_1_label if settings.hero_about else 'Articles Published' }}</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number">{{ categories_count }}</div>
-                <div class="stat-label">{{ settings.hero_about.stat_2_label if settings.hero_about else 'Categories' }}</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number">{{ (published_count * 50) }}+</div>
-                <div class="stat-label">{{ settings.hero_about.stat_3_label if settings.hero_about else 'Happy Readers' }}</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number">{{ settings.hero_about.stat_4_value if settings.hero_about else '24/7' }}</div>
-                <div class="stat-label">{{ settings.hero_about.stat_4_label if settings.hero_about else 'Always Available' }}</div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<hr class="section-divider">
-
-<!-- CTA Section -->
-<section class="cta-section" data-animate="fade-up">
+<!-- ==================== CTA ==================== -->
+<section class="ed-about-cta" data-animate="fade-up">
     <h2>{{ settings.hero_about.cta_title if settings.hero_about else 'Ready to Explore?' }}</h2>
     <p>{{ settings.hero_about.cta_subtitle if settings.hero_about else "Discover our latest articles or get in touch with us. We'd love to hear from you!" }}</p>
-    <div class="cta-buttons">
+    <div class="ed-about-cta-actions">
         <a href="{{ url_for('site_bp.site_blog', site_identifier=settings.site_slug|default(user_id, true)) }}" class="btn-primary">
             <i class="bi bi-journal-text"></i> {{ settings.hero_about.cta_btn_primary if settings.hero_about else 'Browse Articles' }}
         </a>

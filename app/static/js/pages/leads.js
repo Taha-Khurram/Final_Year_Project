@@ -288,20 +288,24 @@ async function deleteLead(id) {
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Deleting...';
 
+    showActionLoader('Deleting...');
     try {
         const res = await fetch(`/api/leads/${id}/delete`, { method: 'POST' });
         const data = await res.json();
 
         if (data.success) {
+            hideActionLoader();
             closeDeleteModal();
             currentLeadId = null;
             loadLeads();
             refreshStats();
         } else {
+            hideActionLoader();
             btn.disabled = false;
             btn.innerHTML = '<i class="bi bi-trash"></i> Delete';
         }
     } catch (err) {
+        hideActionLoader();
         console.error('Error deleting lead:', err);
         btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-trash"></i> Delete';

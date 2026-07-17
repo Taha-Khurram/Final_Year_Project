@@ -88,9 +88,12 @@ async function viewSelectedDraft() {
         return;
     }
 
+    showActionLoader('Loading draft...');
+
     try {
         const response = await fetch(`/api/get_blog/${draftId}`);
         const data = await response.json();
+        hideActionLoader();
 
         if (data.success && data.blog) {
             const blog = data.blog;
@@ -133,6 +136,7 @@ async function viewSelectedDraft() {
             viewModal.show();
         }
     } catch (error) {
+        hideActionLoader();
         console.error('Error:', error);
         alert('Failed to load draft');
     }
@@ -179,6 +183,7 @@ async function formatContent() {
     }
 
     showLoading();
+    showActionLoader('Formatting...');
 
     try {
         const response = await fetch('/api/format', {
@@ -189,6 +194,7 @@ async function formatContent() {
 
         const data = await response.json();
         hideLoading();
+        hideActionLoader();
 
         if (data.success) {
             formattedData = data.formatted;
@@ -198,6 +204,7 @@ async function formatContent() {
         }
     } catch (error) {
         hideLoading();
+        hideActionLoader();
         alert('Network error. Please try again.');
         console.error(error);
     }

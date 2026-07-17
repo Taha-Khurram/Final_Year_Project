@@ -533,6 +533,53 @@ a {
     pointer-events: none;
 }
 
+/* --------------------------------------------------------------------------
+   Global Action Loader (shared full-screen loader for async actions)
+   -------------------------------------------------------------------------- */
+
+#action-loader {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.35);
+    backdrop-filter: blur(3px);
+    z-index: 11000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+#action-loader.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+#action-loader .action-loader-card {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    background: #ffffff;
+    padding: 1rem 1.75rem;
+    border-radius: 999px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+#action-loader .spinner-border {
+    width: 1.4rem;
+    height: 1.4rem;
+    border-width: 0.2em;
+}
+
+#action-loader .action-loader-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #334155;
+}
+
 /* Page transition animations */
 .page-transition {
     animation: fadeInUp 0.4s ease-out;

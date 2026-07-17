@@ -62,12 +62,15 @@ var initEditor = (initialContent) => {
 
 async function openViewModal(id) {
   currentViewingId = id;
+  closeAllDropdowns();
+  showActionLoader('Loading draft...');
   try {
     const res = await fetch(`/api/get_blog/${id}`);
     if (!res.ok) throw new Error(`Server error (${res.status})`);
     const data = await res.json();
 
     if (data.success) {
+      hideActionLoader();
       const blog = data.blog;
 
       // Set title
@@ -150,6 +153,7 @@ async function openViewModal(id) {
       const viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
       viewModal.show();
     } else {
+      hideActionLoader();
       showToast({
         type: 'error',
         title: 'Error',
@@ -158,6 +162,7 @@ async function openViewModal(id) {
       });
     }
   } catch (err) {
+    hideActionLoader();
     console.error('openViewModal error:', err);
     showToast({
       type: 'error',
@@ -170,11 +175,14 @@ async function openViewModal(id) {
 
 async function openEditModal(id) {
   currentEditingId = id;
+  closeAllDropdowns();
+  showActionLoader('Loading draft...');
   try {
     const res = await fetch(`/api/get_blog/${id}`);
     if (!res.ok) throw new Error(`Server error (${res.status})`);
     const data = await res.json();
     if (data.success) {
+      hideActionLoader();
       document.getElementById('modal-title').value = data.blog.title;
 
       // Set slug field
@@ -233,6 +241,7 @@ async function openEditModal(id) {
       setupSeoToggle();
 
     } else {
+      hideActionLoader();
       showToast({
         type: 'error',
         title: 'Error',
@@ -241,6 +250,7 @@ async function openEditModal(id) {
       });
     }
   } catch (err) {
+    hideActionLoader();
     console.error('openEditModal error:', err);
     showToast({
       type: 'error',
@@ -372,6 +382,10 @@ async function saveModalChanges() {
 }
 
 async function submitForReview(id) {
+  // Close the dropdown and show the shared loader (consistent async UX).
+  closeAllDropdowns();
+  showActionLoader('Submitting for review...');
+
   // Find and disable the dropdown button for this row
   const row = document.getElementById(`row-${id}`);
   const dropdownBtn = row ? row.querySelector('.btn-dropdown-trigger') : null;
@@ -388,6 +402,7 @@ async function submitForReview(id) {
     });
     const data = await res.json();
     if (data.success) {
+      hideActionLoader();
       showToast({
         type: 'success',
         title: 'Submitted for Review',
@@ -404,6 +419,7 @@ async function submitForReview(id) {
         }, 300);
       }
     } else {
+      hideActionLoader();
       if (dropdownBtn) {
         dropdownBtn.disabled = false;
         dropdownBtn.innerHTML = '<i class="bi bi-three-dots-vertical"></i>';
@@ -416,6 +432,7 @@ async function submitForReview(id) {
       });
     }
   } catch (e) {
+    hideActionLoader();
     if (dropdownBtn) {
       dropdownBtn.disabled = false;
       dropdownBtn.innerHTML = '<i class="bi bi-three-dots-vertical"></i>';
@@ -462,20 +479,7 @@ function updateHumanizeStage(stage, progress) {
   }
 }
 
-// Close any open Bootstrap dropdown menu.
-function closeAllDropdowns() {
-  document.querySelectorAll('.dropdown-menu.show').forEach(function (menu) {
-    const trigger = menu.parentElement
-      ? menu.parentElement.querySelector('[data-bs-toggle="dropdown"]')
-      : null;
-    if (trigger && window.bootstrap && bootstrap.Dropdown) {
-      const inst = bootstrap.Dropdown.getOrCreateInstance(trigger);
-      inst.hide();
-    } else {
-      menu.classList.remove('show');
-    }
-  });
-}
+// closeAllDropdowns() is provided globally by app.js.
 
 async function humanizeDraft(id) {
   // Close the dropdown and show the full-screen loader (same UX as generation).
@@ -562,6 +566,10 @@ function pollHumanizeStatus(taskId) {
 }
 
 async function deleteDraft(id) {
+  // Close the dropdown and show the shared loader (consistent async UX).
+  closeAllDropdowns();
+  showActionLoader('Deleting draft...');
+
   // Find and disable the dropdown button for this row
   const row = document.getElementById(`row-${id}`);
   const dropdownBtn = row ? row.querySelector('.btn-dropdown-trigger') : null;
@@ -574,6 +582,7 @@ async function deleteDraft(id) {
     const res = await fetch(`/api/delete_blog/${id}`, { method: 'DELETE' });
     const data = await res.json();
     if (data.success) {
+      hideActionLoader();
       showToast({
         type: 'warning',
         title: 'Draft Deleted',
@@ -590,6 +599,7 @@ async function deleteDraft(id) {
         }, 300);
       }
     } else {
+      hideActionLoader();
       if (dropdownBtn) {
         dropdownBtn.disabled = false;
         dropdownBtn.innerHTML = '<i class="bi bi-three-dots-vertical"></i>';
@@ -602,6 +612,7 @@ async function deleteDraft(id) {
       });
     }
   } catch (e) {
+    hideActionLoader();
     if (dropdownBtn) {
       dropdownBtn.disabled = false;
       dropdownBtn.innerHTML = '<i class="bi bi-three-dots-vertical"></i>';
@@ -627,6 +638,7 @@ var FALLBACK_SUGGESTIONS = [
 
 function openScheduleModal(blogId) {
   scheduleBlogId = blogId;
+  closeAllDropdowns();
 
   const now = new Date();
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());

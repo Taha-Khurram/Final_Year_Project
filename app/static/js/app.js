@@ -82,6 +82,81 @@ window.showLoader = showLoader;
 window.hideLoader = hideLoader;
 
 // --------------------------------------------------------------------------
+// Global Dropdown + Action Loader Helpers
+//
+// These give every page a single, consistent loading pattern (mirroring the
+// blog-generation loader): whenever a user triggers an async action — most
+// often by picking an option from a dropdown menu — the dropdown is closed and
+// a full-screen overlay with a spinner + message is shown until the action
+// finishes.
+// --------------------------------------------------------------------------
+
+// Close any open Bootstrap dropdown menu on the page.
+const closeAllDropdowns = () => {
+    document.querySelectorAll('.dropdown-menu.show').forEach((menu) => {
+        const trigger = menu.parentElement
+            ? menu.parentElement.querySelector('[data-bs-toggle="dropdown"]')
+            : null;
+        if (trigger && window.bootstrap && bootstrap.Dropdown) {
+            try {
+                bootstrap.Dropdown.getOrCreateInstance(trigger).hide();
+                return;
+            } catch (e) { /* fall through to manual removal */ }
+        }
+        menu.classList.remove('show');
+    });
+};
+
+window.closeAllDropdowns = closeAllDropdowns;
+
+// Lazily create (once) and return the shared action-loader overlay element.
+const getActionLoader = () => {
+    let overlay = document.getElementById('action-loader');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'action-loader';
+        overlay.className = 'hidden';
+        overlay.setAttribute('role', 'status');
+        overlay.setAttribute('aria-live', 'polite');
+        overlay.innerHTML = `
+            <div class="action-loader-card">
+                <div class="spinner-border text-primary" role="status"></div>
+                <span class="action-loader-text">Working...</span>
+            </div>`;
+        document.body.appendChild(overlay);
+    }
+    return overlay;
+};
+
+// Show the shared full-screen action loader with an optional message.
+const showActionLoader = (message) => {
+    const overlay = getActionLoader();
+    const text = overlay.querySelector('.action-loader-text');
+    if (text) text.textContent = message || 'Working...';
+    // Force reflow so the CSS transition runs even right after creation.
+    void overlay.offsetWidth;
+    overlay.classList.remove('hidden');
+};
+
+// Update the message shown on the action loader without toggling visibility.
+const updateActionLoader = (message) => {
+    const overlay = document.getElementById('action-loader');
+    if (!overlay) return;
+    const text = overlay.querySelector('.action-loader-text');
+    if (text && message) text.textContent = message;
+};
+
+// Hide the shared full-screen action loader.
+const hideActionLoader = () => {
+    const overlay = document.getElementById('action-loader');
+    if (overlay) overlay.classList.add('hidden');
+};
+
+window.showActionLoader = showActionLoader;
+window.updateActionLoader = updateActionLoader;
+window.hideActionLoader = hideActionLoader;
+
+// --------------------------------------------------------------------------
 // Pjax Navigation System (SPA-like transitions)
 // --------------------------------------------------------------------------
 
