@@ -3,6 +3,7 @@
 <a href="https://github.com/Taha-Khurram/Final_Year_Project">
   <img src="app/static/images/git.png" alt="View on GitHub" width="220" />
 </a>
+
 # Scriptly — AI Blog Platform
 
 **Generate. Humanize. Publish. On autopilot.**
